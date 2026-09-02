@@ -1,0 +1,8 @@
+.page { display: flex; flex-direction: column; gap: var(--space-5); }
+.chartsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+.chartContainer { height: 300px; }
+.summaryCards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+.summaryCard { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); padding: var(--space-5); text-align: center; }
+.summaryValue { font-size: var(--font-2xl); font-weight: 700; color: var(--text-primary); }
+.summaryLabel { font-size: var(--font-sm); color: var(--text-secondary); margin-top: var(--space-1); }
+@media (max-width: 768px) { .chartsGrid { grid-template-columns: 1fr; } .summaryCards { grid-template-columns: 1fr; } }

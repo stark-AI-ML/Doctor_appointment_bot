@@ -1,0 +1,32 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.mainArea {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  transition: margin-left var(--transition-base);
+}
+
+.mainArea.collapsed {
+  margin-left: var(--sidebar-collapsed);
+}
+
+.content {
+  padding: var(--space-6);
+  padding-top: calc(var(--topbar-height) + var(--space-6));
+  min-height: 100vh;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@media (max-width: 768px) {
+  .mainArea {
+    margin-left: 0 !important;
+  }
+
+  .content {
+    padding: var(--space-4);
+    padding-top: calc(var(--topbar-height) + var(--space-4));
+  }
+}

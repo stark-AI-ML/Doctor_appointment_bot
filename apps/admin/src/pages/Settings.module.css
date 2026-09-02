@@ -1,0 +1,20 @@
+.page { display: flex; flex-direction: column; gap: var(--space-5); }
+.section { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); padding: var(--space-6); }
+.sectionTitle { font-size: var(--font-md); font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-5); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-primary); }
+.form { display: flex; flex-direction: column; gap: var(--space-4); }
+.formRow { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.formGroup { display: flex; flex-direction: column; gap: var(--space-2); }
+.formLabel { font-size: var(--font-sm); color: var(--text-secondary); font-weight: 500; }
+.formInput { padding: var(--space-3) var(--space-4); background: var(--bg-input); border: 1px solid var(--border-primary); border-radius: var(--radius-md); font-size: var(--font-base); color: var(--text-primary); }
+.formInput:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); outline: none; }
+.toggleRow { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) 0; border-bottom: 1px solid var(--border-primary); }
+.toggleLabel { font-size: var(--font-base); color: var(--text-primary); }
+.toggleSub { font-size: var(--font-sm); color: var(--text-muted); }
+.toggle { position: relative; width: 40px; height: 22px; border-radius: var(--radius-full); background: var(--bg-elevated); border: 1px solid var(--border-secondary); cursor: pointer; transition: all var(--transition-fast); }
+.toggle.active { background: var(--primary); border-color: var(--primary); }
+.toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: var(--radius-full); background: white; transition: transform var(--transition-fast); }
+.toggle.active::after { transform: translateX(18px); }
+.statusDot { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-sm); font-weight: 500; }
+.dot { width: 8px; height: 8px; border-radius: var(--radius-full); }
+.saveBar { display: flex; justify-content: flex-end; padding-top: var(--space-4); }
+@media (max-width: 640px) { .formRow { grid-template-columns: 1fr; } }

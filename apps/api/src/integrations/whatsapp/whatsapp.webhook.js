@@ -1,0 +1,41 @@
+import { Router } from 'express'
+import conversationService from '../../modules/conversation/conversation.service.js'
+import logger from '../../utils/logger.js'
+
+/**
+ * Creates the WhatsApp webhook router.
+ * @param {IMessagingProvider} provider
+ */
+export function createWebhookRouter(provider) {
+  const router = Router()
+
+  // GET — webhook verification for Meta
+  router.get('/', (req, res) => {
+    provider.handleVerification(req, res)
+  })
+
+  // POST — incoming messages
+  router.post('/', async (req, res) => {
+    try {
+      const message = provider.parseIncomingMessage(req)
+
+      if (!message) {
+        return res.status(200).send('OK') // Acknowledge but ignore (status updates, etc.)
+      }
+
+      logger.info(`WhatsApp from ${message.phone}: "${message.body}"`)
+
+      // Process asynchronously — respond 200 immediately
+      conversationService.handleMessage(message.phone, message.body).catch((err) => {
+        logger.error('Conversation handler error:', err.message)
+      })
+
+      res.status(200).send('OK')
+    } catch (err) {
+      logger.error('Webhook error:', err.message)
+      res.status(200).send('OK') // Always 200 to prevent retries
+    }
+  })
+
+  return router
+}
