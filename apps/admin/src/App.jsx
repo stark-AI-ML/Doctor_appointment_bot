@@ -1,9 +1,10 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import AdminLayout from './layouts/AdminLayout'
 import Dashboard from './pages/Dashboard'
-import Bookings from './pages/Bookings'
+import Appointments from './pages/Appointments'
 import Doctors from './pages/Doctors'
-import TimeSlots from './pages/TimeSlots'
+import Hospitalization from './pages/Hospitalization'
+import MedicineOrders from './pages/MedicineOrders'
 import Patients from './pages/Patients'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
@@ -32,9 +33,10 @@ export default function App() {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="bookings" element={<Bookings />} />
+        <Route path="appointments" element={<Appointments />} />
+        <Route path="hospitalization" element={<Hospitalization />} />
+        <Route path="medicine-orders" element={<MedicineOrders />} />
         <Route path="doctors" element={<Doctors />} />
-        <Route path="time-slots" element={<TimeSlots />} />
         <Route path="patients" element={<Patients />} />
         <Route path="reports" element={<Reports />} />
         <Route path="settings" element={<Settings />} />

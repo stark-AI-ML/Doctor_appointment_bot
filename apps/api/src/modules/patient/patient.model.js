@@ -1,11 +1,15 @@
 import mongoose from 'mongoose'
 
 const patientSchema = new mongoose.Schema({
-  phone:     { type: String, required: true, unique: true },
+  phone:     { type: String, required: true }, // Removed unique: true to allow family bookings from one WhatsApp number
+  uhid:      { type: String, unique: true, sparse: true },
+  primaryPhone: { type: String, default: '' },
   name:      { type: String, required: true, trim: true },
   age:       { type: Number, default: null },
   gender:    { type: String, enum: ['male', 'female', 'other'], default: null },
+  district:  { type: String, default: '' },
   address:   { type: String, default: '' },
+  pinCode:   { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
 })
 

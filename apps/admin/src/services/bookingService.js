@@ -19,6 +19,7 @@ function normalizeBooking(b) {
     time_slot: b.slotId ? `${b.slotId.startTime} - ${b.slotId.endTime}` : '—',
     status: b.status,
     booking_source: b.bookingSource || 'whatsapp',
+    problemDescription: b.problemDescription || '',
     created_at: b.createdAt,
     updated_at: b.updatedAt,
   }

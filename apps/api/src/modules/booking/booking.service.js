@@ -11,10 +11,11 @@ class BookingService {
   /**
    * Get paginated bookings with optional filters.
    */
-  async getBookings({ page = 1, limit = 10, status, doctor_id, search } = {}) {
+  async getBookings({ page = 1, limit = 10, status, doctor_id, search, type } = {}) {
     const filter = {}
     if (status) filter.status = status
     if (doctor_id) filter.doctorId = doctor_id
+    if (type) filter.type = type
 
     // search requires a patient lookup first
     if (search) {
@@ -38,11 +39,13 @@ class BookingService {
   /**
    * Create a booking — marks slot as unavailable.
    */
-  async createBooking({ doctorId, patientId, serviceId, slotId, source = 'whatsapp' }) {
-    // Verify slot is available
-    const slot = await slotRepo.findById(slotId)
-    if (!slot || !slot.isAvailable) {
-      throw new AppError('Time slot is no longer available', 400)
+  async createBooking({ doctorId, departmentId, patientId, serviceId, slotId, source = 'whatsapp', type = 'OPD', problemDescription, tokenNumber, preferredDate }) {
+    // Verify slot is available if provided
+    if (slotId) {
+      const slot = await slotRepo.findById(slotId)
+      if (!slot || !slot.isAvailable) {
+        throw new AppError('Time slot is no longer available', 400)
+      }
     }
 
     // Generate booking ID: BK-YYYYMMDD-NNN
@@ -51,16 +54,23 @@ class BookingService {
     // Create booking
     const booking = await bookingRepo.create({
       bookingId,
+      tokenNumber,
+      type,
       doctorId,
+      departmentId,
       patientId,
       serviceId,
       slotId,
+      preferredDate,
+      problemDescription,
       status: 'pending',
       bookingSource: source,
     })
 
-    // Mark slot as unavailable
-    await slotRepo.setAvailability(slotId, false)
+    // Mark slot as unavailable if slotId exists
+    if (slotId) {
+      await slotRepo.setAvailability(slotId, false)
+    }
 
     // Invalidate dashboard cache
     await cache.invalidate('dashboard:*')

@@ -63,7 +63,7 @@ export default function Dashboard() {
 
   const statCards = [
     {
-      label: 'Total Bookings',
+      label: 'Total Appointments',
       value: stats?.totalBookings ?? 0,
       icon: CalendarCheck,
       color: 'green',
@@ -71,7 +71,7 @@ export default function Dashboard() {
       positive: true,
     },
     {
-      label: "Today's Bookings",
+      label: "Today's Queue",
       value: stats?.todayBookings ?? 0,
       icon: CalendarPlus,
       color: 'blue',
@@ -219,22 +219,22 @@ export default function Dashboard() {
 
       {/* ── Quick Actions ── */}
       <div className={styles.quickActions}>
-        <Link to="/bookings">
-          <Button icon={Eye}>View All Bookings</Button>
+        <Link to="/appointments">
+          <Button icon={Eye}>View Today's Queue</Button>
         </Link>
         <Link to="/doctors">
           <Button variant="secondary" icon={Plus}>Add Doctor</Button>
         </Link>
-        <Link to="/time-slots">
-          <Button variant="secondary" icon={CalendarPlus}>Manage Slots</Button>
+        <Link to="/hospitalization">
+          <Button variant="secondary" icon={CalendarPlus}>Hospitalization</Button>
         </Link>
       </div>
 
       {/* ── Recent Bookings ── */}
       <Card
-        title="Recent Bookings"
+        title="Recent Appointments"
         action={
-          <Link to="/bookings">
+          <Link to="/appointments">
             <Button variant="ghost" size="sm" icon={ArrowUpRight}>
               View All
             </Button>
@@ -249,11 +249,11 @@ export default function Dashboard() {
             <table className={styles.recentTable} style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
-                  <th style={thStyle}>Booking ID</th>
+                  <th style={thStyle}>ID</th>
                   <th style={thStyle}>Patient</th>
                   <th style={thStyle}>Doctor</th>
                   <th style={thStyle}>Date</th>
-                  <th style={thStyle}>Time</th>
+                  <th style={thStyle}>Token</th>
                   <th style={thStyle}>Status</th>
                 </tr>
               </thead>
@@ -277,7 +277,7 @@ export default function Dashboard() {
                     <td style={tdStyle}>
                       <span className={styles.mobileText}>{formatDate(booking.date)}</span>
                     </td>
-                    <td style={tdStyle}>{booking.time_slot}</td>
+                    <td style={tdStyle}>{booking.token_number || booking.time_slot || '-'}</td>
                     <td style={tdStyle}><StatusBadge status={booking.status} /></td>
                   </tr>
                 ))}

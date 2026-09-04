@@ -65,12 +65,40 @@ export class MetaProvider extends IMessagingProvider {
         if (msg.type === 'text') {
           return {
             phone: msg.from,
+            type: 'text',
             body: msg.text.body,
+          }
+        } else if (msg.type === 'image') {
+          return {
+            phone: msg.from,
+            type: 'image',
+            imageId: msg.image.id,
+            mimeType: msg.image.mime_type
           }
         }
       }
     }
     return null
+  }
+
+  async downloadMedia(mediaId) {
+    if (!env.meta.accessToken) throw new Error('Missing Meta access token')
+    
+    // 1. Get media URL
+    const res = await fetch(`https://graph.facebook.com/v18.0/${mediaId}`, {
+      headers: { 'Authorization': `Bearer ${env.meta.accessToken}` }
+    })
+    if (!res.ok) throw new Error('Failed to fetch media metadata')
+    const { url, mime_type } = await res.json()
+
+    // 2. Download binary data
+    const mediaRes = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${env.meta.accessToken}` }
+    })
+    if (!mediaRes.ok) throw new Error('Failed to download media binary')
+    
+    const buffer = await mediaRes.arrayBuffer()
+    return { buffer: Buffer.from(buffer), mimeType: mime_type }
   }
 
   handleVerification(req, res) {

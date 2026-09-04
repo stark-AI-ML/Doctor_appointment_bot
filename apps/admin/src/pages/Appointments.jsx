@@ -13,9 +13,9 @@ import StatusBadge from '../components/common/StatusBadge'
 import Button from '../components/common/Button'
 import Modal from '../components/common/Modal'
 import { Loader } from '../components/common/Loader'
-import styles from './Bookings.module.css'
+import styles from './Appointments.module.css'
 
-export default function Bookings() {
+export default function Appointments() {
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
@@ -94,7 +94,7 @@ export default function Bookings() {
       }
     : null
 
-  const columns = ['Booking ID', 'Patient', 'Doctor', 'Date', 'Time', 'Status', 'Actions']
+  const columns = ['ID', 'Patient', 'Doctor', 'Date', 'Token', 'Status', 'Actions']
 
   const renderRow = (booking) => (
     <tr key={booking.id}>
@@ -114,7 +114,7 @@ export default function Bookings() {
         {formatDate(booking.date)}
       </td>
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
-        {booking.time_slot}
+        {booking.token_number || booking.time_slot || '-'}
       </td>
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
         <StatusBadge status={booking.status} />
@@ -284,8 +284,8 @@ export default function Bookings() {
               <span className={styles.detailValue}>{formatDate(selectedBooking.date)}</span>
             </div>
             <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Time</span>
-              <span className={styles.detailValue}>{selectedBooking.time_slot}</span>
+              <span className={styles.detailLabel}>Token</span>
+              <span className={styles.detailValue}>{selectedBooking.token_number || selectedBooking.time_slot || '-'}</span>
             </div>
             <div className={styles.detailItem}>
               <span className={styles.detailLabel}>Created</span>

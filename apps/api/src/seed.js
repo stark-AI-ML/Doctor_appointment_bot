@@ -7,6 +7,10 @@ import Admin from './modules/admin/admin.model.js'
 import Doctor from './modules/doctor/doctor.model.js'
 import Service from './modules/service/service.model.js'
 import TimeSlot from './modules/booking/timeslot.model.js'
+import Department from './modules/department/department.model.js'
+import Booking from './modules/booking/booking.model.js'
+import Patient from './modules/patient/patient.model.js'
+import MedicineOrder from './modules/medicine/medicineOrder.model.js'
 
 async function seed() {
   try {
@@ -20,6 +24,10 @@ async function seed() {
       Doctor.deleteMany({}),
       Service.deleteMany({}),
       TimeSlot.deleteMany({}),
+      Department.deleteMany({}),
+      Booking.deleteMany({}),
+      Patient.deleteMany({}),
+      MedicineOrder.deleteMany({}),
     ])
 
     logger.info('Seeding Admin...')
@@ -31,18 +39,53 @@ async function seed() {
       role: 'superadmin',
     })
 
+    logger.info('Seeding Departments...')
+    const deptsData = [
+      { name: 'Gynecology & Obstetrics / स्त्री एवं प्रसूति रोग' },
+      { name: 'General Consultation / सामान्य परामर्श' },
+      { name: 'ENT / कान, नाक एवं गला' },
+      { name: 'Orthopedics / हड्डी एवं जोड़ रोग' },
+      { name: 'General Surgery / सामान्य शल्य चिकित्सा' },
+      { name: 'Pediatrics / बाल रोग' },
+      { name: 'Urology / मूत्र रोग विभाग' },
+    ]
+    const depts = await Department.insertMany(deptsData)
+
+    const getDeptId = (namePart) => depts.find(d => d.name.includes(namePart))._id
+
     logger.info('Seeding Doctors...')
-    const doctors = await Doctor.insertMany([
-      { name: 'Dr. Sharma', specialization: 'General Physician', experience: 10, consultationFee: 500, gender: 'male' },
-      { name: 'Dr. Verma', specialization: 'Cardiologist', experience: 15, consultationFee: 1000, gender: 'male' },
-      { name: 'Dr. Gupta', specialization: 'Dermatologist', experience: 8, consultationFee: 800, gender: 'female' },
-    ])
+    const doctorsData = [
+      // Gynecology
+      { departmentId: getDeptId('Gynecology'), name: 'Anand Prakash Tiwari', qualifications: 'M.S. (Obs & Gynae)\nSenior Gynaecologist & Infertility Specialist\nEx-Asst. Professor (J.A.M.C.H.)', specialization: 'Gynecologist', gender: 'male', consultationFee: 500 },
+      { departmentId: getDeptId('Gynecology'), name: 'Vandana', qualifications: 'BMS', specialization: 'Gynecologist', gender: 'female', consultationFee: 300 },
+      { departmentId: getDeptId('Gynecology'), name: 'Sadhana', qualifications: 'BMS', specialization: 'Gynecologist', gender: 'female', consultationFee: 300 },
+      
+      // General Consultation
+      { departmentId: getDeptId('General Consultation'), name: 'Abhishek Kumar Singh', qualifications: 'BMS', displaySchedule: 'Time: 10:00 AM - 11:00 PM', specialization: 'General Physician', gender: 'male', consultationFee: 300 },
+      { departmentId: getDeptId('General Consultation'), name: 'Ankit Kumar Singh', qualifications: 'MBBS', displaySchedule: 'Time: 10:00 AM - 7:30 PM', specialization: 'General Physician', gender: 'male', consultationFee: 400 },
+      { departmentId: getDeptId('General Consultation'), name: 'Doctor 3', qualifications: 'MBBS', specialization: 'General Physician', gender: 'male', consultationFee: 400 },
+      
+      // ENT
+      { departmentId: getDeptId('ENT'), name: 'Doctor 1', qualifications: 'MBBS', specialization: 'ENT Specialist', gender: 'male', consultationFee: 400 },
+      
+      // Orthopedics
+      { departmentId: getDeptId('Orthopedics'), name: 'Doctor 1', qualifications: 'MBBS, MS Ortho', specialization: 'Orthopedist', gender: 'male', consultationFee: 500 },
+      
+      // General Surgery
+      { departmentId: getDeptId('General Surgery'), name: 'Yogesh Pandey', qualifications: 'MS', specialization: 'General Surgeon', gender: 'male', consultationFee: 600 },
+      
+      // Pediatrics
+      { departmentId: getDeptId('Pediatrics'), name: 'Doctor 1', qualifications: 'MD Pediatrics', specialization: 'Pediatrician', gender: 'female', consultationFee: 400 },
+      
+      // Urology
+      { departmentId: getDeptId('Urology'), name: 'Vikram Singh', qualifications: 'MCH', specialization: 'Urologist', gender: 'male', consultationFee: 800 },
+    ]
+    const doctors = await Doctor.insertMany(doctorsData)
 
     logger.info('Seeding Services...')
     await Service.insertMany([
       { name: 'General Consultation', duration: 30, price: 500 },
-      { name: 'Cardiac Checkup', duration: 45, price: 1500 },
-      { name: 'Skin Therapy', duration: 60, price: 2000 },
+      { name: 'Specialist Consultation', duration: 45, price: 800 },
     ])
 
     logger.info('Seeding TimeSlots for tomorrow...')
@@ -72,7 +115,7 @@ async function seed() {
     }
     await TimeSlot.insertMany(slotsToInsert)
 
-    logger.info('✅ Seed complete!')
+    logger.info('✅ Seed complete with KG Nanda Hospital Data!')
     process.exit(0)
   } catch (err) {
     logger.error('Seeding failed:', err)

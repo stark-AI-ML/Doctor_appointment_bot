@@ -7,6 +7,7 @@ import { reportController } from '../modules/booking/report.controller.js'
 import { serviceController } from '../modules/service/service.controller.js'
 import { patientController } from '../modules/patient/patient.controller.js'
 import authRoutes from './auth.routes.js'
+import medicineOrderRoutes from '../modules/medicine/medicineOrder.routes.js'
 
 const router = Router()
 
@@ -16,6 +17,7 @@ router.use('/auth', authRoutes)
 // ─── Protected routes (all require JWT) ──────────────────
 router.use('/doctors',   authMiddleware, doctorRoutes)
 router.use('/bookings',  authMiddleware, bookingRoutes)
+router.use('/medicine-orders', authMiddleware, medicineOrderRoutes)
 
 // Services
 router.get('/services',       authMiddleware, serviceController.getAll)

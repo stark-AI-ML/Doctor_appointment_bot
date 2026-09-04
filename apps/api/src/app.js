@@ -14,6 +14,7 @@ const app = express()
 // ─── Middleware ──────────────────────────────────────────
 app.use(cors({ origin: true, credentials: true }))
 app.use(express.json())
+app.use(express.static('public'))
 
 // Request logger (dev only)
 if (env.isDev) {

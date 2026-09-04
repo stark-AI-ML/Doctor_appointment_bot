@@ -23,10 +23,10 @@ export function createWebhookRouter(provider) {
         return res.status(200).send('OK') // Acknowledge but ignore (status updates, etc.)
       }
 
-      logger.info(`WhatsApp from ${message.phone}: "${message.body}"`)
+      logger.info(`WhatsApp from ${message.phone}: Type ${message.type}`)
 
       // Process asynchronously — respond 200 immediately
-      conversationService.handleMessage(message.phone, message.body).catch((err) => {
+      conversationService.handleMessage(message.phone, message).catch((err) => {
         logger.error('Conversation handler error:', err.message)
       })
 

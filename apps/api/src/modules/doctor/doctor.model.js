@@ -1,7 +1,10 @@
 import mongoose from 'mongoose'
 
 const doctorSchema = new mongoose.Schema({
+  departmentId:     { type: mongoose.Schema.Types.ObjectId, ref: 'Department', default: null }, // Made optional to not break existing tests initially
   name:             { type: String, required: true, trim: true },
+  qualifications:   { type: String, default: '' },
+  displaySchedule:  { type: String, default: '' },
   specialization:   { type: String, required: true },
   address:          { type: String, default: '' },
   gender:           { type: String, enum: ['male', 'female', 'other'] },

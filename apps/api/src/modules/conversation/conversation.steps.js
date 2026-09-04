@@ -1,94 +1,120 @@
 /**
- * Conversation step definitions and message templates.
+ * KG Nanda Hospital Conversation Steps and Bilingual Messages
  */
 
 export const STEPS = {
-  WELCOME:        'WELCOME',
-  SELECT_DOCTOR:  'SELECT_DOCTOR',
-  SELECT_DATE:    'SELECT_DATE',
-  SELECT_SLOT:    'SELECT_SLOT',
-  ENTER_NAME:     'ENTER_NAME',
-  ENTER_AGE:      'ENTER_AGE',
-  ENTER_GENDER:   'ENTER_GENDER',
-  CONFIRM:        'CONFIRM',
-  DONE:           'DONE',
-  MY_BOOKINGS:    'MY_BOOKINGS',
-  CANCEL_SELECT:  'CANCEL_SELECT',
+  WELCOME:          'WELCOME',
+
+  // OPD Booking Flow
+  OPD_DEPARTMENT:   'OPD_DEPARTMENT',
+  OPD_DOCTOR:       'OPD_DOCTOR',
+  SELECT_DATE:      'SELECT_DATE',
+  WHO_FOR:          'WHO_FOR',
+  PATIENT_NAME:     'PATIENT_NAME',
+  PATIENT_MOBILE:   'PATIENT_MOBILE',
+  PATIENT_AGE:      'PATIENT_AGE',
+  PATIENT_GENDER:   'PATIENT_GENDER',
+  PATIENT_DISTRICT: 'PATIENT_DISTRICT',
+  PATIENT_ADDRESS:  'PATIENT_ADDRESS',
+  PATIENT_PROBLEM:  'PATIENT_PROBLEM',
+  REVIEW:           'REVIEW',
+
+  // Hospitalization Flow
+  HOSP_NAME:        'HOSP_NAME',
+  HOSP_AGE:         'HOSP_AGE',
+  HOSP_PROBLEM:     'HOSP_PROBLEM',
+  HOSP_DATE:        'HOSP_DATE',
+
+  // Medicine Order Flow
+  MED_PRESCRIPTION: 'MED_PRESCRIPTION',
+  MED_ADDRESS:      'MED_ADDRESS',
+
+  // Static flows
+  SUPPORT:          'SUPPORT',
 }
 
 export const MESSAGES = {
-  welcome: () =>
-    `👋 Namaste! Welcome to our Booking Service.\nAap kya karna chahte hain?\n\n1. Appointment Book\n2. My Booking\n3. Cancel / Reschedule\n4. Talk to Support`,
+  welcome: () => 
+    `🙏 *Namaste! Welcome to KG Nanda Hospital*\nनमस्ते! 🙏 के. जी. नंदा अस्पताल में आपका स्वागत है।\n\n*For any assistance, please select an option:*\nकिसी भी सहायता के लिए नीचे दिए गए विकल्प में से एक चुनें।\n\n1️⃣ OPD / Outpatient Department (ओपीडी)\n2️⃣ Hospitalization (अस्पताल में भर्ती)\n3️⃣ Online Medicine Order (ऑनलाइन दवा)\n4️⃣ General Query / Information (सामान्य जानकारी)\n5️⃣ Talk to Support (सहायता केंद्र)\n6️⃣ Email Help (ईमेल सहायता)\n\n👉 *Reply with the number to continue.*\n👉 आगे बढ़ने के लिए नंबर टाइप करें।`,
 
-  selectDoctor: (doctors) => {
-    const list = doctors.map((d, i) => `${i + 1}. ${d.name} — ${d.specialization}`).join('\n')
-    return `Please Doctor select karein:\n\n${list}`
+  departments: (deps) => {
+    let msg = `🏥 *OPD / Outpatient Department*\nओपीडी / बाह्य रोग विभाग\n\n*Kindly select a department:*\nकृपया विभाग चुनें:\n\n`;
+    deps.forEach((d, i) => msg += `${i + 1}️⃣ ${d.name}\n`);
+    msg += `\n👉 *Reply with number* | 0️⃣ *Main Menu*`;
+    return msg;
   },
 
-  selectDate: () =>
-    `Date select karein:\n\n1. Today\n2. Tomorrow\n3. Other Date (DD/MM/YYYY bhejein)`,
-
-  selectSlot: (slots, dateStr) => {
-    const list = slots.map((s, i) => `${i + 1}. ${formatTime(s.startTime)} - ${formatTime(s.endTime)}`).join('\n')
-    return `Available Slots (${dateStr}):\n\n${list}`
+  doctors: (deptName, docs) => {
+    let msg = `👩‍⚕️ *${deptName}*\n\n`;
+    docs.forEach((d, i) => {
+      msg += `${i + 1}️⃣ Dr. ${d.name}\n*${d.qualifications || 'Consultant'}*\n\n`;
+    });
+    msg += `👉 *Reply with doctor number to book appointment.*\n👉 अपॉइंटमेंट के लिए डॉक्टर नंबर टाइप करें।\n\n0️⃣ Back | 00 Main Menu`;
+    return msg;
   },
 
-  noSlots: (dateStr) =>
-    `Sorry, ${dateStr} ke liye koi slot available nahi hai.\nKripya doosri date try karein.\n\n1. Today\n2. Tomorrow\n3. Other Date (DD/MM/YYYY bhejein)`,
+  selectDate: (doctorName) => 
+    `👨‍⚕️ *Doctor Selected: ${doctorName}*\nआपने ${doctorName} का चयन किया है।\n\n📅 *Select Appointment Date / अपॉइंटमेंट की तारीख चुनें:*\n\n*Please type your preferred date in this format:*\nकृपया अपनी पसंदीदा तारीख इस फॉर्मेट में टाइप करें:\n\n📅 *DD/MM/YYYY*\n*(Example: 30/08/2026)*\n\n0️⃣ Back | 00 Main Menu`,
 
-  enterName: () =>
-    `Please apna naam bhejiye:`,
+  whoFor: (patientName) =>
+    `👤 *BOOKING FOR WHOM?*\n\nWelcome back!\n\n1️⃣ ${patientName}\n2️⃣ Someone Else / Family Member`,
 
-  enterAge: (name) =>
-    `Dhanyavaad ${name}! 🙏\nPlease apni age bhejiye:`,
+  patientName: () => 
+    `📝 *Patient Name / मरीज का नाम*\n*Please enter the patient's full name.*\nमरीज का पूरा नाम दर्ज करें।`,
 
-  enterGender: () =>
-    `Gender select karein:\n\n1. Male\n2. Female\n3. Other`,
+  patientMobile: () => 
+    `📱 *Mobile Number / मोबाइल नंबर*\n*Please enter 10-digit mobile number of patient/guardian.*\nमरीज/अभिभावक का 10 अंकों का मोबाइल नंबर दर्ज करें।`,
 
-  confirm: ({ doctorName, date, time }) =>
-    `📋 Booking Details:\n\nDoctor: ${doctorName}\nDate: ${date}\nTime: ${time}\n\nConfirm karein?\n1. Confirm\n2. Change`,
+  patientAge: () => 
+    `🎂 *Age / उम्र*\n*Please enter the patient's age.*\nमरीज की उम्र दर्ज करें।`,
 
-  done: ({ bookingId, doctorName, date, time }) =>
-    `✅ Appointment Confirmed!\n\nBooking ID: ${bookingId}\nDoctor: ${doctorName}\nDate: ${date}\nTime: ${time}\n\nThank you! We look forward to seeing you. 😊`,
+  patientGender: () => 
+    `⚧ *Gender / लिंग*\n*Please reply with:*\n1️⃣ Male / पुरुष\n2️⃣ Female / महिला\n3️⃣ Other / अन्य`,
 
-  myBookings: (bookings) => {
-    if (!bookings.length) return `Aapki koi booking nahi hai.\n\nKya aap appointment book karna chahenge?\n1. Haan\n2. Nahi`
+  patientDistrict: () => 
+    `📍 *District / जिले का नाम*\n*Please enter your district name.*\nअपने जिले का नाम दर्ज करें।`,
 
-    const list = bookings.map((b, i) => {
-      const slot = b.slotId
-      const date = slot?.date ? new Date(slot.date).toLocaleDateString('en-IN') : 'N/A'
-      const time = slot ? `${formatTime(slot.startTime)}` : 'N/A'
-      return `${i + 1}. ${b.bookingId}\n   Doctor: ${b.doctorId?.name || 'N/A'}\n   Date: ${date} | Time: ${time}\n   Status: ${b.status}`
-    }).join('\n\n')
+  patientAddress: () => 
+    `🏠 *Complete Address with PIN Code*\nपूरा पता पिन कोड के साथ\n*Please enter your complete residential address including PIN code.*\nपिन कोड सहित अपना पूरा पता दर्ज करें।`,
 
-    return `📋 Aapki Bookings:\n\n${list}`
-  },
+  patientProblem: () => 
+    `🩺 *Health Problem / स्वास्थ्य समस्या*\n*Please briefly describe the patient's health problem.*\nकृपया मरीज की समस्या का संक्षिप्त विवरण दें।`,
 
-  cancelSelect: (bookings) => {
-    const list = bookings.map((b, i) =>
-      `${i + 1}. ${b.bookingId} — ${b.doctorId?.name || 'N/A'}`
-    ).join('\n')
-    return `Kaunsi booking cancel karni hai?\n\n${list}\n\n0. Back to menu`
-  },
+  review: (data) => 
+    `📋 *REVIEW APPOINTMENT REQUEST*\n\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Preferred Date: ${data.date}\n\n👤 Patient: ${data.name}\n📱 Mobile: ${data.mobile}\n🎂 Age: ${data.age}\n⚧ Gender: ${data.gender}\n📍 District: ${data.district}\n🏠 Address: ${data.address}\n🩺 Problem: ${data.problem}\n\n*Confirm details?*\n1️⃣ Confirm / पुष्टि करें\n2️⃣ Edit / बदलाव करें\n0️⃣ Main Menu`,
 
-  cancelled: (bookingId) =>
-    `❌ Booking ${bookingId} cancel ho gayi hai.\nSlot free kar diya gaya hai.`,
+  appointmentConfirmed: (data) => 
+    `✅ *Appointment Request Received!*\n✅ अपॉइंटमेंट अनुरोध सफलतापूर्वक प्राप्त हुआ!\n\n🎫 *Token No:* ${data.tokenNumber}\n🆔 *UHID No:* ${data.uhid}\n\n📋 *Appointment Details / विवरण:*\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Date: ${data.date}\n👤 Name: ${data.name}\n📱 Mobile: ${data.mobile}\n\n📌 *Our team will call you to confirm your appointment.*\n📌 हमारी टीम आपको कॉल करके अपॉइंटमेंट की पुष्टि करेगी।\n\n*Type "menu" to return to main menu.*`,
 
-  support: () =>
-    `📞 Support ke liye contact karein:\nPhone: 9161138859\nTiming: Mon-Sat, 10am-5pm\n\nYa hum aapko callback karenge.`,
+  // Hospitalization
+  hospStart: () => 
+    `🏥 *Hospitalization / Admission*\nअस्पताल में भर्ती हेतु अपॉइंटमेंट\n\n*To schedule a hospitalization, please provide patient name:*\nभर्ती हेतु कृपया मरीज का नाम बताएं:`,
+  
+  hospAge: () => `🎂 *Please enter the patient's age.*\nमरीज की उम्र दर्ज करें।`,
+  hospProblem: () => `🩺 *Please describe the illness/problem.*\nबीमारी का विवरण दें।`,
+  hospDate: () => `📅 *Preferred Date (DD/MM/YYYY)*\nपसंदीदा तारीख (DD/MM/YYYY)`,
+  hospDone: () => `✅ *Hospitalization Request Received*\nअस्पताल में भर्ती का अनुरोध प्राप्त हुआ।\n\nOur staff will call you to confirm.\nहमारे कर्मचारी आपको कॉल करके पुष्टि करेंगे।\n\nType "menu" to return.`,
 
-  invalidInput: () =>
-    `Maaf karein, samajh nahi aaya. Kripya sahi option choose karein.`,
-}
+  // Medicine
+  medStart: () => 
+    `💊 *Online Medicine Order*\nऑनलाइन घर बैठे दवा मंगाने की सुविधा\n\n📷 *Please send a photo of your prescription.*\nकृपया अपनी पर्ची की फोटो भेजें।`,
+  
+  medAddress: () => 
+    `🏠 *Please provide your complete delivery address.*\nकृपया अपना पूरा डिलीवरी पता भेजें।`,
 
-/**
- * Format 24hr time string to 12hr format.
- * "14:00" → "02:00 PM"
- */
-function formatTime(timeStr) {
-  if (!timeStr) return ''
-  const [h, m] = timeStr.split(':').map(Number)
-  const period = h >= 12 ? 'PM' : 'AM'
-  const hour = h > 12 ? h - 12 : h === 0 ? 12 : h
-  return `${String(hour).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`
+  medDone: () => 
+    `✅ *Prescription Received!*\n\nOur team will confirm the order and delivery details.\nहमारी टीम ऑर्डर और डिलीवरी की जानकारी देगी।\n\nType "menu" to return.`,
+
+  // Info / Support
+  info: () => 
+    `ℹ️ *General Query / Information*\nसामान्य जानकारी / अन्य जानकारी\n\n*Hospital Timings / अस्पताल का समय:*\n🕘 Mon–Sat: 9:00 AM – 8:00 PM\n🕘 Sunday: Emergency only\n\n*Address / पता:*\n📍 KG Nanda Hospital, Example Address, City\n\n*Services / सेवाएं:*\n• OPD Consultation\n• Hospitalization\n• Emergency Care\n• Online Medicine Delivery\n\n0️⃣ Main Menu`,
+
+  support: () => 
+    `📞 *Talk to Support*\nअस्पताल सहायता केंद्र से संपर्क करें\n\n*For assistance, contact our helpline:*\n\n1️⃣ First Helpline: 9161138859\n2️⃣ Second Helpline: 9161138860\n\n0️⃣ Main Menu`,
+
+  email: () => 
+    `📧 *Email Help / ईमेल सहायता*\n\n*For email assistance, contact us at:*\n📧 admin@kgnandahospital.com\n\n0️⃣ Main Menu`,
+
+  invalidInput: () => 
+    `❌ Invalid input. Please try again or type "menu".\nगलत इनपुट। कृपया पुनः प्रयास करें।`
 }
