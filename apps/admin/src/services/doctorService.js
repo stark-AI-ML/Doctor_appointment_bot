@@ -4,6 +4,37 @@ import { mockDoctors } from '../data/mockData'
 const MOCK_DELAY = 300
 
 /**
+ * Normalize a doctor from backend (camelCase) → UI shape (snake_case).
+ */
+function normalizeDoctor(d) {
+  return {
+    id: d.id || d._id,
+    name: d.name,
+    specialization: d.specialization,
+    consultation_fee: d.consultationFee ?? d.consultation_fee ?? 0,
+    experience: d.experience || 0,
+    gender: d.gender || null,
+    address: d.address || '',
+    is_active: d.isActive ?? d.is_active ?? true,
+    created_at: d.createdAt || d.created_at,
+  }
+}
+
+/**
+ * Convert UI form data (snake_case) → backend shape (camelCase)
+ */
+function toBackendDoctor(formData) {
+  return {
+    name: formData.name,
+    specialization: formData.specialization,
+    consultationFee: Number(formData.consultation_fee || formData.consultationFee || 0),
+    experience: Number(formData.experience || 0),
+    gender: formData.gender || undefined,
+    address: formData.address || '',
+  }
+}
+
+/**
  * Doctor Service — CRUD operations for doctors
  */
 export const doctorService = {
@@ -13,7 +44,7 @@ export const doctorService = {
       return [...mockDoctors]
     }
     const { data } = await api.get('/doctors')
-    return data
+    return data.map(normalizeDoctor)
   },
 
   async getDoctor(id) {
@@ -22,7 +53,7 @@ export const doctorService = {
       return mockDoctors.find((d) => d.id === Number(id)) || null
     }
     const { data } = await api.get(`/doctors/${id}`)
-    return data
+    return normalizeDoctor(data)
   },
 
   async createDoctor(doctorData) {
@@ -38,8 +69,8 @@ export const doctorService = {
       mockDoctors.push(newDoctor)
       return newDoctor
     }
-    const { data } = await api.post('/doctors', doctorData)
-    return data
+    const { data } = await api.post('/doctors', toBackendDoctor(doctorData))
+    return normalizeDoctor(data)
   },
 
   async updateDoctor(id, doctorData) {
@@ -52,8 +83,8 @@ export const doctorService = {
       }
       throw new Error('Doctor not found')
     }
-    const { data } = await api.put(`/doctors/${id}`, doctorData)
-    return data
+    const { data } = await api.put(`/doctors/${id}`, toBackendDoctor(doctorData))
+    return normalizeDoctor(data)
   },
 
   async deleteDoctor(id) {
@@ -75,6 +106,6 @@ export const doctorService = {
       return doctor
     }
     const { data } = await api.patch(`/doctors/${id}/toggle`)
-    return data
+    return normalizeDoctor(data)
   },
 }

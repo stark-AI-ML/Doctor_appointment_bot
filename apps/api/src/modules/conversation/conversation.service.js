@@ -6,6 +6,9 @@ import { STEPS, MESSAGES } from './conversation.steps.js'
 import { resolveDate, formatDateDisplay } from '../../utils/dateHelpers.js'
 import logger from '../../utils/logger.js'
 
+
+const getId = (obj) => obj._id || obj.id
+
 class ConversationService {
   constructor() {
     this.messagingProvider = null // set via setProvider()
@@ -22,8 +25,10 @@ class ConversationService {
   async handleMessage(phone, body) {
     const input = body.trim()
 
-    // "hi", "hello", "reset", "menu" → always restart
-    if (['hi', 'hello', 'hey', 'reset', 'menu', 'start'].includes(input.toLowerCase())) {
+    // Greeting / reset keywords → always restart
+    const lower = input.toLowerCase()
+    const greetings = ['hi', 'hello', 'hey', 'reset', 'menu', 'start', 'hii', 'hiii', 'helo', 'hola']
+    if (greetings.some(g => lower.startsWith(g))) {
       return this.resetAndWelcome(phone)
     }
 
@@ -96,12 +101,18 @@ class ConversationService {
     const selectedDoctor = doctors[idx]
     await conversationRepo.upsert(phone, {
       currentStep: STEPS.SELECT_DATE,
-      selectedDoctorId: selectedDoctor._id,
+      selectedDoctorId: getId(selectedDoctor),
     })
     return this.sendMessage(phone, MESSAGES.selectDate())
   }
 
   async handleSelectDate(phone, state, input) {
+    // Guard: selectedDoctorId must exist at this step
+    if (!state.selectedDoctorId) {
+      logger.warn(`Missing selectedDoctorId at SELECT_DATE for ${phone}, resetting.`)
+      return this.resetAndWelcome(phone)
+    }
+
     // Option 3 = "other date" — user types date on next message
     if (input === '3') {
       return this.sendMessage(phone, 'Kripya date bhejein (DD/MM/YYYY format mein):')
@@ -128,6 +139,12 @@ class ConversationService {
   }
 
   async handleSelectSlot(phone, state, input) {
+    // Guard: selectedDoctorId and selectedDate must exist at this step
+    if (!state.selectedDoctorId || !state.selectedDate) {
+      logger.warn(`Missing doctor/date at SELECT_SLOT for ${phone}, resetting.`)
+      return this.resetAndWelcome(phone)
+    }
+
     const slots = await bookingService.getAvailableSlots(state.selectedDoctorId, state.selectedDate)
     const idx = parseInt(input, 10) - 1
     if (isNaN(idx) || idx < 0 || idx >= slots.length) {
@@ -143,7 +160,7 @@ class ConversationService {
       // Returning patient — skip name/age/gender, go to confirm
       await conversationRepo.upsert(phone, {
         currentStep: STEPS.CONFIRM,
-        selectedSlotId: selectedSlot._id,
+        selectedSlotId: getId(selectedSlot),
         tempName: existingPatient.name,
         tempAge: existingPatient.age,
         tempGender: existingPatient.gender,
@@ -160,7 +177,7 @@ class ConversationService {
     // New patient — ask name
     await conversationRepo.upsert(phone, {
       currentStep: STEPS.ENTER_NAME,
-      selectedSlotId: selectedSlot._id,
+      selectedSlotId: getId(selectedSlot),
     })
     return this.sendMessage(phone, MESSAGES.enterName())
   }

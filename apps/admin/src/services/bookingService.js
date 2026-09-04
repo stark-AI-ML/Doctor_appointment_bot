@@ -4,6 +4,27 @@ import { mockBookings } from '../data/mockData'
 const MOCK_DELAY = 300
 
 /**
+ * Normalize a booking from backend populated shape → flat UI shape.
+ */
+function normalizeBooking(b) {
+  return {
+    id: b.id || b._id,
+    booking_id: b.bookingId,
+    patient_name: b.patientId?.name || 'Unknown',
+    mobile: b.patientId?.phone || '',
+    doctor_id: b.doctorId?.id || b.doctorId?._id || b.doctorId,
+    doctor_name: b.doctorId?.name || 'Unknown',
+    service_name: b.serviceId?.name || '—',
+    date: b.slotId?.date || b.createdAt,
+    time_slot: b.slotId ? `${b.slotId.startTime} - ${b.slotId.endTime}` : '—',
+    status: b.status,
+    booking_source: b.bookingSource || 'whatsapp',
+    created_at: b.createdAt,
+    updated_at: b.updatedAt,
+  }
+}
+
+/**
  * Booking Service
  * 
  * Full CRUD for bookings with filtering and pagination support.
@@ -46,7 +67,10 @@ export const bookingService = {
       return { data, total, page, limit, totalPages: Math.ceil(total / limit) }
     }
     const { data } = await api.get('/bookings', { params })
-    return data
+    return {
+      ...data,
+      data: (data.data || []).map(normalizeBooking),
+    }
   },
 
   /**
@@ -58,12 +82,12 @@ export const bookingService = {
       return mockBookings.find((b) => b.id === Number(id)) || null
     }
     const { data } = await api.get(`/bookings/${id}`)
-    return data
+    return normalizeBooking(data)
   },
 
   /**
    * Update booking status
-   * @param {number} id 
+   * @param {string} id 
    * @param {string} status - 'confirmed', 'cancelled', 'completed'
    */
   async updateStatus(id, status) {

@@ -3,6 +3,36 @@ import { mockDashboardStats, mockBookings, mockChartData } from '../data/mockDat
 
 const MOCK_DELAY = 300
 
+/**
+ * Normalize a recent booking from the backend's populated shape
+ * into the flat shape the dashboard table expects.
+ */
+function normalizeRecentBooking(b) {
+  return {
+    id: b.id || b._id,
+    booking_id: b.bookingId,
+    patient_name: b.patientId?.name || 'Unknown',
+    mobile: b.patientId?.phone || '',
+    doctor_name: b.doctorId?.name || 'Unknown',
+    date: b.slotId?.date || b.createdAt,
+    time_slot: b.slotId ? `${b.slotId.startTime} - ${b.slotId.endTime}` : '—',
+    status: b.status,
+    created_at: b.createdAt,
+  }
+}
+
+/**
+ * Normalize chart data from backend (aggregation uses `_id` as date key)
+ */
+function normalizeChartItem(item) {
+  return {
+    date: item.date || item._id,
+    bookings: item.bookings || 0,
+    confirmed: item.confirmed || 0,
+    cancelled: item.cancelled || 0,
+  }
+}
+
 export const dashboardService = {
   /**
    * Get dashboard overview stats
@@ -25,7 +55,7 @@ export const dashboardService = {
       return mockBookings.slice(0, limit)
     }
     const { data } = await api.get('/dashboard/recent', { params: { limit } })
-    return data
+    return data.map(normalizeRecentBooking)
   },
 
   /**
@@ -38,6 +68,6 @@ export const dashboardService = {
       return mockChartData
     }
     const { data } = await api.get('/dashboard/chart', { params: { range } })
-    return data
+    return data.map(normalizeChartItem)
   },
 }

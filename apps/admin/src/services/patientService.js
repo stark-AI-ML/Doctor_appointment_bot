@@ -4,6 +4,39 @@ import { mockPatients, mockBookings } from '../data/mockData'
 const MOCK_DELAY = 300
 
 /**
+ * Normalize a patient from backend → UI shape.
+ * Backend returns: { id, name, phone, age, gender, totalBookings, lastVisit }
+ */
+function normalizePatient(p) {
+  return {
+    id: p.id || p._id,
+    name: p.name,
+    mobile: p.phone || p.mobile || '',
+    age: p.age || null,
+    gender: p.gender || null,
+    total_bookings: p.totalBookings ?? p.total_bookings ?? 0,
+    last_visit: p.lastVisit || p.last_visit || null,
+    created_at: p.createdAt || p.created_at,
+  }
+}
+
+/**
+ * Normalize a booking (for patient detail/history view).
+ */
+function normalizeBookingForHistory(b) {
+  return {
+    id: b.id || b._id,
+    booking_id: b.bookingId || b.booking_id,
+    doctor_name: b.doctorId?.name || b.doctor_name || 'Unknown',
+    date: b.slotId?.date || b.date || b.createdAt,
+    time_slot: b.slotId
+      ? `${b.slotId.startTime} - ${b.slotId.endTime}`
+      : b.time_slot || '—',
+    status: b.status,
+  }
+}
+
+/**
  * Patient Service — read-only operations (patients come from bookings)
  */
 export const patientService = {
@@ -19,7 +52,7 @@ export const patientService = {
       return [...mockPatients]
     }
     const { data } = await api.get('/patients', { params: { search } })
-    return data
+    return data.map(normalizePatient)
   },
 
   async getPatient(id) {
@@ -30,6 +63,8 @@ export const patientService = {
       return { ...patient, bookings: history }
     }
     const { data } = await api.get(`/patients/${id}`)
-    return data
+    const normalized = normalizePatient(data)
+    normalized.bookings = (data.bookings || []).map(normalizeBookingForHistory)
+    return normalized
   },
 }

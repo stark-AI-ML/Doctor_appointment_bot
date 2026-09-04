@@ -3,6 +3,7 @@ import { authMiddleware } from '../middleware/auth.middleware.js'
 import doctorRoutes from '../modules/doctor/doctor.routes.js'
 import bookingRoutes from '../modules/booking/booking.routes.js'
 import { bookingController } from '../modules/booking/booking.controller.js'
+import { reportController } from '../modules/booking/report.controller.js'
 import { serviceController } from '../modules/service/service.controller.js'
 import { patientController } from '../modules/patient/patient.controller.js'
 import authRoutes from './auth.routes.js'
@@ -37,5 +38,11 @@ router.get('/patients/:id', authMiddleware, patientController.getById)
 router.get('/dashboard/stats',  authMiddleware, bookingController.getStats)
 router.get('/dashboard/recent', authMiddleware, bookingController.getRecent)
 router.get('/dashboard/chart',  authMiddleware, bookingController.getChart)
+
+// Reports
+router.get('/reports/bookings',             authMiddleware, reportController.getBookingTrends)
+router.get('/reports/doctors',              authMiddleware, reportController.getDoctorStats)
+router.get('/reports/status-distribution',  authMiddleware, reportController.getStatusDistribution)
+router.get('/reports/revenue',              authMiddleware, reportController.getRevenue)
 
 export default router

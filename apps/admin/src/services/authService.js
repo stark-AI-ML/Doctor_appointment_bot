@@ -25,7 +25,12 @@ export const authService = {
       throw new Error('Invalid email or password')
     }
     const { data } = await api.post('/auth/login', { email, password })
-    return data
+    // Backend returns { success, user, token, refreshToken }
+    return {
+      user: data.user,
+      token: data.token,
+      refreshToken: data.refreshToken,
+    }
   },
 
   /**
@@ -41,13 +46,25 @@ export const authService = {
   },
 
   /**
+   * Refresh access token
+   */
+  async refreshToken(refreshToken) {
+    const { data } = await api.post('/auth/refresh', { refreshToken })
+    return data
+  },
+
+  /**
    * Logout
    */
   async logout() {
     if (isMockMode()) {
       return true
     }
-    await api.post('/auth/logout')
+    try {
+      await api.post('/auth/logout')
+    } catch (e) {
+      // Ignore logout errors — we'll clear local state regardless
+    }
     return true
   },
 }

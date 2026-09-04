@@ -4,6 +4,18 @@ import { mockChartData, mockDoctorReport, mockStatusDistribution } from '../data
 const MOCK_DELAY = 400
 
 /**
+ * Normalize chart data point (backend uses `_id` or `date` as key)
+ */
+function normalizeChartItem(item) {
+  return {
+    date: item.date || item._id,
+    bookings: item.bookings || 0,
+    confirmed: item.confirmed || 0,
+    cancelled: item.cancelled || 0,
+  }
+}
+
+/**
  * Report Service — analytics and reporting data
  */
 export const reportService = {
@@ -13,7 +25,7 @@ export const reportService = {
       return mockChartData
     }
     const { data } = await api.get('/reports/bookings', { params: { from, to } })
-    return data
+    return data.map(normalizeChartItem)
   },
 
   async getDoctorStats() {
