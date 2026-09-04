@@ -1,5 +1,5 @@
 import api, { isMockMode } from './api'
-import { mockOrders } from '../data/mockData' // Might not exist, but let's assume standard structure
+const mockOrders = []
 
 const MOCK_DELAY = 300
 
