@@ -423,7 +423,7 @@ class ConversationService {
       return
     }
     try {
-      await this.messagingProvider.sendDateTimeMessage(phone, body)
+      await this.messagingProvider.sendFlowMessage(phone, body)
     } catch (err) {
       // Provider doesn't support interactive messages (e.g. Twilio) → fall back to text
       logger.warn(`Date picker not supported — falling back to text: ${err.message}`)

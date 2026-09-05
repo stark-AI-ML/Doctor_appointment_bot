@@ -2,6 +2,19 @@ import { IMessagingProvider } from '../messaging-provider.interface.js'
 import logger from '../../../utils/logger.js'
 import env from '../../../config/env.js'
 
+/** Recursively find the first `YYYY-MM-DD`-style value in an object. */
+function findFirstDate(obj) {
+  if (!obj || typeof obj !== 'object') return null
+  for (const [key, value] of Object.entries(obj)) {
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) return value
+    if (value && typeof value === 'object') {
+      const found = findFirstDate(value)
+      if (found) return found
+    }
+  }
+  return null
+}
+
 /**
  * Meta WhatsApp Cloud API provider.
  */
@@ -51,21 +64,10 @@ export class MetaProvider extends IMessagingProvider {
     }
   }
 
-  async sendDateTimeMessage(to, body, initialTimestamp) {
+  async sendFlowMessage(to, body, flowAction = {}) {
     if (!env.meta.phoneNumberId || !env.meta.accessToken) {
-      logger.debug(`[META-DRY] DateTime To: ${to}\n${body}`)
+      logger.debug(`[META-DRY] Flow To: ${to}\n${body}`)
       return
-    }
-
-    // Build the date_time interactive message. If no initial timestamp is
-    // given, default the picker to today (00:00 local).
-    let initialDateTime
-    if (initialTimestamp) {
-      initialDateTime = new Date(initialTimestamp).getTime()
-    } else {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      initialDateTime = today.getTime()
     }
 
     try {
@@ -82,13 +84,16 @@ export class MetaProvider extends IMessagingProvider {
             to,
             type: 'interactive',
             interactive: {
-              type: 'date_time',
+              type: 'flow',
               body: { text: body },
               action: {
-                name: 'date_time',
+                name: 'flow',
                 parameters: {
-                  mode: 'picker_default',
-                  initial_date_time: String(initialDateTime),
+                  flow_message_version: '3',
+                  flow_id: env.meta.flowId,
+                  flow_cta: 'Open Calendar',
+                  flow_action: flowAction.action || 'navigate',
+                  flow_action_payload: flowAction.payload || { screen: 'APPOINTMENT_DATE' },
                 },
               },
             },
@@ -98,13 +103,13 @@ export class MetaProvider extends IMessagingProvider {
 
       if (!response.ok) {
         const errorData = await response.json()
-        logger.error(`Meta date_time send error: ${JSON.stringify(errorData)}`)
-        throw new Error('Failed to send date_time message via Meta')
+        logger.error(`Meta flow send error: ${JSON.stringify(errorData)}`)
+        throw new Error('Failed to send flow message via Meta')
       }
 
-      logger.debug(`Meta date_time message sent to ${to}`)
+      logger.debug(`Meta flow message sent to ${to}`)
     } catch (err) {
-      logger.error('Meta date_time send exception:', err.message)
+      logger.error('Meta flow send exception:', err.message)
     }
   }
 
@@ -139,7 +144,7 @@ export class MetaProvider extends IMessagingProvider {
           }
         }
 
-        // Interactive date_time picker reply
+        // Interactive date_time picker reply (older/unsupported — kept for reference)
         if (msg.type === 'interactive' && msg.interactive?.type === 'date_time') {
           const dt = msg.interactive.date_time
           const epochMs = Number(dt.timestamp) * 1000
@@ -155,6 +160,40 @@ export class MetaProvider extends IMessagingProvider {
             interactiveType: 'date_time',
             body,
             dateTimestamp: epochMs,
+          }
+        }
+
+        // WhatsApp Flow response — the calendar sends back its data here.
+        // data_json is a JSON string like {"appointment_date":"2026-09-08"}
+        if (msg.type === 'interactive' && msg.interactive?.flow_response) {
+          const fr = msg.interactive.flow_response
+          let data = {}
+          try {
+            data = typeof fr.data_json === 'string' ? JSON.parse(fr.data_json) : (fr.data_json || {})
+          } catch {
+            data = {}
+          }
+
+          // Extract the date the user picked (any ISO/date-looking value)
+          const dateValue = data.appointment_date || data.date || findFirstDate(data)
+          let body = 'date selected'
+          if (dateValue) {
+            const dateObj = new Date(String(dateValue).includes('T') ? dateValue : `${dateValue}T00:00:00`)
+            if (!isNaN(dateObj.getTime())) {
+              const dd = String(dateObj.getDate()).padStart(2, '0')
+              const mm = String(dateObj.getMonth() + 1).padStart(2, '0')
+              const yyyy = dateObj.getFullYear()
+              body = `${dd}/${mm}/${yyyy}`
+            }
+          }
+
+          return {
+            phone: msg.from,
+            type: 'interactive',
+            interactiveType: 'flow_response',
+            body,
+            flowData: data,
+            flowToken: fr.flow_token,
           }
         }
 

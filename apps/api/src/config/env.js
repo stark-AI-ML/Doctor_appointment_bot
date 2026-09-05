@@ -26,6 +26,7 @@ const env = {
     phoneNumberId: process.env.META_PHONE_NUMBER_ID,
     accessToken: process.env.META_ACCESS_TOKEN,
     verifyToken: process.env.META_VERIFY_TOKEN,
+    flowId: process.env.WHATSAPP_FLOW_ID,
   },
 
   isDev: process.env.NODE_ENV !== 'production',

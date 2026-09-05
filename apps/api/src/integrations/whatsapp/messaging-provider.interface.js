@@ -14,14 +14,14 @@ export class IMessagingProvider {
   }
 
   /**
-   * Send an interactive date/time picker message.
-   * Only supported by Meta Cloud API — other providers may fall back silently.
+   * Send a WhatsApp Flow interactive message.
+   * Only supported by Meta Cloud API — other providers may not implement it.
    * @param {string} to - WhatsApp number
    * @param {string} body - Prompt text
-   * @param {string|number} [initialTimestamp] - Optional ISO timestamp / epoch ms for picker default
+   * @param {object} [flowAction] - { action, payload } for the navigate action
    */
-  async sendDateTimeMessage(to, body, initialTimestamp) {
-    throw new Error('sendDateTimeMessage() not implemented in this provider')
+  async sendFlowMessage(to, body, flowAction) {
+    throw new Error('sendFlowMessage() not implemented in this provider')
   }
 
   /**
