@@ -53,8 +53,17 @@ export const MESSAGES = {
     return msg;
   },
 
-  selectDate: (doctorName) =>
-    `👨‍⚕️ *Doctor Selected: ${doctorName}*\nआपने ${doctorName} का चयन किया है।\n\n📅 *Select Appointment Date / अपॉइंटमेंट की तारीख चुनें:*\n\n*Please type your preferred date in this format:*\nकृपया अपनी पसंदीदा तारीख इस फॉर्मेट में टाइप करें:\n\n📅 *DD/MM/YYYY*\n*(Example: 30/08/2026)*\n\n0️⃣ Back | 00 Main Menu`,
+  selectDate: (doctorName, options = []) => {
+    if (!options.length) {
+      return `👨‍⚕️ *Doctor Selected: ${doctorName}*\nआपने ${doctorName} का चयन किया है।\n\n📅 *Select Appointment Date / अपॉइंटमेंट की तारीख चुनें:*\n\n*Please type your preferred date in this format:*\nकृपया अपनी पसंदीदा तारीख इस फॉर्मेट में टाइप करें:\n\n📅 *DD/MM/YYYY*\n*(Example: 30/08/2026)*\n\n0️⃣ Back | 00 Main Menu`
+    }
+    let msg = `👨‍⚕️ *Doctor Selected: ${doctorName}*\nआपने ${doctorName} का चयन किया है।\n\n📅 *Select Appointment Date / अपॉइंटमेंट की तारीख चुनें:*\n\n`
+    options.forEach((opt, i) => {
+      msg += `${i + 1}️⃣ ${opt.icon} ${opt.dateStr} \n          ${opt.label}\n`
+    })
+    msg += `\n👉 *Reply with the number to book, or type a date (DD/MM/YYYY).*\n👉 अपॉइंटमेंट के लिए नंबर भेजें या तारीख (DD/MM/YYYY) टाइप करें।\n\n0️⃣ Back | 00 Main Menu`
+    return msg
+  },
 
   whoFor: (patientName) =>
     `👤 *BOOKING FOR WHOM?*\n\nWelcome back!\n\n1️⃣ ${patientName}\n2️⃣ Someone Else / Family Member`,
@@ -94,8 +103,18 @@ export const MESSAGES = {
     `🎂 *Please enter the patient's age.*\nमरीज की उम्र दर्ज करें।`,
   hospProblem: () =>
     `🩺 *Please describe the illness/problem.*\nबीमारी का विवरण दें।`,
-  hospDate: () =>
-    `📅 *Preferred Date (DD/MM/YYYY)*\nपसंदीदा तारीख (DD/MM/YYYY)`,
+  hospDate: (options = []) => {
+    let msg = `🏥 *Preferred Admission Date / पसंदीदा भर्ती तारीख:*\n\n`
+    if (options.length) {
+      options.forEach((opt, i) => {
+        msg += `${i + 1}️⃣ ${opt.icon} ${opt.dateStr} \n          ${opt.label}\n`
+      })
+      msg += `\n👉 *Reply with the number to book, or type a date (DD/MM/YYYY).*\n👉 अपॉइंटमेंट के लिए नंबर भेजें या तारीख (DD/MM/YYYY) टाइप करें।\n0️⃣ Back | 00 Main Menu`
+    } else {
+      msg += `\n*Please type your preferred date in DD/MM/YYYY format.*\nकृपया DD/MM/YYYY फॉर्मेट में तारीख लिखें।\n0️⃣ Back | 00 Main Menu`
+    }
+    return msg
+  },
   hospDone: () =>
     `✅ *Hospitalization Request Received*\nअस्पताल में भर्ती का अनुरोध प्राप्त हुआ।\n\nOur staff will call you to confirm.\nहमारे कर्मचारी आपको कॉल करके पुष्टि करेंगे।\n\nType "menu" to return.`,
 

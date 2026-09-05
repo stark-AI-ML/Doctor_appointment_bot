@@ -47,3 +47,38 @@ export function toDateString(date) {
   const d = new Date(date)
   return d.toISOString().slice(0, 10)
 }
+
+/**
+ * Build a list of upcoming date options (default: next 7 days from today)
+ * each with a friendly label + icon, ready for the WhatsApp date template.
+ */
+export function getDateOptions(count = 7) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const weekdays = [
+    ['Sunday', 'रविवार'],
+    ['Monday', 'सोमवार'],
+    ['Tuesday', 'मंगलवार'],
+    ['Wednesday', 'बुधवार'],
+    ['Thursday', 'गुरुवार'],
+    ['Friday', 'शुक्रवार'],
+    ['Saturday', 'शनिवार'],
+  ]
+  const icons = ['📆', '🗓️', '📅', '📅', '📅', '📅', '📅']
+
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(today)
+    d.setDate(today.getDate() + i)
+    const [enDay, hiDay] = weekdays[d.getDay()]
+    let label
+    if (i === 0) label = 'Today / आज'
+    else if (i === 1) label = 'Tomorrow / कल'
+    else label = `${enDay} / ${hiDay}`
+    return {
+      date: d,
+      label,
+      icon: icons[i] || '📅',
+      dateStr: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`,
+    }
+  })
+}

@@ -14,17 +14,6 @@ export class IMessagingProvider {
   }
 
   /**
-   * Send a WhatsApp Flow interactive message.
-   * Only supported by Meta Cloud API — other providers may not implement it.
-   * @param {string} to - WhatsApp number
-   * @param {string} body - Prompt text
-   * @param {object} [flowAction] - { action, payload } for the navigate action
-   */
-  async sendFlowMessage(to, body, flowAction) {
-    throw new Error('sendFlowMessage() not implemented in this provider')
-  }
-
-  /**
    * Parse the incoming webhook request to extract phone and message body.
    * @param {Request} req - Express request object
    * @returns {{ phone: string, body: string } | null}

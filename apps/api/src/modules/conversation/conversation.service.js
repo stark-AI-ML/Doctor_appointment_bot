@@ -5,7 +5,7 @@ import patientService from '../patient/patient.service.js'
 import departmentService from '../department/department.service.js'
 import medicineOrderService from '../medicine/medicineOrder.service.js'
 import { STEPS, MESSAGES } from './conversation.steps.js'
-import { resolveDate } from '../../utils/dateHelpers.js'
+import { resolveDate, getDateOptions } from '../../utils/dateHelpers.js'
 import logger from '../../utils/logger.js'
 import fs from 'fs'
 import path from 'path'
@@ -174,12 +174,26 @@ class ConversationService {
       currentStep: STEPS.SELECT_DATE,
       selectedDoctorId: getId(selectedDoctor)
     })
-    return this.sendDatePicker(phone, MESSAGES.selectDate(selectedDoctor.name))
+    return this.sendDateOptions(phone, state, (opts) => MESSAGES.selectDate(selectedDoctor.name, opts))
   }
 
   async handleSelectDate(phone, state, input) {
-    const date = resolveDate(input)
-    if (!date) return this.sendDatePicker(phone, MESSAGES.invalidInput() + '\n(Use DD/MM/YYYY)')
+    const dateOptions = state?.stateData?.dateOptions || []
+    let date = null
+
+    // Number selection from the template (1..7)
+    const idx = parseInt(input, 10)
+    if (!isNaN(idx) && idx >= 1 && idx <= dateOptions.length) {
+      date = new Date(dateOptions[idx - 1])
+    }
+
+    // Fallback: typed date (today/tomorrow/DD/MM/YYYY)
+    if (!date) date = resolveDate(input)
+
+    if (!date) {
+      const doctor = await doctorService.getDoctorById(state.selectedDoctorId)
+      return this.sendDateOptions(phone, state, (opts) => MESSAGES.selectDate(doctor?.name || 'Doctor', opts))
+    }
     
     const dateStr = date.toLocaleDateString('en-IN')
     
@@ -335,13 +349,20 @@ class ConversationService {
   }
 
   async handleHospProblem(phone, state, input) {
-    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_DATE, stateData: { problem: input } })
-    return this.sendMessage(phone, MESSAGES.hospDate())
+    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_DATE, stateData: { ...state.stateData, problem: input } })
+    return this.sendDateOptions(phone, state, (opts) => MESSAGES.hospDate(opts))
   }
 
   async handleHospDate(phone, state, input) {
-    const date = resolveDate(input)
-    if (!date) return this.sendDatePicker(phone, MESSAGES.hospDate())
+    const dateOptions = state?.stateData?.dateOptions || []
+    let date = null
+
+    const idx = parseInt(input, 10)
+    if (!isNaN(idx) && idx >= 1 && idx <= dateOptions.length) {
+      date = new Date(dateOptions[idx - 1])
+    }
+    if (!date) date = resolveDate(input)
+    if (!date) return this.sendDateOptions(phone, state, (opts) => MESSAGES.hospDate(opts))
 
     const patient = await patientService.findOrCreateByPhone(phone, { name: state.tempName, age: state.tempAge })
     
@@ -417,18 +438,16 @@ class ConversationService {
     await this.messagingProvider.sendTextMessage(phone, body)
   }
 
-  async sendDatePicker(phone, body) {
+  async sendDateOptions(phone, state, buildMsg) {
     if (!this.messagingProvider) {
-      logger.warn('No messaging provider set — date picker not sent:', body.slice(0, 50))
+      logger.warn('No messaging provider set — date options not sent')
       return
     }
-    try {
-      await this.messagingProvider.sendFlowMessage(phone, body)
-    } catch (err) {
-      // Provider doesn't support interactive messages (e.g. Twilio) → fall back to text
-      logger.warn(`Date picker not supported — falling back to text: ${err.message}`)
-      await this.sendMessage(phone, body)
-    }
+    const options = getDateOptions(7)
+    await conversationRepo.upsert(phone, {
+      stateData: { ...state?.stateData, dateOptions: options.map(o => o.date.toISOString()) }
+    })
+    return this.sendMessage(phone, buildMsg(options))
   }
 }
 
