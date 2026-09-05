@@ -85,21 +85,86 @@ class ConversationService {
   }
 
   async handleBack(phone, state) {
-    // Determine previous step based on currentStep
-    // For simplicity, just reset to menu for now if they hit back in deeper flows
+    // ── OPD Flow ──────────────────────────────────────────
+    if (state.currentStep === STEPS.OPD_DEPARTMENT) {
+      return this.resetAndWelcome(phone)
+    }
     if (state.currentStep === STEPS.OPD_DOCTOR) {
       const deps = await departmentService.getActiveDepartments()
       await conversationRepo.upsert(phone, { currentStep: STEPS.OPD_DEPARTMENT })
       return this.sendMessage(phone, MESSAGES.departments(deps))
     }
     if (state.currentStep === STEPS.SELECT_DATE) {
-      const deps = await departmentService.getActiveDepartments()
-      // If we don't know dept, go to department
       const selectedDoc = await doctorService.getDoctorById(state.selectedDoctorId)
       const docs = await doctorService.getDoctorsByDepartment(selectedDoc.departmentId)
       await conversationRepo.upsert(phone, { currentStep: STEPS.OPD_DOCTOR })
       return this.sendMessage(phone, MESSAGES.doctors('Doctors', docs))
     }
+    if (state.currentStep === STEPS.WHO_FOR) {
+      const selectedDoc = await doctorService.getDoctorById(state.selectedDoctorId)
+      await conversationRepo.upsert(phone, { currentStep: STEPS.SELECT_DATE })
+      return this.sendDateOptions(phone, state, (opts) => MESSAGES.selectDate(selectedDoc?.name || 'Doctor', opts))
+    }
+    if (state.currentStep === STEPS.PATIENT_NAME) {
+      const selectedDoc = await doctorService.getDoctorById(state.selectedDoctorId)
+      await conversationRepo.upsert(phone, { currentStep: STEPS.SELECT_DATE })
+      return this.sendDateOptions(phone, state, (opts) => MESSAGES.selectDate(selectedDoc?.name || 'Doctor', opts))
+    }
+    if (state.currentStep === STEPS.PATIENT_MOBILE) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_NAME })
+      return this.sendMessage(phone, MESSAGES.patientName())
+    }
+    if (state.currentStep === STEPS.PATIENT_AGE) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_MOBILE })
+      return this.sendMessage(phone, MESSAGES.patientMobile())
+    }
+    if (state.currentStep === STEPS.PATIENT_GENDER) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_AGE })
+      return this.sendMessage(phone, MESSAGES.patientAge())
+    }
+    if (state.currentStep === STEPS.PATIENT_DISTRICT) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_GENDER })
+      return this.sendMessage(phone, MESSAGES.patientGender())
+    }
+    if (state.currentStep === STEPS.PATIENT_ADDRESS) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_DISTRICT })
+      return this.sendMessage(phone, MESSAGES.patientDistrict())
+    }
+    if (state.currentStep === STEPS.PATIENT_PROBLEM) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_ADDRESS })
+      return this.sendMessage(phone, MESSAGES.patientAddress())
+    }
+    if (state.currentStep === STEPS.REVIEW) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_PROBLEM })
+      return this.sendMessage(phone, MESSAGES.patientProblem())
+    }
+
+    // ── Hospitalization Flow ──────────────────────────────
+    if (state.currentStep === STEPS.HOSP_NAME) {
+      return this.resetAndWelcome(phone)
+    }
+    if (state.currentStep === STEPS.HOSP_AGE) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_NAME })
+      return this.sendMessage(phone, MESSAGES.hospStart())
+    }
+    if (state.currentStep === STEPS.HOSP_PROBLEM) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_AGE })
+      return this.sendMessage(phone, MESSAGES.hospAge())
+    }
+    if (state.currentStep === STEPS.HOSP_DATE) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_PROBLEM })
+      return this.sendMessage(phone, MESSAGES.hospProblem())
+    }
+
+    // ── Medicine Flow ─────────────────────────────────────
+    if (state.currentStep === STEPS.MED_PRESCRIPTION) {
+      return this.resetAndWelcome(phone)
+    }
+    if (state.currentStep === STEPS.MED_ADDRESS) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.MED_PRESCRIPTION })
+      return this.sendMessage(phone, MESSAGES.medStart())
+    }
+
     return this.resetAndWelcome(phone)
   }
 
@@ -130,6 +195,8 @@ class ConversationService {
         return this.sendMessage(phone, MESSAGES.support())
       case '6': // Email Help
         return this.sendMessage(phone, MESSAGES.email())
+      case '0': // Main Menu
+        return this.sendMessage(phone, MESSAGES.welcome())
       default:
         return this.sendMessage(phone, MESSAGES.invalidInput())
     }

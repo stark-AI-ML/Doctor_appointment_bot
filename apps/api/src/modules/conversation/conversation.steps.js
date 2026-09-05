@@ -59,35 +59,35 @@ export const MESSAGES = {
     }
     let msg = `👨‍⚕️ *Doctor Selected: ${doctorName}*\nआपने ${doctorName} का चयन किया है।\n\n📅 *Select Appointment Date / अपॉइंटमेंट की तारीख चुनें:*\n\n`
     options.forEach((opt, i) => {
-      msg += `${i + 1}️⃣ ${opt.icon} ${opt.dateStr} \n          ${opt.label}\n`
+      msg += `${i + 1}️⃣ ${opt.dateStr} \n          ${opt.label}\n`
     })
     msg += `\n👉 *Reply with the number to book, or type a date (DD/MM/YYYY).*\n👉 अपॉइंटमेंट के लिए नंबर भेजें या तारीख (DD/MM/YYYY) टाइप करें।\n\n0️⃣ Back | 00 Main Menu`
     return msg
   },
 
   whoFor: (patientName) =>
-    `👤 *BOOKING FOR WHOM?*\n\nWelcome back!\n\n1️⃣ ${patientName}\n2️⃣ Someone Else / Family Member`,
+    `👤 *BOOKING FOR WHOM?*\n\nWelcome back!\n\n1️⃣ ${patientName}\n2️⃣ Someone Else / Family Member\n\n0️⃣ Back | 00 Main Menu`,
 
   patientName: () =>
-    `📝 *Patient Name / मरीज का नाम*\n*Please enter the patient's full name.*\nमरीज का पूरा नाम दर्ज करें।`,
+    `📝 *Patient Name / मरीज का नाम*\n*Please enter the patient's full name.*\nमरीज का पूरा नाम दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
 
   patientMobile: () =>
-    `📱 *Mobile Number / मोबाइल नंबर*\n*Please enter 10-digit mobile number of patient/guardian.*\nमरीज/अभिभावक का 10 अंकों का मोबाइल नंबर दर्ज करें।`,
+    `📱 *Mobile Number / मोबाइल नंबर*\n*Please enter 10-digit mobile number of patient/guardian.*\nमरीज/अभिभावक का 10 अंकों का मोबाइल नंबर दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
 
   patientAge: () =>
-    `🎂 *Age / उम्र*\n*Please enter the patient's age.*\nमरीज की उम्र दर्ज करें।`,
+    `🎂 *Age / उम्र*\n*Please enter the patient's age.*\nमरीज की उम्र दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
 
   patientGender: () =>
-    `⚧ *Gender / लिंग*\n*Please reply with:*\n1️⃣ Male / पुरुष\n2️⃣ Female / महिला\n3️⃣ Other / अन्य`,
+    `⚧ *Gender / लिंग*\n*Please reply with:*\n1️⃣ Male / पुरुष\n2️⃣ Female / महिला\n3️⃣ Other / अन्य\n\n0️⃣ Back | 00 Main Menu`,
 
   patientDistrict: () =>
-    `📍 *District / जिले का नाम*\n*Please enter your district name.*\nअपने जिले का नाम दर्ज करें।`,
+    `📍 *District / जिले का नाम*\n*Please enter your district name.*\nअपने जिले का नाम दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
 
   patientAddress: () =>
-    `🏠 *Complete Address with PIN Code*\nपूरा पता पिन कोड के साथ\n*Please enter your complete residential address including PIN code.*\nपिन कोड सहित अपना पूरा पता दर्ज करें।`,
+    `🏠 *Complete Address with PIN Code*\nपूरा पता पिन कोड के साथ\n*Please enter your complete residential address including PIN code.*\nपिन कोड सहित अपना पूरा पता दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
 
   patientProblem: () =>
-    `🩺 *Health Problem / स्वास्थ्य समस्या*\n*Please briefly describe the patient's health problem.*\nकृपया मरीज की समस्या का संक्षिप्त विवरण दें।`,
+    `🩺 *Health Problem / स्वास्थ्य समस्या*\n*Please briefly describe the patient's health problem.*\nकृपया मरीज की समस्या का संक्षिप्त विवरण दें।\n\n0️⃣ Back | 00 Main Menu`,
 
   review: (data) =>
     `📋 *REVIEW APPOINTMENT REQUEST*\n\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Preferred Date: ${data.date}\n\n👤 Patient: ${data.name}\n📱 Mobile: ${data.mobile}\n🎂 Age: ${data.age}\n⚧ Gender: ${data.gender}\n📍 District: ${data.district}\n🏠 Address: ${data.address}\n🩺 Problem: ${data.problem}\n\n*Confirm details?*\n1️⃣ Confirm / पुष्टि करें\n2️⃣ Edit / बदलाव करें\n0️⃣ Main Menu`,
@@ -97,17 +97,17 @@ export const MESSAGES = {
 
   // Hospitalization
   hospStart: () =>
-    `🏥 *Hospitalization / Admission*\nअस्पताल में भर्ती हेतु अपॉइंटमेंट\n\n*To schedule a hospitalization, please provide patient name:*\nभर्ती हेतु कृपया मरीज का नाम बताएं:`,
+    `🏥 *Hospitalization / Admission*\nअस्पताल में भर्ती हेतु अपॉइंटमेंट\n\n*To schedule a hospitalization, please provide patient name:*\nभर्ती हेतु कृपया मरीज का नाम बताएं:\n\n0️⃣ Back | 00 Main Menu`,
 
   hospAge: () =>
-    `🎂 *Please enter the patient's age.*\nमरीज की उम्र दर्ज करें।`,
+    `🎂 *Please enter the patient's age.*\nमरीज की उम्र दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
   hospProblem: () =>
-    `🩺 *Please describe the illness/problem.*\nबीमारी का विवरण दें।`,
+    `🩺 *Please describe the illness/problem.*\nबीमारी का विवरण दें।\n\n0️⃣ Back | 00 Main Menu`,
   hospDate: (options = []) => {
     let msg = `🏥 *Preferred Admission Date / पसंदीदा भर्ती तारीख:*\n\n`
     if (options.length) {
       options.forEach((opt, i) => {
-        msg += `${i + 1}️⃣ ${opt.icon} ${opt.dateStr} \n          ${opt.label}\n`
+        msg += `${i + 1}️⃣ ${opt.dateStr} \n          ${opt.label}\n`
       })
       msg += `\n👉 *Reply with the number to book, or type a date (DD/MM/YYYY).*\n👉 अपॉइंटमेंट के लिए नंबर भेजें या तारीख (DD/MM/YYYY) टाइप करें।\n0️⃣ Back | 00 Main Menu`
     } else {
@@ -120,10 +120,10 @@ export const MESSAGES = {
 
   // Medicine
   medStart: () =>
-    `💊 *Online Medicine Order*\nऑनलाइन घर बैठे दवा मंगाने की सुविधा\n\n📷 *Please send a photo of your prescription.*\nकृपया अपनी पर्ची की फोटो भेजें।`,
+    `💊 *Online Medicine Order*\nऑनलाइन घर बैठे दवा मंगाने की सुविधा\n\n📷 *Please send a photo of your prescription.*\nकृपया अपनी पर्ची की फोटो भेजें।\n\n0️⃣ Back | 00 Main Menu`,
 
   medAddress: () =>
-    `🏠 *Please provide your complete delivery address.*\nकृपया अपना पूरा डिलीवरी पता भेजें।`,
+    `🏠 *Please provide your complete delivery address.*\nकृपया अपना पूरा डिलीवरी पता भेजें।\n\n0️⃣ Back | 00 Main Menu`,
 
   medDone: () =>
     `✅ *Prescription Received!*\n\nOur team will confirm the order and delivery details.\nहमारी टीम ऑर्डर और डिलीवरी की जानकारी देगी।\n\nType "menu" to return.`,

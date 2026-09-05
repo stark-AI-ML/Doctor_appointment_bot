@@ -64,7 +64,6 @@ export function getDateOptions(count = 7) {
     ['Friday', 'शुक्रवार'],
     ['Saturday', 'शनिवार'],
   ]
-  const icons = ['📆', '🗓️', '📅', '📅', '📅', '📅', '📅']
 
   return Array.from({ length: count }, (_, i) => {
     const d = new Date(today)
@@ -77,7 +76,6 @@ export function getDateOptions(count = 7) {
     return {
       date: d,
       label,
-      icon: icons[i] || '📅',
       dateStr: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`,
     }
   })
