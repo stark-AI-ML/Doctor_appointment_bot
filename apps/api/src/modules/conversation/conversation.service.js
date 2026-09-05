@@ -26,11 +26,10 @@ class ConversationService {
     const isImage = message.type === 'image'
     const input = isImage ? '' : message.body.trim()
 
-    // Global Reset
+    // Explicit reset keywords — work at any step
     if (!isImage) {
-      const lower = input.toLowerCase()
-      const greetings = ['hi', 'hello', 'hey', 'reset', 'menu', 'start', '00']
-      if (greetings.some(g => lower === g || (g !== '00' && lower.startsWith(g)))) {
+      const lower = input.trim().toLowerCase()
+      if (['00', 'menu', 'reset'].includes(lower)) {
         return this.resetAndWelcome(phone)
       }
     }
@@ -38,6 +37,16 @@ class ConversationService {
     let state = await conversationRepo.findByPhone(phone)
     if (!state) {
       return this.resetAndWelcome(phone)
+    }
+
+    // Greetings only reset when the user is at the main menu,
+    // so free-text steps (name/address/problem) are never hijacked.
+    if (!isImage) {
+      const lower = input.trim().toLowerCase()
+      const greetings = ['hi', 'hello', 'hey', 'start']
+      if (state.currentStep === STEPS.WELCOME && greetings.some(g => lower === g || lower.startsWith(g))) {
+        return this.resetAndWelcome(phone)
+      }
     }
 
     // Handle "Back" (0)
@@ -310,9 +319,9 @@ class ConversationService {
   }
 
   async handlePatientMobile(phone, state, input) {
-    const cleanNum = input.replace(/\\D/g, '')
+    const cleanNum = input.replace(/\D/g, '')
     if (cleanNum.length < 10) return this.sendMessage(phone, MESSAGES.invalidInput())
-    await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_AGE, stateData: { ...state.stateData, mobile: input } })
+    await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_AGE, stateData: { ...state.stateData, mobile: cleanNum } })
     return this.sendMessage(phone, MESSAGES.patientAge())
   }
 
@@ -411,7 +420,9 @@ class ConversationService {
   }
 
   async handleHospAge(phone, state, input) {
-    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_PROBLEM, tempAge: input })
+    const age = parseInt(input, 10)
+    if (isNaN(age) || age < 1 || age > 120) return this.sendMessage(phone, MESSAGES.invalidInput())
+    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_PROBLEM, tempAge: age })
     return this.sendMessage(phone, MESSAGES.hospProblem())
   }
 
@@ -448,6 +459,9 @@ class ConversationService {
   // ─── Medicine Order Flow ───────────────────────────────
 
   async handleMedPrescription(phone, state, message) {
+    if (message.type !== 'image') {
+      return this.sendMessage(phone, MESSAGES.medStart())
+    }
     if (!this.messagingProvider.downloadMedia) {
       logger.warn('Messaging provider does not support media download')
       return this.sendMessage(phone, 'Media download not supported currently.')

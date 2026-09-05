@@ -25,6 +25,7 @@ class ConversationRepository {
         tempName: null,
         tempAge: null,
         tempGender: null,
+        stateData: {},
         lastUpdated: new Date(),
       },
       { upsert: true, new: true }
