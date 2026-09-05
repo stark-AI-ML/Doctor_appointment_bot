@@ -174,12 +174,12 @@ class ConversationService {
       currentStep: STEPS.SELECT_DATE,
       selectedDoctorId: getId(selectedDoctor)
     })
-    return this.sendMessage(phone, MESSAGES.selectDate(selectedDoctor.name))
+    return this.sendDatePicker(phone, MESSAGES.selectDate(selectedDoctor.name))
   }
 
   async handleSelectDate(phone, state, input) {
     const date = resolveDate(input)
-    if (!date) return this.sendMessage(phone, MESSAGES.invalidInput() + '\n(Use DD/MM/YYYY)')
+    if (!date) return this.sendDatePicker(phone, MESSAGES.invalidInput() + '\n(Use DD/MM/YYYY)')
     
     const dateStr = date.toLocaleDateString('en-IN')
     
@@ -340,11 +340,14 @@ class ConversationService {
   }
 
   async handleHospDate(phone, state, input) {
+    const date = resolveDate(input)
+    if (!date) return this.sendDatePicker(phone, MESSAGES.hospDate())
+
     const patient = await patientService.findOrCreateByPhone(phone, { name: state.tempName, age: state.tempAge })
     
     await bookingService.createBooking({
       patientId: patient._id,
-      preferredDate: new Date(),
+      preferredDate: new Date(date),
       problemDescription: state.stateData.problem,
       type: 'HOSPITALIZATION',
       source: 'whatsapp',
@@ -412,6 +415,20 @@ class ConversationService {
       return
     }
     await this.messagingProvider.sendTextMessage(phone, body)
+  }
+
+  async sendDatePicker(phone, body) {
+    if (!this.messagingProvider) {
+      logger.warn('No messaging provider set — date picker not sent:', body.slice(0, 50))
+      return
+    }
+    try {
+      await this.messagingProvider.sendDateTimeMessage(phone, body)
+    } catch (err) {
+      // Provider doesn't support interactive messages (e.g. Twilio) → fall back to text
+      logger.warn(`Date picker not supported — falling back to text: ${err.message}`)
+      await this.sendMessage(phone, body)
+    }
   }
 }
 

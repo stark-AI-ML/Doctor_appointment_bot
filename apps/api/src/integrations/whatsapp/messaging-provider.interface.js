@@ -14,6 +14,17 @@ export class IMessagingProvider {
   }
 
   /**
+   * Send an interactive date/time picker message.
+   * Only supported by Meta Cloud API — other providers may fall back silently.
+   * @param {string} to - WhatsApp number
+   * @param {string} body - Prompt text
+   * @param {string|number} [initialTimestamp] - Optional ISO timestamp / epoch ms for picker default
+   */
+  async sendDateTimeMessage(to, body, initialTimestamp) {
+    throw new Error('sendDateTimeMessage() not implemented in this provider')
+  }
+
+  /**
    * Parse the incoming webhook request to extract phone and message body.
    * @param {Request} req - Express request object
    * @returns {{ phone: string, body: string } | null}

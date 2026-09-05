@@ -51,6 +51,63 @@ export class MetaProvider extends IMessagingProvider {
     }
   }
 
+  async sendDateTimeMessage(to, body, initialTimestamp) {
+    if (!env.meta.phoneNumberId || !env.meta.accessToken) {
+      logger.debug(`[META-DRY] DateTime To: ${to}\n${body}`)
+      return
+    }
+
+    // Build the date_time interactive message. If no initial timestamp is
+    // given, default the picker to today (00:00 local).
+    let initialDateTime
+    if (initialTimestamp) {
+      initialDateTime = new Date(initialTimestamp).getTime()
+    } else {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      initialDateTime = today.getTime()
+    }
+
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/v18.0/${env.meta.phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${env.meta.accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to,
+            type: 'interactive',
+            interactive: {
+              type: 'date_time',
+              body: { text: body },
+              action: {
+                name: 'date_time',
+                parameters: {
+                  mode: 'picker_default',
+                  initial_date_time: String(initialDateTime),
+                },
+              },
+            },
+          }),
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        logger.error(`Meta date_time send error: ${JSON.stringify(errorData)}`)
+        throw new Error('Failed to send date_time message via Meta')
+      }
+
+      logger.debug(`Meta date_time message sent to ${to}`)
+    } catch (err) {
+      logger.error('Meta date_time send exception:', err.message)
+    }
+  }
+
   parseIncomingMessage(req) {
     const body = req.body
 
@@ -62,18 +119,62 @@ export class MetaProvider extends IMessagingProvider {
 
       if (messages && messages.length > 0) {
         const msg = messages[0]
+
+        // Plain text messages
         if (msg.type === 'text') {
           return {
             phone: msg.from,
             type: 'text',
             body: msg.text.body,
           }
-        } else if (msg.type === 'image') {
+        }
+
+        // Image messages (prescription upload)
+        if (msg.type === 'image') {
           return {
             phone: msg.from,
             type: 'image',
             imageId: msg.image.id,
-            mimeType: msg.image.mime_type
+            mimeType: msg.image.mime_type,
+          }
+        }
+
+        // Interactive date_time picker reply
+        if (msg.type === 'interactive' && msg.interactive?.type === 'date_time') {
+          const dt = msg.interactive.date_time
+          const epochMs = Number(dt.timestamp) * 1000
+          const d = new Date(epochMs)
+          const dd = String(d.getDate()).padStart(2, '0')
+          const mm = String(d.getMonth() + 1).padStart(2, '0')
+          const yyyy = d.getFullYear()
+          const body = `${dd}/${mm}/${yyyy}`
+
+          return {
+            phone: msg.from,
+            type: 'interactive',
+            interactiveType: 'date_time',
+            body,
+            dateTimestamp: epochMs,
+          }
+        }
+
+        // Button reply
+        if (msg.type === 'button') {
+          return {
+            phone: msg.from,
+            type: 'interactive',
+            interactiveType: 'button',
+            body: msg.button?.text || '',
+          }
+        }
+
+        // List reply
+        if (msg.type === 'interactive' && msg.interactive?.type === 'list_reply') {
+          return {
+            phone: msg.from,
+            type: 'interactive',
+            interactiveType: 'list_reply',
+            body: msg.interactive?.list_reply?.title || '',
           }
         }
       }
