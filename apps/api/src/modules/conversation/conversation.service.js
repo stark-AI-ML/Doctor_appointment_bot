@@ -143,10 +143,7 @@ class ConversationService {
     if (isNaN(idx) || idx < 0 || idx >= deps.length) return this.sendMessage(phone, MESSAGES.invalidInput())
     
     const selectedDept = deps[idx]
-    // Note: getDoctorsByDepartment might not exist yet, we can mock or filter
-    let docs = await doctorService.getActiveDoctors()
-    // filter by dept if we have departmentId on doctors
-    docs = docs.filter(d => d.departmentId?.toString() === selectedDept._id.toString())
+    let docs = await doctorService.getDoctorsByDepartment(getId(selectedDept))
     
     if (!docs.length) {
       // If no docs mapped properly, just show all for demo
@@ -161,7 +158,14 @@ class ConversationService {
   }
 
   async handleOpdDoctor(phone, state, input) {
-    const docs = await doctorService.getActiveDoctors()
+    let docs
+    const deptId = state?.stateData?.departmentId
+    if (deptId) {
+      docs = await doctorService.getDoctorsByDepartment(deptId)
+      if (!docs.length) docs = await doctorService.getActiveDoctors()
+    } else {
+      docs = await doctorService.getActiveDoctors()
+    }
     const idx = parseInt(input, 10) - 1
     if (isNaN(idx) || idx < 0 || idx >= docs.length) return this.sendMessage(phone, MESSAGES.invalidInput())
     

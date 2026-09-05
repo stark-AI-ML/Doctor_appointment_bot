@@ -14,6 +14,10 @@ class DoctorService {
     return cache.wrap(CACHE_ACTIVE, () => doctorRepo.findActive(), CACHE_TTL)
   }
 
+  async getDoctorsByDepartment(departmentId, { activeOnly = true } = {}) {
+    return doctorRepo.findByDepartment(departmentId, { activeOnly })
+  }
+
   async getDoctorById(id) {
     return doctorRepo.findById(id)
   }

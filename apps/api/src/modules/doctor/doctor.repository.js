@@ -9,6 +9,12 @@ class DoctorRepository {
     return Doctor.find({ isActive: true }).sort({ name: 1 })
   }
 
+  async findByDepartment(departmentId, { activeOnly = true } = {}) {
+    const filter = { departmentId }
+    if (activeOnly) filter.isActive = true
+    return Doctor.find(filter).sort({ name: 1 })
+  }
+
   async findById(id) {
     return Doctor.findById(id)
   }
