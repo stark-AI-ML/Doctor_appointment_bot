@@ -398,6 +398,38 @@ describe('Conversation Booking Flow (current)', () => {
     expect(mockProvider.downloadMedia).not.toHaveBeenCalled()
   })
 
+  it('after confirming OPD booking, send "hi" returns to the main menu', async () => {
+    await send('1'); await send('1'); await send('1'); await send('1')
+    await send('Test Name'); await send('9876543210'); await send('30'); await send('1')
+    await send('Delhi'); await send('Addr 1'); await send('problem')
+    const confirm = await send('1') // creates booking + resets state
+    expect(confirm).toContain('Hi" or "Start') // invites Hi/Start to return
+    expect(stateStore[PHONE].currentStep).toBe('WELCOME')
+
+    const home = await send('start') // works like the very first interaction
+    expect(home).toContain('Namaste')
+    expect(stateStore[PHONE].currentStep).toBe('WELCOME')
+  })
+
+  it('after confirming a booking, send "hi" returns to the main menu (hospitalization)', async () => {
+    await send('2'); await send('Ramesh'); await send('45'); await send('problem')
+    await send('1') // pick date -> booking + reset
+    const home = await send('hi')
+    expect(home).toContain('Namaste')
+    expect(stateStore[PHONE].currentStep).toBe('WELCOME')
+  })
+
+  it('after completing a medicine order, send "hi" returns to the main menu', async () => {
+    mockProvider.downloadMedia.mockResolvedValue({ mimeType: 'image/jpeg', buffer: Buffer.from('x') })
+    patientService.findOrCreateByPhone.mockResolvedValue(PATIENT_NEW)
+    await send('3')
+    await conversationService.handleMessage(PHONE, { type: 'image', imageId: 'img1' })
+    await send('Sector 7, Noida') // order + reset
+    const home = await send('hi')
+    expect(home).toContain('Namaste')
+    expect(stateStore[PHONE].currentStep).toBe('WELCOME')
+  })
+
   // ── Static menu options ──────────────────────────────────────
   it('shows info on option 4', async () => {
     await send('4')

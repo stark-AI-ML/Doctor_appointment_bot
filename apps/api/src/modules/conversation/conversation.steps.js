@@ -93,7 +93,7 @@ export const MESSAGES = {
     `📋 *REVIEW APPOINTMENT REQUEST*\n\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Preferred Date: ${data.date}\n\n👤 Patient: ${data.name}\n📱 Mobile: ${data.mobile}\n🎂 Age: ${data.age}\n⚧ Gender: ${data.gender}\n📍 District: ${data.district}\n🏠 Address: ${data.address}\n🩺 Problem: ${data.problem}\n\n*Confirm details?*\n1️⃣ Confirm / पुष्टि करें\n2️⃣ Edit / बदलाव करें\n0️⃣ Main Menu`,
 
   appointmentConfirmed: (data) =>
-    `✅ *Appointment Request Received!*\n✅ अपॉइंटमेंट अनुरोध सफलतापूर्वक प्राप्त हुआ!\n\n🎫 *Token No:* ${data.tokenNumber}\n🆔 *UHID No:* ${data.uhid}\n\n📋 *Appointment Details / विवरण:*\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Date: ${data.date}\n👤 Name: ${data.name}\n📱 Mobile: ${data.mobile}\n\n📌 *Our team will call you to confirm your appointment.*\n📌 हमारी टीम आपको कॉल करके अपॉइंटमेंट की पुष्टि करेगी।\n\n*Type "menu" to return to main menu.*`,
+    `✅ *Appointment Request Received!*\n✅ अपॉइंटमेंट अनुरोध सफलतापूर्वक प्राप्त हुआ!\n\n🎫 *Token No:* ${data.tokenNumber}\n🆔 *UHID No:* ${data.uhid}\n\n📋 *Appointment Details / विवरण:*\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Date: ${data.date}\n👤 Name: ${data.name}\n📱 Mobile: ${data.mobile}\n\n📌 *Our team will call you to confirm your appointment.*\n📌 हमारी टीम आपको कॉल करके अपॉइंटमेंट की पुष्टि करेगी।\n\n👉 *To return to the main menu, send "Hi" or "Start".*\n👉 मुख्य मेनू पर लौटने के लिए "Hi" या "Start" भेजें।`,
 
   // Hospitalization
   hospStart: () =>
@@ -116,7 +116,7 @@ export const MESSAGES = {
     return msg
   },
   hospDone: () =>
-    `✅ *Hospitalization Request Received*\nअस्पताल में भर्ती का अनुरोध प्राप्त हुआ।\n\nOur staff will call you to confirm.\nहमारे कर्मचारी आपको कॉल करके पुष्टि करेंगे।\n\nType "menu" to return.`,
+    `✅ *Hospitalization Request Received*\nअस्पताल में भर्ती का अनुरोध प्राप्त हुआ।\n\nOur staff will call you to confirm.\nहमारे कर्मचारी आपको कॉल करके पुष्टि करेंगे।\n\n👉 *To return to the main menu, send "Hi" or "Start".*\n👉 मुख्य मेनू पर लौटने के लिए "Hi" या "Start" भेजें।`,
 
   // Medicine
   medStart: () =>
@@ -126,7 +126,7 @@ export const MESSAGES = {
     `🏠 *Please provide your complete delivery address.*\nकृपया अपना पूरा डिलीवरी पता भेजें।\n\n0️⃣ Back | 00 Main Menu`,
 
   medDone: () =>
-    `✅ *Prescription Received!*\n\nOur team will confirm the order and delivery details.\nहमारी टीम ऑर्डर और डिलीवरी की जानकारी देगी।\n\nType "menu" to return.`,
+    `✅ *Prescription Received!*\n\nOur team will confirm the order and delivery details.\nहमारी टीम ऑर्डर और डिलीवरी की जानकारी देगी।\n\n👉 *To return to the main menu, send "Hi" or "Start".*\n👉 मुख्य मेनू पर लौटने के लिए "Hi" या "Start" भेजें।`,
 
   // Info / Support
   info: () =>
