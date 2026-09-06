@@ -257,9 +257,12 @@ class ConversationService {
     const dateOptions = state?.stateData?.dateOptions || []
     let date = null
 
-    // Number selection from the template (1..7)
+    // A DD/MM/YYYY input must be treated as a date, never as a menu index
+    // (e.g. "05/09/2026" must not be parsed as option 5).
+    const looksLikeDate = /^\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}$/.test(input.trim())
     const idx = parseInt(input, 10)
-    if (!isNaN(idx) && idx >= 1 && idx <= dateOptions.length) {
+
+    if (!looksLikeDate && !isNaN(idx) && idx >= 1 && idx <= dateOptions.length) {
       date = new Date(dateOptions[idx - 1])
     }
 
@@ -435,8 +438,10 @@ class ConversationService {
     const dateOptions = state?.stateData?.dateOptions || []
     let date = null
 
+    const looksLikeDate = /^\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}$/.test(input.trim())
     const idx = parseInt(input, 10)
-    if (!isNaN(idx) && idx >= 1 && idx <= dateOptions.length) {
+
+    if (!looksLikeDate && !isNaN(idx) && idx >= 1 && idx <= dateOptions.length) {
       date = new Date(dateOptions[idx - 1])
     }
     if (!date) date = resolveDate(input)
