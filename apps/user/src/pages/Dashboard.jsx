@@ -25,22 +25,23 @@ import Button from '../components/common/Button'
 import { Loader } from '../components/common/Loader'
 import styles from './Dashboard.module.css'
 
-const PIE_COLORS = ['#25D366', '#f0ad4e', '#58a6ff', '#f85149']
+const PIE_COLORS = ['#10b981', '#f59e0b', '#0284c7', '#ef4444']
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
   return (
     <div style={{
-      background: '#1a2233',
-      border: '1px solid #21262d',
-      borderRadius: '10px',
+      background: '#ffffff',
+      border: '1px solid #e2e8f0',
+      borderRadius: '12px',
       padding: '12px 16px',
       fontSize: '13px',
+      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
     }}>
-      <p style={{ color: '#8b949e', marginBottom: '4px' }}>{label}</p>
+      <p style={{ color: '#64748b', marginBottom: '6px', fontWeight: 600 }}>{label}</p>
       {payload.map((entry, i) => (
-        <p key={i} style={{ color: entry.color }}>
-          {entry.name}: <strong>{entry.value}</strong>
+        <p key={i} style={{ color: entry.color, margin: '3px 0' }}>
+          {entry.name}: <strong style={{ color: '#0f172a' }}>{entry.value}</strong>
         </p>
       ))}
     </div>
@@ -151,31 +152,31 @@ export default function Dashboard() {
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradientBookings" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#25D366" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#25D366" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.0} />
                     </linearGradient>
                     <linearGradient id="gradientConfirmed" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#58a6ff" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#58a6ff" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#0284c7" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#0284c7" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#21262d" />
-                  <XAxis dataKey="date" stroke="#484f58" fontSize={12} />
-                  <YAxis stroke="#484f58" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} />
                   <Area
                     type="monotone"
                     dataKey="bookings"
-                    stroke="#25D366"
-                    strokeWidth={2}
+                    stroke="#10b981"
+                    strokeWidth={2.5}
                     fill="url(#gradientBookings)"
                     name="Bookings"
                   />
                   <Area
                     type="monotone"
                     dataKey="confirmed"
-                    stroke="#58a6ff"
-                    strokeWidth={2}
+                    stroke="#0284c7"
+                    strokeWidth={2.5}
                     fill="url(#gradientConfirmed)"
                     name="Confirmed"
                   />
@@ -207,15 +208,17 @@ export default function Dashboard() {
                   iconType="circle"
                   iconSize={8}
                   formatter={(value) => (
-                    <span style={{ color: '#8b949e', fontSize: '12px' }}>{value}</span>
+                    <span style={{ color: '#64748b', fontSize: '12px', fontWeight: 500 }}>{value}</span>
                   )}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: '#1a2233',
-                    border: '1px solid #21262d',
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
                     borderRadius: '10px',
                     fontSize: '13px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                    color: '#0f172a',
                   }}
                 />
               </PieChart>

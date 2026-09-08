@@ -8,30 +8,33 @@
 .titleWrap {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: 14px;
 }
 .iconBubble {
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-lg);
-  background: var(--gradient-primary);
-  color: white;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #0284c7;
+  border: 1px solid #dbeafe;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-glow-primary);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.1);
   flex-shrink: 0;
 }
 .title {
   margin: 0;
-  font-size: var(--font-xl);
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  color: #0f172a;
+  letter-spacing: -0.02em;
 }
 .subtitle {
-  margin: var(--space-1) 0 0;
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: #64748b;
+  font-weight: 500;
 }
 .actions {
   display: flex;

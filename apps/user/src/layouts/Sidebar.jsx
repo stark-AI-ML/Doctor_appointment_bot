@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -12,8 +13,10 @@ import {
   Settings,
   LogOut,
   MessageCircle,
+  AlertTriangle,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import Modal from '../components/common/Modal'
 import styles from './Sidebar.module.css'
 
 const iconMap = {
@@ -29,7 +32,7 @@ const iconMap = {
   Settings,
 }
 
-// Nav per role — mirrors the backend permission matrix (plan §5.2).
+// Nav per role — exact labels preserved
 const NAV_BY_ROLE = {
   superadmin: [
     { path: '/', label: 'Dashboard', icon: 'LayoutDashboard' },
@@ -56,7 +59,7 @@ const NAV_BY_ROLE = {
   ],
   doctor: [
     { path: '/my-patients', label: 'My Patients', icon: 'Users' },
-    { path: '/appointments', label: 'My Appointments (OPD)', icon: 'CalendarCheck' },
+    { path: '/appointments', label: 'Appointments (OPD)', icon: 'CalendarCheck' },
   ],
   receptionist: [
     { path: '/appointments', label: 'Appointments (OPD)', icon: 'CalendarCheck' },
@@ -74,7 +77,8 @@ const NAV_BY_ROLE = {
 export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
   const { user, logout } = useAuth()
   const location = useLocation()
-  const navItems = NAV_BY_ROLE[user?.role] || []
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const navItems = NAV_BY_ROLE[user?.role] || NAV_BY_ROLE.admin
 
   const sidebarClass = [
     styles.sidebar,
@@ -83,6 +87,11 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
   ]
     .filter(Boolean)
     .join(' ')
+
+  const handleConfirmLogout = () => {
+    setShowLogoutModal(false)
+    logout()
+  }
 
   return (
     <>
@@ -93,19 +102,26 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
       <aside className={sidebarClass}>
         {/* Brand */}
         <div className={styles.brand}>
-          <div className={styles.brandIcon}>
-            <MessageCircle />
+          <div className={styles.brandIconWrapper}>
+            <div className={styles.brandLogoCircle}>
+              <img 
+                src="/image/image.png" 
+                alt="KG Nanda Hospital Logo" 
+                className={styles.brandLogoImg} 
+              />
+            </div>
+            <span className={styles.statusDot} />
           </div>
           <div className={styles.brandText}>
             <span className={styles.brandName}>KG Nanda Hospital</span>
-            <span className={styles.brandSub}>Dashboard</span>
+            <span className={styles.brandSub}>DASHBOARD</span>
           </div>
         </div>
 
         {/* Navigation */}
         <nav className={styles.nav}>
           {navItems.map((item) => {
-            const Icon = iconMap[item.icon]
+            const Icon = iconMap[item.icon] || LayoutDashboard
             const isActive =
               item.path === '/'
                 ? location.pathname === '/'
@@ -119,7 +135,9 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
                 onClick={onCloseMobile}
                 title={collapsed ? item.label : undefined}
               >
-                <Icon className={styles.navIcon} />
+                <div className={styles.iconBox}>
+                  <Icon size={18} className={styles.navIcon} />
+                </div>
                 <span className={styles.navLabel}>{item.label}</span>
               </NavLink>
             )
@@ -128,12 +146,60 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
 
         {/* Footer */}
         <div className={styles.sidebarFooter}>
-          <button className={styles.logoutBtn} onClick={logout} title="Logout">
-            <LogOut className={styles.navIcon} />
+          <button 
+            className={styles.logoutBtn} 
+            onClick={() => setShowLogoutModal(true)} 
+            title="Logout"
+            type="button"
+          >
+            <LogOut size={18} className={styles.logoutIcon} />
             <span className={styles.logoutLabel}>Logout</span>
           </button>
         </div>
       </aside>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <Modal
+          isOpen={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          title="Confirm Sign Out"
+          footer={
+            <>
+              <button
+                type="button"
+                className={styles.modalCancelBtn}
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.modalConfirmBtn}
+                onClick={handleConfirmLogout}
+              >
+                <LogOut size={16} />
+                <span>Yes, Logout</span>
+              </button>
+            </>
+          }
+        >
+          <div className={styles.logoutModalBody}>
+            <div className={styles.logoutModalIcon}>
+              <LogOut size={24} />
+            </div>
+            <div>
+              <h3 className={styles.logoutModalHeading}>Are you sure you want to logout?</h3>
+              <p className={styles.logoutModalText}>
+                You will be signed out from your current session in the KG Nanda Hospital dashboard.
+              </p>
+            </div>
+          </div>
+        </Modal>
+      )}
     </>
   )
 }
+
+
+

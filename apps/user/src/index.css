@@ -3,56 +3,56 @@
    ============================================ */
 
 :root {
-  /* ── Primary (WhatsApp-inspired) ── */
-  --primary: #25D366;
-  --primary-dark: #128C7E;
-  --primary-light: #DCF8C6;
-  --primary-glow: rgba(37, 211, 102, 0.15);
-  --primary-hover: #1ebe5a;
+  /* ── Primary (Hospital Blue / Teal) ── */
+  --primary: #0284c7;
+  --primary-dark: #0369a1;
+  --primary-light: #e0f2fe;
+  --primary-glow: rgba(2, 132, 199, 0.15);
+  --primary-hover: #0ea5e9;
 
   /* ── Surfaces ── */
-  --bg-root: #0a0e17;
-  --bg-primary: #0f1419;
-  --bg-secondary: #151b23;
-  --bg-card: #1a2233;
-  --bg-elevated: #222d3f;
-  --bg-hover: #253048;
-  --bg-input: #131921;
+  --bg-root: #f8fafc;
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-hover: #f1f5f9;
+  --bg-input: #f8fafc;
 
   /* ── Borders ── */
-  --border-primary: #21262d;
-  --border-secondary: #30363d;
-  --border-active: #388bfd;
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --border-active: #0284c7;
 
   /* ── Text ── */
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --text-muted: #484f58;
-  --text-inverse: #0a0e17;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
 
   /* ── Status Colors ── */
-  --status-pending: #f0ad4e;
-  --status-pending-bg: rgba(240, 173, 78, 0.12);
-  --status-confirmed: #25D366;
-  --status-confirmed-bg: rgba(37, 211, 102, 0.12);
-  --status-completed: #58a6ff;
-  --status-completed-bg: rgba(88, 166, 255, 0.12);
-  --status-cancelled: #f85149;
-  --status-cancelled-bg: rgba(248, 81, 73, 0.12);
+  --status-pending: #d97706;
+  --status-pending-bg: #fffbeb;
+  --status-confirmed: #059669;
+  --status-confirmed-bg: #ecfdf5;
+  --status-completed: #0284c7;
+  --status-completed-bg: #eff6ff;
+  --status-cancelled: #dc2626;
+  --status-cancelled-bg: #fef2f2;
 
   /* ── Accent Colors ── */
-  --accent-blue: #58a6ff;
-  --accent-purple: #bc8cff;
-  --accent-orange: #f0883e;
-  --accent-pink: #f778ba;
-  --accent-cyan: #56d4dd;
+  --accent-blue: #0284c7;
+  --accent-purple: #8b5cf6;
+  --accent-orange: #f97316;
+  --accent-pink: #ec4899;
+  --accent-cyan: #06b6d4;
 
   /* ── Gradients ── */
-  --gradient-primary: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-  --gradient-blue: linear-gradient(135deg, #58a6ff 0%, #388bfd 100%);
-  --gradient-purple: linear-gradient(135deg, #bc8cff 0%, #8b5cf6 100%);
-  --gradient-orange: linear-gradient(135deg, #f0883e 0%, #e3642b 100%);
-  --gradient-card: linear-gradient(135deg, rgba(26, 34, 51, 0.8) 0%, rgba(15, 20, 25, 0.8) 100%);
+  --gradient-primary: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  --gradient-blue: linear-gradient(135deg, #0284c7 0%, #003870 100%);
+  --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  --gradient-orange: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  --gradient-card: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 
   /* ── Typography ── */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
