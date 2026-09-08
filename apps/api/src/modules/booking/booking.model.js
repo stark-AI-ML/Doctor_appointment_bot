@@ -13,11 +13,15 @@ const bookingSchema = new mongoose.Schema({
   type:          { type: String, enum: ['OPD', 'HOSPITALIZATION'], default: 'OPD' },
   status:        { type: String, enum: ['pending', 'confirmed', 'cancelled', 'completed'], default: 'pending' },
   bookingSource: { type: String, enum: ['whatsapp', 'admin', 'manual'], default: 'whatsapp' },
+  // Who registered this booking. null = WhatsApp bot; user id = staff member.
+  createdBy:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  createdByRole: { type: String, default: null },
 }, { timestamps: true })
 
 bookingSchema.index({ doctorId: 1, status: 1 })
 bookingSchema.index({ patientId: 1 })
 bookingSchema.index({ createdAt: -1 })
+bookingSchema.index({ createdBy: 1, createdAt: -1 })
 
 bookingSchema.set('toJSON', {
   virtuals: true,

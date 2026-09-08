@@ -39,7 +39,7 @@ class BookingService {
   /**
    * Create a booking — marks slot as unavailable.
    */
-  async createBooking({ doctorId, departmentId, patientId, serviceId, slotId, source = 'whatsapp', type = 'OPD', problemDescription, tokenNumber, preferredDate }) {
+  async createBooking({ doctorId, departmentId, patientId, serviceId, slotId, source = 'whatsapp', type = 'OPD', problemDescription, tokenNumber, preferredDate, createdBy = null, createdByRole = null }) {
     // Verify slot is available if provided
     if (slotId) {
       const slot = await slotRepo.findById(slotId)
@@ -65,6 +65,8 @@ class BookingService {
       problemDescription,
       status: 'pending',
       bookingSource: source,
+      createdBy,
+      createdByRole,
     })
 
     // Mark slot as unavailable if slotId exists
@@ -149,15 +151,11 @@ class BookingService {
   }
 
   /**
-   * Generate booking ID: BK-YYYYMMDD-NNN
+   * Generate booking ID: BK-YYYYMMDD-NNN (atomic counter — race-safe).
    */
   async generateBookingId() {
-    const today = new Date()
-    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '')
-    const prefix = `BK-${dateStr}-`
-    const count = await bookingRepo.countByDatePrefix(prefix)
-    const seq = String(count + 1).padStart(3, '0')
-    return `${prefix}${seq}`
+    const { default: idsService } = await import('../ids/ids.service.js')
+    return idsService.generateBookingId()
   }
 
   /** Dashboard stats — cached 2 min */

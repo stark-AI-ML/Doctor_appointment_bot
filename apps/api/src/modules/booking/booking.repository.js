@@ -25,8 +25,15 @@ class BookingRepository {
       .populate('slotId', 'date startTime endTime')
   }
 
-  async findByPatientPhone(phone) {
-    // Find patient by phone, then their bookings
+  /**
+   * Distinct patient ids for a doctor — powers "My Patients".
+   * The doctor↔patient relation is derived from bookings (no junction table).
+   */
+  async findDistinctPatientIdsByDoctor(doctorId) {
+    return Booking.distinct('patientId', { doctorId, status: { $ne: 'cancelled' } })
+  }
+
+  async findByPatientPhone(phone) {    // Find patient by phone, then their bookings
     const Patient = (await import('../patient/patient.model.js')).default
     const patient = await Patient.findOne({ phone })
     if (!patient) return []

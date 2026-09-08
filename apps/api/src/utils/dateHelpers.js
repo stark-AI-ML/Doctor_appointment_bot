@@ -31,21 +31,60 @@ export function resolveDate(input) {
 }
 
 /**
+ * Safely parse any date string into a Date object without JS MM/DD/YYYY ambiguity.
+ */
+export function parseAnyDate(input) {
+  if (!input) return null
+  if (input instanceof Date) return isNaN(input.getTime()) ? null : input
+
+  const str = String(input).trim()
+  const ddmmyyyy = str.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/)
+  if (ddmmyyyy) {
+    const [, dd, mm, yyyy] = ddmmyyyy.map(Number)
+    const d = new Date(yyyy, mm - 1, dd)
+    return isNaN(d.getTime()) ? null : d
+  }
+  const yyyymmdd = str.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (yyyymmdd) {
+    const [, yyyy, mm, dd] = yyyymmdd.map(Number)
+    const d = new Date(yyyy, mm - 1, dd)
+    return isNaN(d.getTime()) ? null : d
+  }
+  const d = new Date(str)
+  return isNaN(d.getTime()) ? null : d
+}
+
+/**
  * Format date for display in WhatsApp messages.
  */
 export function formatDateDisplay(date) {
-  const d = new Date(date)
+  const d = parseAnyDate(date) || new Date(date)
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
 }
 
 /**
- * Get date string in YYYY-MM-DD format.
+ * Format date to DD/MM/YYYY Indian format.
+ */
+export function formatDateIndian(date) {
+  const d = parseAnyDate(date)
+  if (!d) return String(date || '')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const yyyy = d.getFullYear()
+  return `${dd}/${mm}/${yyyy}`
+}
+
+/**
+ * Get date string in YYYY-MM-DD format (local date).
  */
 export function toDateString(date) {
-  const d = new Date(date)
-  return d.toISOString().slice(0, 10)
+  const d = parseAnyDate(date) || new Date(date)
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
 }
 
 /**

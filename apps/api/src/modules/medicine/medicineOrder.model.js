@@ -9,6 +9,8 @@ const medicineOrderSchema = new mongoose.Schema({
   staffNotes:      { type: String, default: '' },
   status:          { type: String, enum: ['pending', 'processing', 'dispatched', 'completed', 'cancelled'], default: 'pending' },
   source:          { type: String, enum: ['whatsapp', 'admin'], default: 'whatsapp' },
+  createdBy:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  createdByRole: { type: String, default: null },
 }, { timestamps: true })
 
 medicineOrderSchema.index({ status: 1 })

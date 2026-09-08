@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import env from './config/env.js'
 import logger from './utils/logger.js'
 
-import Admin from './modules/admin/admin.model.js'
+import User from './modules/user/user.model.js'
 import Doctor from './modules/doctor/doctor.model.js'
 import Service from './modules/service/service.model.js'
 import TimeSlot from './modules/booking/timeslot.model.js'
@@ -20,7 +20,7 @@ async function seed() {
 
     logger.info('Clearing existing data...')
     await Promise.all([
-      Admin.deleteMany({}),
+      User.deleteMany({}),
       Doctor.deleteMany({}),
       Service.deleteMany({}),
       TimeSlot.deleteMany({}),
@@ -30,14 +30,32 @@ async function seed() {
       MedicineOrder.deleteMany({}),
     ])
 
-    logger.info('Seeding Admin...')
-    const passwordHash = await bcrypt.hash('admin123', 10)
-    await Admin.create({
+    logger.info('Seeding Users (all roles, matching frontend demo logins)...')
+    await User.create({
       name: 'Super Admin',
-      email: 'admin@docbot.com',
-      passwordHash,
+      email: 'super@kgnanda.com',
+      passwordHash: await bcrypt.hash('super123', 10),
       role: 'superadmin',
+      staffCode: 'KGN_SA_001',
     })
+
+    // Demo logins for the dashboard (passwords: see email prefix + '123')
+    const demoUsers = [
+      { name: 'Hospital Admin', email: 'admin@docbot.com', role: 'admin', staffCode: 'KGN_ADM_001', password: 'admin123' },
+      { name: 'Front Desk', email: 'reception@kgnanda.com', role: 'receptionist', staffCode: 'KGN_RC_001', phone: '9876543201', salary: 18000, password: 'recep123' },
+      { name: 'Pharmacy Desk', email: 'pharmacy@kgnanda.com', role: 'pharmacy', staffCode: 'KGN_PHR_001', phone: '9876543202', salary: 20000, password: 'pharm123' },
+    ]
+    for (const u of demoUsers) {
+      await User.create({
+        name: u.name,
+        email: u.email,
+        passwordHash: await bcrypt.hash(u.password, 10),
+        role: u.role,
+        staffCode: u.staffCode,
+        phone: u.phone || '',
+        salary: u.salary || 0,
+      })
+    }
 
     logger.info('Seeding Departments...')
     const deptsData = [
@@ -81,6 +99,18 @@ async function seed() {
       { departmentId: getDeptId('Urology'), name: 'Vikram Singh', qualifications: 'MCH', specialization: 'Urologist', gender: 'male', consultationFee: 800 },
     ]
     const doctors = await Doctor.insertMany(doctorsData)
+
+    logger.info('Seeding Doctor login (linked to first doctor)...')
+    await User.create({
+      name: doctors[0].name,
+      email: 'doctor@kgnanda.com',
+      passwordHash: await bcrypt.hash('doctor123', 10),
+      role: 'doctor',
+      doctorId: doctors[0]._id,
+      staffCode: 'KGN_DOC_001',
+      phone: '9876543203',
+      salary: 80000,
+    })
 
     logger.info('Seeding Services...')
     await Service.insertMany([

@@ -1,6 +1,5 @@
 import conversationRepo from './conversation.repository.js'
 import doctorService from '../doctor/doctor.service.js'
-import bookingService from '../booking/booking.service.js'
 import patientService from '../patient/patient.service.js'
 import departmentService from '../department/department.service.js'
 import medicineOrderService from '../medicine/medicineOrder.service.js'
@@ -379,29 +378,27 @@ class ConversationService {
     }
     if (input !== '1') return this.sendMessage(phone, MESSAGES.invalidInput())
 
-    // Confirm & Create OPD Booking
-    const patient = await patientService.findOrCreateByPhone(phone, {
-      name: state.tempName,
-      age: state.tempAge,
-      gender: state.tempGender,
-      district: state.stateData.district,
-    })
+    // Confirm & Create OPD Booking via the shared registration core
+    // (same UHID-per-phone + token series as the receptionist endpoint).
+    const { patient, booking } = await patientService.registerPatientWithBooking(
+      {
+        phone,
+        name: state.tempName,
+        age: state.tempAge,
+        gender: state.tempGender,
+        district: state.stateData.district,
+        address: state.stateData.address,
+        doctorId: state.selectedDoctorId,
+        departmentId: state.stateData.departmentId,
+        preferredDate: state.selectedDate,
+        problemDescription: state.stateData.problem,
+        type: 'OPD',
+      },
+      { source: 'whatsapp' },
+      { validate: false } // fields were validated step-by-step at entry
+    )
 
     const doctor = await doctorService.getDoctorById(state.selectedDoctorId)
-    
-    // Generate a quick random token number for now since bookingService does not expose count
-    const tokenNumber = `TKN-${Math.floor(100 + Math.random() * 900)}`
-
-    const booking = await bookingService.createBooking({
-      doctorId: state.selectedDoctorId,
-      departmentId: state.stateData.departmentId,
-      patientId: patient._id,
-      preferredDate: new Date(state.selectedDate),
-      problemDescription: state.stateData.problem,
-      type: 'OPD',
-      source: 'whatsapp',
-      tokenNumber
-    })
 
     await this.sendMessage(phone, MESSAGES.appointmentConfirmed({
       tokenNumber: booking.tokenNumber,
@@ -447,15 +444,18 @@ class ConversationService {
     if (!date) date = resolveDate(input)
     if (!date) return this.sendDateOptions(phone, state, (opts) => MESSAGES.hospDate(opts))
 
-    const patient = await patientService.findOrCreateByPhone(phone, { name: state.tempName, age: state.tempAge })
-    
-    await bookingService.createBooking({
-      patientId: patient._id,
-      preferredDate: new Date(date),
-      problemDescription: state.stateData.problem,
-      type: 'HOSPITALIZATION',
-      source: 'whatsapp',
-    })
+    await patientService.registerPatientWithBooking(
+      {
+        phone,
+        name: state.tempName,
+        age: state.tempAge,
+        preferredDate: new Date(date),
+        problemDescription: state.stateData.problem,
+        type: 'HOSPITALIZATION',
+      },
+      { source: 'whatsapp' },
+      { validate: false } // name/age were validated step-by-step at entry
+    )
 
     await this.sendMessage(phone, MESSAGES.hospDone())
     await conversationRepo.resetState(phone)

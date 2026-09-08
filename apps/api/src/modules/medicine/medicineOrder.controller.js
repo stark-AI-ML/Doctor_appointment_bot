@@ -1,11 +1,19 @@
 import medicineOrderService from './medicineOrder.service.js'
 import MedicineOrder from './medicineOrder.model.js'
+import bookingRepo from '../booking/booking.repository.js'
 
 class MedicineOrderController {
   async getOrders(req, res) {
     const { page = 1, limit = 10, status, search } = req.query
     const filter = {}
     if (status) filter.status = status
+    // Doctors see only orders linked to their own patients.
+    if (req.admin?.role === 'doctor') {
+      if (!req.admin.doctorId) {
+        return res.status(403).json({ success: false, message: 'No doctor profile linked to this login' })
+      }
+      filter.patientId = { $in: await bookingRepo.findDistinctPatientIdsByDoctor(req.admin.doctorId) }
+    }
     // Add search logic if needed
 
     const skip = (page - 1) * limit
@@ -27,6 +35,10 @@ class MedicineOrderController {
   }
 
   async updateStatus(req, res) {
+    // Receptionists get read-only access (desk queries: "where is my medicine?")
+    if (req.admin?.role === 'receptionist') {
+      return res.status(403).json({ success: false, message: 'Forbidden: receptionists have read-only access to medicine orders' })
+    }
     const { id } = req.params
     const { status, staffNotes } = req.body
 

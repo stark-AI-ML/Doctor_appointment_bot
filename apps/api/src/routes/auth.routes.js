@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
-import Admin from '../modules/admin/admin.model.js'
+import User from '../modules/user/user.model.js'
 import {
   generateTokens,
   storeRefreshToken,
@@ -19,23 +19,29 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Email and password are required' })
     }
 
-    const admin = await Admin.findOne({ email: email.toLowerCase(), isActive: true })
-    if (!admin) {
+    const user = await User.findOne({ email: email.toLowerCase(), isActive: true })
+    if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' })
     }
 
-    const isMatch = await bcrypt.compare(password, admin.passwordHash)
+    const isMatch = await bcrypt.compare(password, user.passwordHash)
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' })
     }
 
-    const payload = { id: admin._id, email: admin.email, role: admin.role }
+    const payload = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      doctorId: user.doctorId || null,
+      staffCode: user.staffCode || null,
+    }
     const { accessToken, refreshToken } = generateTokens(payload)
-    await storeRefreshToken(admin._id.toString(), refreshToken)
+    await storeRefreshToken(user._id.toString(), refreshToken)
 
     res.json({
       success: true,
-      user: admin.toJSON(),
+      user: user.toJSON(),
       token: accessToken,
       refreshToken,
     })
@@ -51,7 +57,13 @@ router.post('/refresh', async (req, res, next) => {
     }
 
     const decoded = await verifyRefreshToken(refreshToken)
-    const payload = { id: decoded.id, email: decoded.email, role: decoded.role }
+    const payload = {
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role,
+      doctorId: decoded.doctorId || null,
+      staffCode: decoded.staffCode || null,
+    }
     const tokens = generateTokens(payload)
     await storeRefreshToken(decoded.id, tokens.refreshToken)
 
@@ -74,9 +86,9 @@ router.post('/logout', authMiddleware, async (req, res) => {
 /** GET /api/auth/me */
 router.get('/me', authMiddleware, async (req, res, next) => {
   try {
-    const admin = await Admin.findById(req.admin.id)
-    if (!admin) return res.status(404).json({ success: false, message: 'Admin not found' })
-    res.json(admin.toJSON())
+    const user = await User.findById(req.admin.id)
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' })
+    res.json(user.toJSON())
   } catch (err) { next(err) }
 })
 

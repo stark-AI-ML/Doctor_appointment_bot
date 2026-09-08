@@ -4,7 +4,15 @@ import slotRepo from './timeslot.repository.js'
 export const bookingController = {
   async getAll(req, res, next) {
     try {
-      const result = await bookingService.getBookings(req.query)
+      const query = { ...req.query }
+      // Doctors see only their own bookings — identity comes from the JWT, never the query string.
+      if (req.admin?.role === 'doctor') {
+        if (!req.admin.doctorId) {
+          return res.status(403).json({ success: false, message: 'No doctor profile linked to this login' })
+        }
+        query.doctor_id = req.admin.doctorId
+      }
+      const result = await bookingService.getBookings(query)
       res.json(result)
     } catch (err) { next(err) }
   },
