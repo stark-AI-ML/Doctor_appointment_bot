@@ -1,17 +1,26 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MessageCircle } from 'lucide-react'
+import { 
+  Lock, 
+  Mail, 
+  Eye, 
+  EyeOff, 
+  ArrowRight, 
+  ShieldCheck, 
+  Sparkles,
+  UserCheck
+} from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { homeForRole } from '../App'
 import { mockUsers, mockUserPasswords } from '../data/mockData'
 import styles from './Login.module.css'
 
 const DEMO_ACCOUNTS = [
-  { role: 'superadmin', email: 'super@kgnanda.com' },
-  { role: 'admin', email: 'admin@docbot.com' },
-  { role: 'doctor', email: 'doctor@kgnanda.com' },
-  { role: 'receptionist', email: 'reception@kgnanda.com' },
-  { role: 'pharmacy', email: 'pharmacy@kgnanda.com' },
+  { role: 'Admin', email: 'admin@docbot.com', label: 'Admin' },
+  { role: 'Superadmin', email: 'super@kgnanda.com', label: 'Super Admin' },
+  { role: 'Doctor', email: 'doctor@kgnanda.com', label: 'Doctor' },
+  { role: 'Receptionist', email: 'reception@kgnanda.com', label: 'Reception' },
+  { role: 'Pharmacy', email: 'pharmacy@kgnanda.com', label: 'Pharmacy' },
 ]
 
 export default function Login() {
@@ -19,8 +28,10 @@ export default function Login() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [selectedRole, setSelectedRole] = useState('')
 
   // Redirect if already logged in — to the role home
   if (isAuthenticated) {
@@ -42,82 +53,149 @@ export default function Login() {
     }
   }
 
-  const fillDemo = (demoEmail) => {
+  const fillDemo = (demoEmail, roleName) => {
     setEmail(demoEmail)
     setPassword(mockUserPasswords[demoEmail] || '')
+    setSelectedRole(roleName || '')
     setError('')
   }
 
   return (
     <div className={styles.loginPage}>
-      <div className={styles.card}>
-        <div className={styles.brand}>
-          <div className={styles.brandIcon}>
-            <MessageCircle />
-          </div>
-          <h1 className={styles.brandName}>KG Nanda Hospital</h1>
-          <p className={styles.brandSub}>Dashboard — WhatsApp Booking Management</p>
+      <div className={styles.loginCardContainer}>
+        {/* Left Side: Hospital Image */}
+        <div className={styles.imagePanel}>
+          <img 
+            src="/hospital-building.png" 
+            alt="KG Nanda Hospital Building" 
+            className={styles.buildingImage}
+          />
+          <div className={styles.imageOverlay} />
         </div>
 
-        {error && <div className={styles.error}>{error}</div>}
-
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel} htmlFor="login-email">Email</label>
-            <input
-              id="login-email"
-              className={styles.formInput}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@kgnanda.com"
-              required
-              autoFocus
-            />
+        {/* Right Side: Admin Portal Login Form */}
+        <div className={styles.formPanel}>
+          <div className={styles.header}>
+            <div className={styles.headerIcon}>
+              <Lock size={22} />
+            </div>
+            <div>
+              <h1 className={styles.title}>KG Nanda Hospital</h1>
+              <p className={styles.subtitle}>Dashboard - Whatsapp Booking Management</p>
+            </div>
           </div>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel} htmlFor="login-password">Password</label>
-            <input
-              id="login-password"
-              className={styles.formInput}
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className={styles.submitBtn}
-            disabled={loading || !email || !password}
-            id="login-submit"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
 
-        <div className={styles.hint}>
-          <p style={{ margin: '0 0 8px' }}><strong>Demo logins</strong> (click to fill):</p>
-          {DEMO_ACCOUNTS.map((a) => {
-            const u = mockUsers.find((x) => x.email === a.email)
-            return (
+          {error && <div className={styles.error}>{error}</div>}
+
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel} htmlFor="login-email">
+                Email
+              </label>
+              <div className={styles.inputWrapper}>
+                <Mail className={styles.inputIcon} size={18} />
+                <input
+                  id="login-email"
+                  className={styles.formInput}
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    setSelectedRole('')
+                  }}
+                  placeholder="name@hospital.com"
+                  required
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel} htmlFor="login-password">
+                Password
+              </label>
+              <div className={styles.inputWrapper}>
+                <Lock className={styles.inputIcon} size={18} />
+                <input
+                  id="login-password"
+                  className={styles.formInput}
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your security token"
+                  required
+                />
+                <button
+                  type="button"
+                  className={styles.passwordToggle}
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className={styles.submitBtn}
+              disabled={loading || !email || !password}
+              id="login-submit"
+            >
+              <span>{loading ? 'Signing in...' : 'Login'}</span>
+              {!loading && <ArrowRight size={18} />}
+            </button>
+
+            <div className={styles.securityBadge}>
+              <ShieldCheck size={15} />
+              <span>End-to-end encrypted hospital network</span>
+            </div>
+          </form>
+
+          {/* Demo Access Panel */}
+          <div className={styles.demoSection}>
+            <div className={styles.demoHeader}>
+              <Sparkles size={14} />
+              <span>Frontend Demo Access</span>
+            </div>
+            
+            <div className={styles.demoRoleChips}>
+              {DEMO_ACCOUNTS.map((a) => {
+                const isSelected = email === a.email
+                return (
+                  <button
+                    key={a.email}
+                    type="button"
+                    onClick={() => fillDemo(a.email, a.label)}
+                    className={`${styles.roleChip} ${isSelected ? styles.roleChipActive : ''}`}
+                    title={`Click to fill ${a.label} (${a.email})`}
+                  >
+                    <UserCheck size={12} />
+                    <span>{a.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Quick autofill active credential pill */}
+            <div className={styles.demoPillBox}>
               <button
-                key={a.email}
                 type="button"
-                onClick={() => fillDemo(a.email)}
-                style={{
-                  display: 'block', width: '100%', textAlign: 'left',
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '2px 0', fontSize: '12px', color: 'var(--text-secondary)',
-                }}
+                className={styles.demoPill}
+                onClick={() => fillDemo('admin@docbot.com', 'Admin')}
               >
-                <code>{u?.staffCode}</code> · {a.role} — <code>{a.email}</code> / <code>{mockUserPasswords[a.email]}</code>
+                <code className={styles.demoPillEmail}>
+                  {email || 'admin@docbot.com'}
+                </code>
+                <code className={styles.demoPillPassword}>
+                  {password ? '••••••••' : (mockUserPasswords[email] || 'admin123')}
+                </code>
               </button>
-            )
-          })}
+            </div>
+          </div>
         </div>
       </div>
     </div>
   )
 }
+
