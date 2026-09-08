@@ -6,24 +6,29 @@ class PatientRepository {
   }
 
   async findOrCreate(phone, data = {}) {
-    let query = { phone }
-    // If a specific name is provided (and it's not 'Unknown'), try to find that specific patient
-    if (data.name && data.name !== 'Unknown') {
-      // case-insensitive name match could be better, but exact match is fine for now
-      let patient = await Patient.findOne({ phone, name: data.name })
+    const name = data.name ? String(data.name).trim() : ''
+
+    if (name && name.toLowerCase() !== 'unknown') {
+      const nameRegex = new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+
+      // 1. Try to find existing patient with same phone and name (case-insensitive)
+      let patient = await Patient.findOne({ phone, name: nameRegex })
       if (patient) return patient
 
-      // If not found, check if there's an 'Unknown' placeholder we can update
+      // 2. Check if an 'Unknown' placeholder exists for this phone to upgrade it
       const unknownPatient = await Patient.findOne({ phone, name: 'Unknown' })
       if (unknownPatient) {
-        return Patient.findByIdAndUpdate(unknownPatient._id, data, { new: true })
+        return Patient.findByIdAndUpdate(unknownPatient._id, { ...data, name }, { new: true })
       }
+
+      // 3. Different name provided for this phone number -> Create a distinct patient record
+      return Patient.create({ phone, ...data, name })
     }
 
-    // Default fallback (e.g., when data.name is 'Unknown' or not provided)
-    let patient = await Patient.findOne(query)
+    // 4. Default fallback when name is 'Unknown' or not provided
+    let patient = await Patient.findOne({ phone })
     if (!patient) {
-      patient = await Patient.create({ phone, ...data })
+      patient = await Patient.create({ phone, name: 'Unknown', ...data })
     }
     return patient
   }
