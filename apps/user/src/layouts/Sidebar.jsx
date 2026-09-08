@@ -33,8 +33,8 @@ const iconMap = {
 const NAV_BY_ROLE = {
   superadmin: [
     { path: '/', label: 'Dashboard', icon: 'LayoutDashboard' },
-    { path: '/appointments', label: 'Appointments', icon: 'CalendarCheck' },
-    { path: '/hospitalization', label: 'Hospitalization', icon: 'Bed' },
+    { path: '/appointments', label: 'Appointments (OPD)', icon: 'CalendarCheck' },
+    { path: '/hospitalization', label: 'Hospitalization (IPD)', icon: 'Bed' },
     { path: '/medicine-orders', label: 'Medicine Orders', icon: 'Pill' },
     { path: '/doctors', label: 'Doctors', icon: 'Stethoscope' },
     { path: '/patients', label: 'Patients', icon: 'Users' },
@@ -45,8 +45,8 @@ const NAV_BY_ROLE = {
   ],
   admin: [
     { path: '/', label: 'Dashboard', icon: 'LayoutDashboard' },
-    { path: '/appointments', label: 'Appointments', icon: 'CalendarCheck' },
-    { path: '/hospitalization', label: 'Hospitalization', icon: 'Bed' },
+    { path: '/appointments', label: 'Appointments (OPD)', icon: 'CalendarCheck' },
+    { path: '/hospitalization', label: 'Hospitalization (IPD)', icon: 'Bed' },
     { path: '/medicine-orders', label: 'Medicine Orders', icon: 'Pill' },
     { path: '/doctors', label: 'Doctors', icon: 'Stethoscope' },
     { path: '/patients', label: 'Patients', icon: 'Users' },
@@ -56,11 +56,11 @@ const NAV_BY_ROLE = {
   ],
   doctor: [
     { path: '/my-patients', label: 'My Patients', icon: 'Users' },
-    { path: '/appointments', label: 'My Appointments', icon: 'CalendarCheck' },
+    { path: '/appointments', label: 'My Appointments (OPD)', icon: 'CalendarCheck' },
   ],
   receptionist: [
-    { path: '/appointments', label: 'Appointments', icon: 'CalendarCheck' },
-    { path: '/hospitalization', label: 'Hospitalization', icon: 'Bed' },
+    { path: '/appointments', label: 'Appointments (OPD)', icon: 'CalendarCheck' },
+    { path: '/hospitalization', label: 'Hospitalization (IPD)', icon: 'Bed' },
     { path: '/patients', label: 'Patients', icon: 'Users' },
     { path: '/register', label: 'Register Patient', icon: 'UserPlus' },
     { path: '/medicine-orders', label: 'Medicine Orders', icon: 'Pill' },

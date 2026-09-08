@@ -83,7 +83,7 @@ export default function Hospitalization() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title="Hospitalization"
+        title="Hospitalization (IPD)"
         subtitle="IPD admission requests · confirm or cancel after the staff call"
         icon={BedDouble}
       />

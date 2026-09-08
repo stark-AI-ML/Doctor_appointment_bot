@@ -204,7 +204,7 @@ export default function Appointments() {
   return (
     <div className={styles.page}>
       <PageHeader
-        title={isDoctor ? 'My Appointments' : 'Appointments'}
+        title={isDoctor ? 'My Appointments (OPD)' : 'Appointments (OPD)'}
         subtitle={isDoctor ? 'Your OPD queue · confirm or complete visits' : 'OPD bookings across all doctors · confirm, complete or cancel'}
         icon={CalendarCheck}
       />

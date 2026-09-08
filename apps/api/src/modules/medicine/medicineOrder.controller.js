@@ -1,6 +1,7 @@
 import medicineOrderService from './medicineOrder.service.js'
 import MedicineOrder from './medicineOrder.model.js'
 import bookingRepo from '../booking/booking.repository.js'
+import { uploadPrescriptionImage } from '../../utils/cloudinary.js'
 
 class MedicineOrderController {
   async getOrders(req, res) {
@@ -49,6 +50,15 @@ class MedicineOrderController {
     if (!order) return res.status(404).json({ message: 'Order not found' })
 
     res.json(order)
+  }
+
+  async uploadPrescription(req, res) {
+    const { imageBase64, filename } = req.body
+    if (!imageBase64) {
+      return res.status(400).json({ success: false, message: 'imageBase64 parameter is required' })
+    }
+    const secureUrl = await uploadPrescriptionImage(imageBase64, { filename })
+    res.json({ success: true, url: secureUrl })
   }
 }
 
