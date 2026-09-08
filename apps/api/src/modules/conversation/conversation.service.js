@@ -82,6 +82,7 @@ class ConversationService {
         
         // Medicine Flow
         case STEPS.MED_PRESCRIPTION: return await this.handleMedPrescription(phone, state, message)
+        case STEPS.MED_NAME:         return await this.handleMedName(phone, state, input)
         case STEPS.MED_ADDRESS:      return await this.handleMedAddress(phone, state, input)
         
         default:                     return this.resetAndWelcome(phone)
@@ -168,9 +169,16 @@ class ConversationService {
     if (state.currentStep === STEPS.MED_PRESCRIPTION) {
       return this.resetAndWelcome(phone)
     }
-    if (state.currentStep === STEPS.MED_ADDRESS) {
+    if (state.currentStep === STEPS.MED_NAME) {
       await conversationRepo.upsert(phone, { currentStep: STEPS.MED_PRESCRIPTION })
       return this.sendMessage(phone, MESSAGES.medStart())
+    }
+    if (state.currentStep === STEPS.MED_ADDRESS) {
+      const existingPatient = await patientService.findByPhone(phone)
+      const hasRealName = existingPatient?.name && existingPatient.name !== 'Unknown'
+      const prevStep = hasRealName ? STEPS.MED_PRESCRIPTION : STEPS.MED_NAME
+      await conversationRepo.upsert(phone, { currentStep: prevStep })
+      return this.sendMessage(phone, prevStep === STEPS.MED_PRESCRIPTION ? MESSAGES.medStart() : MESSAGES.medName())
     }
 
     return this.resetAndWelcome(phone)
@@ -485,22 +493,55 @@ class ConversationService {
       
       const prescriptionUrl = `/uploads/${filename}`
       
-      await conversationRepo.upsert(phone, { 
-        currentStep: STEPS.MED_ADDRESS, 
-        stateData: { prescriptionUrl } 
-      })
-      return this.sendMessage(phone, MESSAGES.medAddress())
+      // Check if patient already exists with a known real name
+      const existingPatient = await patientService.findByPhone(phone)
+      const hasRealName = existingPatient?.name && existingPatient.name !== 'Unknown'
+
+      if (hasRealName) {
+        await conversationRepo.upsert(phone, { 
+          currentStep: STEPS.MED_ADDRESS, 
+          stateData: { prescriptionUrl, patientId: existingPatient._id, patientName: existingPatient.name } 
+        })
+        return this.sendMessage(phone, MESSAGES.medAddress())
+      } else {
+        await conversationRepo.upsert(phone, { 
+          currentStep: STEPS.MED_NAME, 
+          stateData: { prescriptionUrl } 
+        })
+        return this.sendMessage(phone, MESSAGES.medName())
+      }
     } catch (err) {
       logger.error('Failed to download prescription:', err)
       return this.sendMessage(phone, 'Failed to process image. Please try again.')
     }
   }
 
+  async handleMedName(phone, state, input) {
+    const name = input ? input.trim() : ''
+    if (!name || name.length < 2) {
+      return this.sendMessage(phone, MESSAGES.invalidInput())
+    }
+
+    // Create/update patient record with real name (assigns UHID if new)
+    const patient = await patientService.findOrCreateByPhone(phone, { name })
+
+    await conversationRepo.upsert(phone, {
+      currentStep: STEPS.MED_ADDRESS,
+      stateData: { ...state.stateData, patientId: patient._id, patientName: patient.name }
+    })
+    return this.sendMessage(phone, MESSAGES.medAddress())
+  }
+
   async handleMedAddress(phone, state, input) {
-    const patient = await patientService.findOrCreateByPhone(phone, { name: 'Unknown' })
+    let patientId = state.stateData?.patientId
+    if (!patientId) {
+      const patientName = state.stateData?.patientName || 'Patient'
+      const patient = await patientService.findOrCreateByPhone(phone, { name: patientName })
+      patientId = patient._id
+    }
     
     await medicineOrderService.createOrder({
-      patientId: patient._id,
+      patientId,
       deliveryAddress: input,
       prescriptionUrl: state.stateData.prescriptionUrl
     })

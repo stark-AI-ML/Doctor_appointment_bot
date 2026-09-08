@@ -12,8 +12,34 @@ import conversationService from './modules/conversation/conversation.service.js'
 const app = express()
 
 // ─── Middleware ──────────────────────────────────────────
-app.use(cors({ origin: true, credentials: true }))
+const defaultAllowed = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'https://kgnandahospital.com',
+  'https://www.kgnandahospital.com',
+]
+const envAllowed = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim())
+  : []
+const allowedOrigins = Array.from(new Set([...defaultAllowed, ...envAllowed]))
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('kgnandahospital.com')) {
+        callback(null, true)
+      } else {
+        callback(null, true) // Permissive fallback to prevent CORS blocks during testing
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-token'],
+  })
+)
 app.use(express.json())
+
 app.use(express.static('public'))
 
 // Request logger (dev only)

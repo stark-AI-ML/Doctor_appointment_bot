@@ -10,9 +10,17 @@ function normalizeDoctor(d) {
   return {
     id: d.id || d._id,
     name: d.name,
-    specialization: d.specialization,
+    role: d.role || d.specialization || '',
+    department: d.department || d.departmentId?.name || '',
+    qualification: d.qualification || d.qualifications || '',
+    qualifications: d.qualifications || d.qualification || '',
+    specialization: d.specialization || d.role || '',
+    specialty: d.specialty || d.AOF || d.specialization || '',
+    AOF: d.AOF || d.specialty || '',
     consultation_fee: d.consultationFee ?? d.consultation_fee ?? 0,
-    experience: d.experience || 0,
+    experience: d.experience ?? '0',
+    image: d.image || d.ImageUrl || d.imageUrl || '',
+    ImageUrl: d.ImageUrl || d.imageUrl || d.image || '',
     gender: d.gender || null,
     address: d.address || '',
     is_active: d.isActive ?? d.is_active ?? true,
@@ -21,14 +29,22 @@ function normalizeDoctor(d) {
 }
 
 /**
- * Convert UI form data (snake_case) → backend shape (camelCase)
+ * Convert UI form data (snake_case) → backend shape
  */
 function toBackendDoctor(formData) {
   return {
     name: formData.name,
-    specialization: formData.specialization,
+    role: formData.role || formData.specialization,
+    department: formData.department,
+    qualification: formData.qualification || formData.qualifications,
+    qualifications: formData.qualifications || formData.qualification,
+    specialization: formData.specialization || formData.role,
+    specialty: formData.specialty || formData.AOF,
+    AOF: formData.AOF || formData.specialty,
     consultationFee: Number(formData.consultation_fee || formData.consultationFee || 0),
-    experience: Number(formData.experience || 0),
+    experience: formData.experience,
+    image: formData.image || formData.ImageUrl || formData.imageUrl,
+    ImageUrl: formData.ImageUrl || formData.imageUrl || formData.image,
     gender: formData.gender || undefined,
     address: formData.address || '',
   }

@@ -27,6 +27,7 @@ export const STEPS = {
 
   // Medicine Order Flow
   MED_PRESCRIPTION: "MED_PRESCRIPTION",
+  MED_NAME: "MED_NAME",
   MED_ADDRESS: "MED_ADDRESS",
 
   // Static flows
@@ -121,6 +122,9 @@ export const MESSAGES = {
   // Medicine
   medStart: () =>
     `💊 *Online Medicine Order*\nऑनलाइन घर बैठे दवा मंगाने की सुविधा\n\n📷 *Please send a photo of your prescription.*\nकृपया अपनी पर्ची की फोटो भेजें।\n\n0️⃣ Back | 00 Main Menu`,
+
+  medName: () =>
+    `👤 *Patient Name / मरीज का नाम*\n*Please enter your full name.*\nकृपया अपना पूरा नाम दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
 
   medAddress: () =>
     `🏠 *Please provide your complete delivery address.*\nकृपया अपना पूरा डिलीवरी पता भेजें।\n\n0️⃣ Back | 00 Main Menu`,
