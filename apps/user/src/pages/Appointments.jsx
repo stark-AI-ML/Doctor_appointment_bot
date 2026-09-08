@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Download, Eye, CheckCircle, XCircle, Trash2, CalendarCheck } from 'lucide-react'
+import { Search, Download, Eye, CheckCircle, XCircle, CalendarCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { bookingService } from '../services/bookingService'
 import { doctorService } from '../services/doctorService'
@@ -62,25 +62,8 @@ export default function Appointments() {
     onError: () => toast.error('Failed to update status'),
   })
 
-  // Delete mutation
-  const deleteMutation = useMutation({
-    mutationFn: (id) => bookingService.deleteBooking(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
-      toast.success('Booking deleted')
-    },
-    onError: () => toast.error('Failed to delete booking'),
-  })
-
   const handleStatusChange = (id, status) => {
     statusMutation.mutate({ id, status })
-  }
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this booking?')) {
-      deleteMutation.mutate(id)
-    }
   }
 
   const handleViewDetail = (booking) => {
@@ -165,13 +148,6 @@ export default function Appointments() {
               <XCircle size={16} />
             </button>
           )}
-          <button
-            className={`${styles.actionBtn} ${styles.cancel}`}
-            onClick={() => handleDelete(booking.id)}
-            title="Delete"
-          >
-            <Trash2 size={16} />
-          </button>
         </div>
       </td>
     </tr>

@@ -5,11 +5,12 @@
 .searchInput { width: 100%; padding: var(--space-3) var(--space-4) var(--space-3) var(--space-10); background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-md); font-size: var(--font-base); color: var(--text-primary); }
 .select { padding: var(--space-3) var(--space-4); background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-md); font-size: var(--font-base); color: var(--text-primary); }
 .code { font-weight: 700; font-size: var(--font-sm); color: var(--accent); }
-.active { color: #25D366; font-size: var(--font-sm); }
-.inactive { color: var(--text-muted); font-size: var(--font-sm); }
+.active { color: #25D366; font-size: var(--font-sm); font-weight: 600; }
+.inactive { color: var(--text-muted); font-size: var(--font-sm); font-weight: 600; }
 .rowActions { display: flex; gap: var(--space-2); }
-.actionBtn { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; color: var(--text-secondary); transition: all 0.15s; }
-.actionBtn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.actionBtn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; color: var(--text-secondary); background: rgba(255,255,255,0.03); border: 1px solid var(--border-primary); transition: all 0.2s ease; }
+.actionBtn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--accent); transform: translateY(-1px); }
+
 .form { display: flex; flex-direction: column; gap: var(--space-4); }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 .field { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -18,3 +19,376 @@
 .field input:disabled { opacity: 0.5; }
 .codeNote { font-size: var(--font-sm); color: var(--text-secondary); margin: 0; }
 @media (max-width: 640px) { .searchWrapper { width: 100%; } .row { grid-template-columns: 1fr; } }
+
+.daySelector {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.dayChip {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.dayChip:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.dayChipSelected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(37, 211, 102, 0.3);
+}
+
+.daysList {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dayBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(37, 211, 102, 0.15);
+  color: #25D366;
+  border: 1px solid rgba(37, 211, 102, 0.3);
+}
+
+.dayBadgeInactive {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid var(--border-primary);
+  opacity: 0.4;
+}
+
+/* ==========================================================================
+   Premium Staff Profile View Modal Styles
+   ========================================================================== */
+
+.profileModalContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 4px 0;
+}
+
+.heroBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: linear-gradient(135deg, rgba(37, 211, 102, 0.08) 0%, rgba(88, 166, 255, 0.05) 100%);
+  border: 1px solid rgba(37, 211, 102, 0.2);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(8px);
+}
+
+.heroAvatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.heroAvatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.statusDotActive {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #25D366;
+  border: 2px solid #0d1117;
+  box-shadow: 0 0 8px #25D366;
+}
+
+.statusDotInactive {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #8b949e;
+  border: 2px solid #0d1117;
+}
+
+.heroInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.heroTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.heroName {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.roleTag {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.role_superadmin { background: rgba(136, 132, 216, 0.2); color: #a5a2e8; border: 1px solid rgba(136, 132, 216, 0.4); }
+.role_admin { background: rgba(37, 211, 102, 0.2); color: #25D366; border: 1px solid rgba(37, 211, 102, 0.4); }
+.role_doctor { background: rgba(255, 198, 88, 0.2); color: #ffc658; border: 1px solid rgba(255, 198, 88, 0.4); }
+.role_receptionist { background: rgba(255, 128, 66, 0.2); color: #ff8042; border: 1px solid rgba(255, 128, 66, 0.4); }
+.role_pharmacy { background: rgba(88, 166, 255, 0.2); color: #58a6ff; border: 1px solid rgba(88, 166, 255, 0.4); }
+
+.heroMetaRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
+.heroCode {
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(37, 211, 102, 0.1);
+  transition: all 0.15s;
+}
+
+.heroCode:hover {
+  background: rgba(37, 211, 102, 0.2);
+}
+
+.metaDot {
+  color: var(--text-muted);
+}
+
+.heroEmail {
+  color: var(--text-secondary);
+}
+
+/* Key Metrics 3-Card Grid */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+@media (max-width: 650px) {
+  .kpiGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpiCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.kpiCard:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.kpiHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kpiIconGreen { color: #25D366; }
+.kpiIconBlue { color: #58a6ff; }
+.kpiIconGold { color: #ffc658; }
+
+.kpiLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpiValue {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.kpiUnit {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.kpiProgressTrack {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-hover);
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.kpiProgressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #25D366, #128C7E);
+  border-radius: 2px;
+}
+
+.kpiSub {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Schedule Section Card */
+.sectionCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.weeklyDayGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+@media (max-width: 550px) {
+  .weeklyDayGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.scheduleDayBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  border-radius: 8px;
+  gap: 2px;
+  transition: all 0.15s;
+}
+
+.scheduleDayActive {
+  background: rgba(37, 211, 102, 0.12);
+  border: 1px solid rgba(37, 211, 102, 0.3);
+}
+
+.scheduleDayOff {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-primary);
+  opacity: 0.45;
+}
+
+.scheduleDayName {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.scheduleStatusText {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.scheduleDayActive .scheduleStatusText { color: #25D366; }
+.scheduleDayOff .scheduleStatusText { color: var(--text-muted); }
+
+/* Details Grid */
+.detailsListGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+@media (max-width: 600px) {
+  .detailsListGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detailRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-hover);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.detailLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.detailVal {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}

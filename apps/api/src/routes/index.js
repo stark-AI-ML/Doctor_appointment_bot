@@ -54,9 +54,11 @@ router.post('/bookings', async (req, res, next) => {
       type: req.body.type || 'OPD',
     }
 
+    const source = req.body.source || req.body.bookingSource || 'website'
+
     const { patient, booking } = await patientService.registerPatientWithBooking(
       registrationData,
-      { source: 'website' },
+      { source },
       { validate: false }
     )
 
@@ -95,11 +97,11 @@ router.post('/services',      requireRole(SUPERADMIN, ADMIN), serviceController.
 router.put('/services/:id',   requireRole(SUPERADMIN, ADMIN), serviceController.update)
 router.delete('/services/:id', requireRole(SUPERADMIN, ADMIN), serviceController.delete)
 
-// Time Slots
-router.get('/timeslots',          requireRole(...STAFF, DOCTOR), bookingController.getSlots)
-router.post('/timeslots',         requireRole(SUPERADMIN, ADMIN), bookingController.createSlot)
-router.delete('/timeslots/:id',   requireRole(SUPERADMIN, ADMIN), bookingController.deleteSlot)
-router.patch('/timeslots/:id/toggle', requireRole(SUPERADMIN, ADMIN), bookingController.toggleSlot)
+// Time Slots — disabled (replaced by maxPatientsPerDay on Doctor model)
+// router.get('/timeslots',          requireRole(...STAFF, DOCTOR), bookingController.getSlots)
+// router.post('/timeslots',         requireRole(SUPERADMIN, ADMIN), bookingController.createSlot)
+// router.delete('/timeslots/:id',   requireRole(SUPERADMIN, ADMIN), bookingController.deleteSlot)
+// router.patch('/timeslots/:id/toggle', requireRole(SUPERADMIN, ADMIN), bookingController.toggleSlot)
 
 // Patients — doctor sees own only
 router.get('/patients/mine',  requireRole(DOCTOR), patientController.getMine)

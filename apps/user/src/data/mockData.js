@@ -360,11 +360,11 @@ export const mockPatients = [
 // ── Mock Users (all roles, mock login) ──
 // Demo passwords: super123 / admin123 / doctor123 / recep123 / pharm123
 export const mockUsers = [
-  { id: 1, name: 'Super Admin', email: 'super@kgnanda.com', role: 'superadmin', staffCode: 'KGN_SA_001', doctorId: null, phone: '9876543200', salary: 0, joiningDate: '2026-01-01', address: 'KG Nanda Hospital', is_active: true },
-  { id: 2, name: 'Hospital Admin', email: 'admin@docbot.com', role: 'admin', staffCode: 'KGN_ADM_001', doctorId: null, phone: '9876543201', salary: 60000, joiningDate: '2026-02-01', address: 'KG Nanda Hospital', is_active: true },
-  { id: 3, name: 'Dr. Anand Prakash Tiwari', email: 'doctor@kgnanda.com', role: 'doctor', staffCode: 'KGN_DOC_001', doctorId: 1, phone: '+91 98765 00001', salary: 80000, joiningDate: '2026-03-01', address: 'KG Nanda Hospital', is_active: true },
-  { id: 4, name: 'Front Desk', email: 'reception@kgnanda.com', role: 'receptionist', staffCode: 'KGN_RC_001', doctorId: null, phone: '9876543201', salary: 18000, joiningDate: '2026-04-01', address: 'Jaunpur', is_active: true },
-  { id: 5, name: 'Pharmacy Desk', email: 'pharmacy@kgnanda.com', role: 'pharmacy', staffCode: 'KGN_PHR_001', doctorId: null, phone: '9876543202', salary: 20000, joiningDate: '2026-04-15', address: 'Jaunpur', is_active: true },
+  { id: 1, name: 'Super Admin', email: 'super@kgnanda.com', role: 'superadmin', staffCode: 'KGN_SA_001', doctorId: null, phone: '9876543200', salary: 0, joiningDate: '2026-01-01', address: 'KG Nanda Hospital', activeDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], is_active: true },
+  { id: 2, name: 'Hospital Admin', email: 'admin@docbot.com', role: 'admin', staffCode: 'KGN_ADM_001', doctorId: null, phone: '9876543201', salary: 60000, joiningDate: '2026-02-01', address: 'KG Nanda Hospital', activeDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], is_active: true },
+  { id: 3, name: 'Dr. Anand Prakash Tiwari', email: 'doctor@kgnanda.com', role: 'doctor', staffCode: 'KGN_DOC_001', doctorId: 1, phone: '+91 98765 00001', salary: 80000, joiningDate: '2026-03-01', address: 'KG Nanda Hospital', activeDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], is_active: true },
+  { id: 4, name: 'Front Desk', email: 'reception@kgnanda.com', role: 'receptionist', staffCode: 'KGN_RC_001', doctorId: null, phone: '9876543201', salary: 18000, joiningDate: '2026-04-01', address: 'Jaunpur', activeDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], is_active: true },
+  { id: 5, name: 'Pharmacy Desk', email: 'pharmacy@kgnanda.com', role: 'pharmacy', staffCode: 'KGN_PHR_001', doctorId: null, phone: '9876543202', salary: 20000, joiningDate: '2026-04-15', address: 'Jaunpur', activeDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], is_active: true },
 ]
 
 export const mockUserPasswords = {

@@ -6,7 +6,6 @@ import logger from './utils/logger.js'
 import User from './modules/user/user.model.js'
 import Doctor from './modules/doctor/doctor.model.js'
 import Service from './modules/service/service.model.js'
-import TimeSlot from './modules/booking/timeslot.model.js'
 import Department from './modules/department/department.model.js'
 import Booking from './modules/booking/booking.model.js'
 import Patient from './modules/patient/patient.model.js'
@@ -23,7 +22,6 @@ async function seed() {
       User.deleteMany({}),
       Doctor.deleteMany({}),
       Service.deleteMany({}),
-      TimeSlot.deleteMany({}),
       Department.deleteMany({}),
       Booking.deleteMany({}),
       Patient.deleteMany({}),
@@ -92,23 +90,21 @@ async function seed() {
       return found ? found.name : namePart
     }
 
-    logger.info('Seeding Doctors...')
+    logger.info('Seeding Doctors (canonical fields only — no duplicates)...')
     const doctorsData = [
       {
         departmentId: getDeptId('Obstetrics'),
         department: getDeptName('Obstetrics'),
         name: 'Dr. Anand Prakash Tiwari',
         role: 'Senior Gynaecologist & Infertility Specialist',
-        qualifications: 'MBBS, M.S. (Obs & Gyane)',
         qualification: 'MBBS, M.S. (Obs & Gyane)',
         specialization: 'Obstetrics & Gynaecology',
         specialty: 'High-Risk Pregnancy, Normal & Cesarean Delivery, Infertility Treatment, Laparoscopic Gynecological Surgery, PCOS & Menstrual Disorders, Antenatal & Postnatal Care',
-        AOF: 'High-Risk Pregnancy, Normal & Cesarean Delivery, Infertility Treatment, Laparoscopic Gynecological Surgery, PCOS & Menstrual Disorders, Antenatal & Postnatal Care',
         experience: '15+ Years',
-        ImageUrl: '/Home/Dr. Anand Prakash.png',
         image: '/Home/Dr. Anand Prakash.png',
         gender: 'male',
         consultationFee: 500,
+        maxPatientsPerDay: 40,
         isActive: true,
       },
       {
@@ -116,16 +112,14 @@ async function seed() {
         department: getDeptName('Gynecologist'),
         name: 'Dr. Neepu Chaurasia',
         role: 'Obstetrics & Gynaecology',
-        qualifications: 'MBBS, Diploma in Gynecology & Obstetrics (D.G.O.)',
         qualification: 'MBBS, Diploma in Gynecology & Obstetrics (D.G.O.)',
         specialization: 'Gynecologist & Obstetrician',
         specialty: 'Pregnancy Care, Normal Delivery, Women\'s Health, Menstrual Disorders, Family Planning, High-Risk Pregnancy',
-        AOF: 'Pregnancy Care, Normal Delivery, Women\'s Health, Menstrual Disorders, Family Planning, High-Risk Pregnancy',
         experience: '10+ Years',
-        ImageUrl: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         image: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         gender: 'female',
         consultationFee: 400,
+        maxPatientsPerDay: 30,
         isActive: true,
       },
       {
@@ -133,16 +127,14 @@ async function seed() {
         department: getDeptName('Gynecologist'),
         name: 'Dr. Nidhi Gupta',
         role: 'Gynecologist & Obstetrician',
-        qualifications: 'MBBS, R.M.O.',
         qualification: 'MBBS, R.M.O.',
         specialization: 'Gynecologist & Obstetrician',
         specialty: 'Women\'s Health, Pregnancy Care, Gynecological Consultation, Antenatal Care, Postnatal Care, Routine Gynecology',
-        AOF: 'Women\'s Health, Pregnancy Care, Gynecological Consultation, Antenatal Care, Postnatal Care, Routine Gynecology',
         experience: '8+ Years',
-        ImageUrl: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         image: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         gender: 'female',
         consultationFee: 350,
+        maxPatientsPerDay: 25,
         isActive: true,
       },
       {
@@ -150,16 +142,14 @@ async function seed() {
         department: getDeptName('Gynecologist'),
         name: 'Dr. Priyanka Mishra',
         role: 'Obstetrics & Gynaecology',
-        qualifications: 'MBBS, R.M.O.',
         qualification: 'MBBS, R.M.O.',
         specialization: 'Gynecologist & Obstetrician',
         specialty: 'Pregnancy Care, Women\'s Wellness, Gynecological Disorders, Family Planning, Antenatal Care, General Gynecology',
-        AOF: 'Pregnancy Care, Women\'s Wellness, Gynecological Disorders, Family Planning, Antenatal Care, General Gynecology',
         experience: '7+ Years',
-        ImageUrl: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         image: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         gender: 'female',
         consultationFee: 350,
+        maxPatientsPerDay: 25,
         isActive: true,
       },
       {
@@ -167,16 +157,14 @@ async function seed() {
         department: getDeptName('Gynecologist'),
         name: 'Dr. Nisha Singh',
         role: 'Obstetrics & Gynaecology',
-        qualifications: 'MBBS, R.M.O.',
         qualification: 'MBBS, R.M.O.',
         specialization: 'Gynecologist & Obstetrician',
         specialty: 'Women\'s Health, Pregnancy Management, Routine Gynecological Care, Antenatal & Postnatal Care, PCOD Management, General Obstetrics',
-        AOF: 'Women\'s Health, Pregnancy Management, Routine Gynecological Care, Antenatal & Postnatal Care, PCOD Management, General Obstetrics',
         experience: '7+ Years',
-        ImageUrl: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         image: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         gender: 'female',
         consultationFee: 350,
+        maxPatientsPerDay: 25,
         isActive: true,
       },
       {
@@ -184,16 +172,14 @@ async function seed() {
         department: getDeptName('Neurology'),
         name: 'Dr. Robert Vance',
         role: 'Chief Neurosurgeon',
-        qualifications: 'MBBS, MS, MCh (Neurosurgery)',
         qualification: 'MBBS, MS, MCh (Neurosurgery)',
         specialization: 'Neurology',
         specialty: 'Brain Tumors, Spinal Disorders, Neurotrauma Surgery',
-        AOF: 'Brain Tumors, Spinal Disorders, Neurotrauma Surgery',
         experience: '18+ Years',
-        ImageUrl: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         image: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         gender: 'male',
         consultationFee: 1000,
+        maxPatientsPerDay: 15,
         isActive: true,
       },
       {
@@ -201,16 +187,14 @@ async function seed() {
         department: getDeptName('Cardiology'),
         name: 'Dr. Alisha Khan',
         role: 'Cardiology Head',
-        qualifications: 'MBBS, MD (Medicine), DM (Cardiology)',
         qualification: 'MBBS, MD (Medicine), DM (Cardiology)',
         specialization: 'Cardiology',
         specialty: 'Interventional Cardiology, Heart Failure Management, Angioplasty',
-        AOF: 'Interventional Cardiology, Heart Failure Management, Angioplasty',
         experience: '15+ Years',
-        ImageUrl: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         image: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         gender: 'female',
         consultationFee: 800,
+        maxPatientsPerDay: 20,
         isActive: true,
       },
       {
@@ -218,16 +202,14 @@ async function seed() {
         department: getDeptName('Pediatrics'),
         name: 'Dr. Sameer Joshi',
         role: 'Senior Pediatrician',
-        qualifications: 'MBBS, MD (Pediatrics), DCH',
         qualification: 'MBBS, MD (Pediatrics), DCH',
         specialization: 'Pediatrics',
         specialty: 'Neonatal Care, Pediatric Nutrition, Infectious Diseases',
-        AOF: 'Neonatal Care, Pediatric Nutrition, Infectious Diseases',
         experience: '16+ Years',
-        ImageUrl: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         image: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         gender: 'male',
         consultationFee: 500,
+        maxPatientsPerDay: 35,
         isActive: true,
       },
       {
@@ -235,16 +217,14 @@ async function seed() {
         department: getDeptName('Oncology'),
         name: 'Dr. Elena Rostova',
         role: 'Oncology Expert',
-        qualifications: 'MBBS, MD, DM (Medical Oncology)',
         qualification: 'MBBS, MD, DM (Medical Oncology)',
         specialization: 'Oncology',
         specialty: 'Chemotherapy, Immunotherapy, Targeted Cancer Therapies',
-        AOF: 'Chemotherapy, Immunotherapy, Targeted Cancer Therapies',
         experience: '14+ Years',
-        ImageUrl: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         image: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         gender: 'female',
         consultationFee: 900,
+        maxPatientsPerDay: 15,
         isActive: true,
       },
       {
@@ -252,16 +232,14 @@ async function seed() {
         department: getDeptName('Obstetrics'),
         name: 'Dr. Priya Sharma',
         role: 'Gynaecology Specialist',
-        qualifications: 'MBBS, MS (OBGYN), FMAS',
         qualification: 'MBBS, MS (OBGYN), FMAS',
         specialization: 'Obstetrics & Gynaecology',
         specialty: 'High-risk Pregnancy, Laparoscopic Gynaecology, Infertility Care',
-        AOF: 'High-risk Pregnancy, Laparoscopic Gynaecology, Infertility Care',
         experience: '12+ Years',
-        ImageUrl: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         image: 'https://i.pinimg.com/1200x/72/41/a3/7241a3fe9d1687bd6c2a8ce55ca348ce.jpg',
         gender: 'female',
         consultationFee: 500,
+        maxPatientsPerDay: 30,
         isActive: true,
       },
     ]
@@ -288,32 +266,7 @@ async function seed() {
       { name: 'Specialist Consultation', duration: 45, price: 800 },
     ])
 
-    logger.info('Seeding TimeSlots for tomorrow...')
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    tomorrow.setHours(0, 0, 0, 0)
-
-    const slotsToInsert = []
-    for (const doc of doctors) {
-      const times = [
-        { start: '10:00', end: '11:00' },
-        { start: '11:00', end: '12:00' },
-        { start: '12:00', end: '13:00' },
-        { start: '14:00', end: '15:00' },
-        { start: '15:00', end: '16:00' },
-        { start: '16:00', end: '17:00' },
-      ]
-
-      for (const t of times) {
-        slotsToInsert.push({
-          doctorId: doc._id,
-          date: tomorrow,
-          startTime: t.start,
-          endTime: t.end,
-        })
-      }
-    }
-    await TimeSlot.insertMany(slotsToInsert)
+    // TimeSlots removed — using maxPatientsPerDay on Doctor model instead
 
     logger.info('✅ Seed complete with KG Nanda Hospital Data!')
     console.log('\n--- 🔑 Seeded Login Credentials ---')

@@ -29,7 +29,7 @@ export const userController = {
   /** POST /api/users — create staff (superadmin/admin). */
   create: asyncHandler(async (req, res) => {
     assertCanManageStaff(req)
-    const { name, email, password, role, doctorId, phone, salary, joiningDate, address } = req.body
+    const { name, email, password, role, doctorId, phone, salary, joiningDate, address, activeDays } = req.body
     if (!name || String(name).trim().length < 2) throw new AppError('Name must be at least 2 characters', 400)
     if (!email || !password || password.length < 6) throw new AppError('Valid email and 6+ char password are required', 400)
     if (!role) throw new AppError('Role is required', 400)
@@ -50,6 +50,7 @@ export const userController = {
       salary: Number(salary) || 0,
       joiningDate: joiningDate ? new Date(joiningDate) : null,
       address: address || '',
+      activeDays: Array.isArray(activeDays) && activeDays.length > 0 ? activeDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     })
     res.status(201).json(user)
   }),
@@ -57,7 +58,7 @@ export const userController = {
   /** PUT /api/users/:id — update staff (superadmin/admin). */
   update: asyncHandler(async (req, res) => {
     assertCanManageStaff(req)
-    const { name, role, doctorId, phone, salary, joiningDate, address, isActive, password } = req.body
+    const { name, role, doctorId, phone, salary, joiningDate, address, activeDays, isActive, password } = req.body
     const update = {}
     if (name !== undefined) update.name = name
     if (role !== undefined) update.role = role
@@ -66,6 +67,7 @@ export const userController = {
     if (salary !== undefined) update.salary = Number(salary) || 0
     if (joiningDate !== undefined) update.joiningDate = joiningDate ? new Date(joiningDate) : null
     if (address !== undefined) update.address = address
+    if (activeDays !== undefined) update.activeDays = Array.isArray(activeDays) ? activeDays : []
     if (isActive !== undefined) update.isActive = !!isActive
     if (password) update.passwordHash = await bcrypt.hash(password, 10)
 

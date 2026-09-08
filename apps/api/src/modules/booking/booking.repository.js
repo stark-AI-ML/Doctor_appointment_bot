@@ -5,7 +5,7 @@ class BookingRepository {
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       Booking.find(filter)
-        .populate('doctorId', 'name specialization')
+        .populate('doctorId', 'name department role')
         .populate('patientId', 'name phone')
         .populate('serviceId', 'name')
         .populate('slotId', 'date startTime endTime')
@@ -19,7 +19,7 @@ class BookingRepository {
 
   async findById(id) {
     return Booking.findById(id)
-      .populate('doctorId', 'name specialization consultationFee')
+      .populate('doctorId', 'name department role consultationFee')
       .populate('patientId', 'name phone age gender')
       .populate('serviceId', 'name price duration')
       .populate('slotId', 'date startTime endTime')

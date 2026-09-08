@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
   salary:      { type: Number, default: 0 },
   joiningDate: { type: Date, default: null },
   address:     { type: String, default: '' },
+  activeDays:  { type: [String], default: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] },
   isActive:    { type: Boolean, default: true },
   createdAt:   { type: Date, default: Date.now },
 })

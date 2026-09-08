@@ -19,7 +19,7 @@ class MedicineOrderController {
 
     const skip = (page - 1) * limit
     const orders = await MedicineOrder.find(filter)
-      .populate('patientId', 'name phone')
+      .populate('patientId', 'name phone uhid')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit))

@@ -51,6 +51,7 @@ export const staffService = {
         salary: Number(payload.salary) || 0,
         joiningDate: payload.joiningDate || null,
         address: payload.address || '',
+        activeDays: Array.isArray(payload.activeDays) && payload.activeDays.length > 0 ? payload.activeDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         is_active: true,
       }
       mockUsers.push(user)

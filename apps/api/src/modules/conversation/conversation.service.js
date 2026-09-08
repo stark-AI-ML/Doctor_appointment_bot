@@ -82,6 +82,7 @@ class ConversationService {
         
         // Medicine Flow
         case STEPS.MED_PRESCRIPTION: return await this.handleMedPrescription(phone, state, message)
+        case STEPS.MED_WHO_FOR:      return await this.handleMedWhoFor(phone, state, input)
         case STEPS.MED_NAME:         return await this.handleMedName(phone, state, input)
         case STEPS.MED_ADDRESS:      return await this.handleMedAddress(phone, state, input)
         
@@ -169,16 +170,26 @@ class ConversationService {
     if (state.currentStep === STEPS.MED_PRESCRIPTION) {
       return this.resetAndWelcome(phone)
     }
-    if (state.currentStep === STEPS.MED_NAME) {
+    if (state.currentStep === STEPS.MED_WHO_FOR) {
       await conversationRepo.upsert(phone, { currentStep: STEPS.MED_PRESCRIPTION })
       return this.sendMessage(phone, MESSAGES.medStart())
+    }
+    if (state.currentStep === STEPS.MED_NAME) {
+      const existingPatient = await patientService.findByPhone(phone)
+      const hasRealName = existingPatient?.name && existingPatient.name !== 'Unknown'
+      const prevStep = hasRealName ? STEPS.MED_WHO_FOR : STEPS.MED_PRESCRIPTION
+      await conversationRepo.upsert(phone, { currentStep: prevStep })
+      return this.sendMessage(phone, prevStep === STEPS.MED_WHO_FOR ? MESSAGES.medWhoFor(existingPatient.name) : MESSAGES.medStart())
     }
     if (state.currentStep === STEPS.MED_ADDRESS) {
       const existingPatient = await patientService.findByPhone(phone)
       const hasRealName = existingPatient?.name && existingPatient.name !== 'Unknown'
-      const prevStep = hasRealName ? STEPS.MED_PRESCRIPTION : STEPS.MED_NAME
+      const isSelf = state.stateData?.isSelf === true
+      const prevStep = isSelf ? STEPS.MED_WHO_FOR : (hasRealName ? STEPS.MED_NAME : STEPS.MED_PRESCRIPTION)
       await conversationRepo.upsert(phone, { currentStep: prevStep })
-      return this.sendMessage(phone, prevStep === STEPS.MED_PRESCRIPTION ? MESSAGES.medStart() : MESSAGES.medName())
+      if (prevStep === STEPS.MED_WHO_FOR) return this.sendMessage(phone, MESSAGES.medWhoFor(existingPatient.name))
+      if (prevStep === STEPS.MED_NAME) return this.sendMessage(phone, MESSAGES.medName())
+      return this.sendMessage(phone, MESSAGES.medStart())
     }
 
     return this.resetAndWelcome(phone)
@@ -499,10 +510,14 @@ class ConversationService {
 
       if (hasRealName) {
         await conversationRepo.upsert(phone, { 
-          currentStep: STEPS.MED_ADDRESS, 
-          stateData: { prescriptionUrl, patientId: existingPatient._id, patientName: existingPatient.name } 
+          currentStep: STEPS.MED_WHO_FOR, 
+          stateData: {
+            prescriptionUrl,
+            existingPatientId: existingPatient._id,
+            existingPatientName: existingPatient.name
+          } 
         })
-        return this.sendMessage(phone, MESSAGES.medAddress())
+        return this.sendMessage(phone, MESSAGES.medWhoFor(existingPatient.name))
       } else {
         await conversationRepo.upsert(phone, { 
           currentStep: STEPS.MED_NAME, 
@@ -514,6 +529,33 @@ class ConversationService {
       logger.error('Failed to download prescription:', err)
       return this.sendMessage(phone, 'Failed to process image. Please try again.')
     }
+  }
+
+  async handleMedWhoFor(phone, state, input) {
+    if (input === '1') {
+      const patientId = state.stateData?.existingPatientId
+      const patientName = state.stateData?.existingPatientName
+      await conversationRepo.upsert(phone, {
+        currentStep: STEPS.MED_ADDRESS,
+        stateData: {
+          ...state.stateData,
+          patientId,
+          patientName,
+          isSelf: true,
+        }
+      })
+      return this.sendMessage(phone, MESSAGES.medAddress())
+    } else if (input === '2') {
+      await conversationRepo.upsert(phone, {
+        currentStep: STEPS.MED_NAME,
+        stateData: {
+          ...state.stateData,
+          isSelf: false,
+        }
+      })
+      return this.sendMessage(phone, MESSAGES.medName())
+    }
+    return this.sendMessage(phone, MESSAGES.invalidInput())
   }
 
   async handleMedName(phone, state, input) {

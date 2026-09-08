@@ -80,9 +80,9 @@ class PatientService {
     const preferredDate = data.preferredDate ? new Date(data.preferredDate) : new Date()
     const type = data.type === 'HOSPITALIZATION' ? 'HOSPITALIZATION' : 'OPD'
 
-    // D3: every booking gets its own token. OPD tokens are per-doctor-per-day;
-    // hospitalization has no doctor queue → booking ID only.
-    const tokenNumber = type === 'OPD' && data.doctorId
+    // Every OPD booking gets a fresh daily incremental token (T-001, T-002...).
+    // Hospitalization has no queue → booking ID only.
+    const tokenNumber = type === 'OPD'
       ? await idsService.generateToken(data.doctorId, preferredDate)
       : null
 

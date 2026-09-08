@@ -1,19 +1,30 @@
 import Doctor from './doctor.model.js'
 
+/**
+ * Map incoming data (which may use old alias names) → canonical schema fields.
+ * Accepts either alias and stores only the canonical field.
+ */
 function prepareDoctorData(data) {
   const payload = { ...data }
-  if (!payload.specialization && payload.role) payload.specialization = payload.role
-  if (!payload.role && payload.specialization) payload.role = payload.specialization
-  if (!payload.qualifications && payload.qualification) payload.qualifications = payload.qualification
-  if (!payload.qualification && payload.qualifications) payload.qualification = payload.qualifications
-  if (!payload.AOF && payload.specialty) payload.AOF = payload.specialty
-  if (!payload.specialty && payload.AOF) payload.specialty = payload.AOF
-  const img = payload.image || payload.imageUrl || payload.ImageUrl
-  if (img) {
-    payload.image = img
-    payload.imageUrl = img
-    payload.ImageUrl = img
+
+  // qualification absorbs qualifications
+  if (!payload.qualification && payload.qualifications) {
+    payload.qualification = payload.qualifications
   }
+  delete payload.qualifications
+
+  // specialty absorbs AOF
+  if (!payload.specialty && payload.AOF) {
+    payload.specialty = payload.AOF
+  }
+  delete payload.AOF
+
+  // image absorbs ImageUrl / imageUrl
+  const img = payload.image || payload.imageUrl || payload.ImageUrl
+  if (img) payload.image = img
+  delete payload.imageUrl
+  delete payload.ImageUrl
+
   return payload
 }
 

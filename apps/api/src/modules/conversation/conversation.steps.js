@@ -27,6 +27,7 @@ export const STEPS = {
 
   // Medicine Order Flow
   MED_PRESCRIPTION: "MED_PRESCRIPTION",
+  MED_WHO_FOR: "MED_WHO_FOR",
   MED_NAME: "MED_NAME",
   MED_ADDRESS: "MED_ADDRESS",
 
@@ -48,7 +49,7 @@ export const MESSAGES = {
   doctors: (deptName, docs) => {
     let msg = `👩‍⚕️ *${deptName}*\n\n`;
     docs.forEach((d, i) => {
-      msg += `${i + 1}️⃣ Dr. ${d.name}\n*${d.qualifications || "Consultant"}*\n\n`;
+      msg += `${i + 1}️⃣ Dr. ${d.name}\n*${d.qualification || d.qualifications || "Consultant"}*\n\n`;
     });
     msg += `👉 *Reply with doctor number to book appointment.*\n👉 अपॉइंटमेंट के लिए डॉक्टर नंबर टाइप करें।\n\n0️⃣ Back | 00 Main Menu`;
     return msg;
@@ -123,8 +124,11 @@ export const MESSAGES = {
   medStart: () =>
     `💊 *Online Medicine Order*\nऑनलाइन घर बैठे दवा मंगाने की सुविधा\n\n📷 *Please send a photo of your prescription.*\nकृपया अपनी पर्ची की फोटो भेजें।\n\n0️⃣ Back | 00 Main Menu`,
 
+  medWhoFor: (patientName) =>
+    `👤 *ORDER MEDICINE FOR WHOM?*\nदवा किसके लिए मंगा रहे हैं?\n\nWelcome back!\n\n1️⃣ ${patientName}\n2️⃣ Someone Else / Family Member\n\n0️⃣ Back | 00 Main Menu`,
+
   medName: () =>
-    `👤 *Patient Name / मरीज का नाम*\n*Please enter your full name.*\nकृपया अपना पूरा नाम दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
+    `👤 *Patient Name / मरीज का नाम*\n*Please enter the patient's full name.*\nकृपया मरीज का पूरा नाम दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
 
   medAddress: () =>
     `🏠 *Please provide your complete delivery address.*\nकृपया अपना पूरा डिलीवरी पता भेजें।\n\n0️⃣ Back | 00 Main Menu`,

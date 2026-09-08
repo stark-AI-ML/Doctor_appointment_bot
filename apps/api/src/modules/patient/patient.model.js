@@ -10,6 +10,7 @@ const patientSchema = new mongoose.Schema({
   district:  { type: String, default: '' },
   address:   { type: String, default: '' },
   pinCode:   { type: String, default: '' },
+  isRegistered: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 })
 

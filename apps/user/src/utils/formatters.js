@@ -139,3 +139,41 @@ export function capitalize(str) {
   if (!str) return ''
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
+
+/**
+ * Format experience from joining date (e.g. "8 mos", "1 yr 2 mos")
+ */
+export function formatExperience(joiningDate) {
+  if (!joiningDate) return '—'
+  const d = parseAnyDate(joiningDate)
+  if (!d) return '—'
+
+  const now = new Date()
+  if (d > now) return 'Not joined yet'
+
+  let years = now.getFullYear() - d.getFullYear()
+  let months = now.getMonth() - d.getMonth()
+  let days = now.getDate() - d.getDate()
+
+  if (days < 0) {
+    months -= 1
+  }
+  if (months < 0) {
+    years -= 1
+    months += 12
+  }
+
+  if (years <= 0 && months <= 0) return '< 1 month'
+  if (years <= 0) return `${months} month${months > 1 ? 's' : ''}`
+  if (months === 0) return `${years} year${years > 1 ? 's' : ''}`
+  return `${years} yr${years > 1 ? 's' : ''} ${months} mo${months > 1 ? 's' : ''}`
+}
+
+/**
+ * Calculate estimated active days worked per month based on weekly schedule
+ */
+export function calculateMonthlyActiveDays(activeDays) {
+  const daysPerWeek = Array.isArray(activeDays) ? activeDays.length : 6
+  return Math.round(daysPerWeek * (52 / 12))
+}
+

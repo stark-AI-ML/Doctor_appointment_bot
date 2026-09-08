@@ -4,32 +4,31 @@ import { mockDoctors } from '../data/mockData'
 const MOCK_DELAY = 300
 
 /**
- * Normalize a doctor from backend (camelCase) → UI shape (snake_case).
+ * Normalize a doctor from backend → UI shape.
+ * Backend now uses canonical fields; aliases provided by toJSON for compat.
  */
 function normalizeDoctor(d) {
   return {
     id: d.id || d._id,
     name: d.name,
-    role: d.role || d.specialization || '',
+    role: d.role || '',
     department: d.department || d.departmentId?.name || '',
     qualification: d.qualification || d.qualifications || '',
-    qualifications: d.qualifications || d.qualification || '',
-    specialization: d.specialization || d.role || '',
-    specialty: d.specialty || d.AOF || d.specialization || '',
-    AOF: d.AOF || d.specialty || '',
+    specialization: d.specialization || d.department || '',
+    specialty: d.specialty || d.AOF || '',
     consultation_fee: d.consultationFee ?? d.consultation_fee ?? 0,
     experience: d.experience ?? '0',
     image: d.image || d.ImageUrl || d.imageUrl || '',
-    ImageUrl: d.ImageUrl || d.imageUrl || d.image || '',
     gender: d.gender || null,
     address: d.address || '',
     is_active: d.isActive ?? d.is_active ?? true,
+    maxPatientsPerDay: d.maxPatientsPerDay ?? 30,
     created_at: d.createdAt || d.created_at,
   }
 }
 
 /**
- * Convert UI form data (snake_case) → backend shape
+ * Convert UI form data → backend shape (canonical fields only)
  */
 function toBackendDoctor(formData) {
   return {
@@ -37,16 +36,14 @@ function toBackendDoctor(formData) {
     role: formData.role || formData.specialization,
     department: formData.department,
     qualification: formData.qualification || formData.qualifications,
-    qualifications: formData.qualifications || formData.qualification,
-    specialization: formData.specialization || formData.role,
+    specialization: formData.specialization || formData.department,
     specialty: formData.specialty || formData.AOF,
-    AOF: formData.AOF || formData.specialty,
     consultationFee: Number(formData.consultation_fee || formData.consultationFee || 0),
     experience: formData.experience,
     image: formData.image || formData.ImageUrl || formData.imageUrl,
-    ImageUrl: formData.ImageUrl || formData.imageUrl || formData.image,
     gender: formData.gender || undefined,
     address: formData.address || '',
+    maxPatientsPerDay: Number(formData.maxPatientsPerDay || 30),
   }
 }
 

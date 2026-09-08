@@ -65,9 +65,10 @@ class IdsService {
     return this.formats.uhid(yearOf(date), seq)
   }
 
-  /** Per-doctor-per-day sequential token: T-001, T-002… (OPD only). */
+  /** Per-doctor-per-day sequential token: T-001, T-002… (OPD only). Resets daily. */
   async generateToken(doctorId, date = new Date()) {
-    const seq = await nextSequence(`token:${doctorId}:${yyyymmdd(date)}`)
+    const docKey = doctorId ? String(doctorId) : 'general'
+    const seq = await nextSequence(`token:${docKey}:${yyyymmdd(date)}`)
     return this.formats.token(seq)
   }
 
