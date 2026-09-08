@@ -7,8 +7,17 @@ import { AppError } from '../../middleware/errorHandler.js'
 import logger from '../../utils/logger.js'
 
 class PatientService {
+  async findByPhone(phone) {
+    return patientRepo.findByPhone(phone)
+  }
+
   async findOrCreateByPhone(phone, data = {}) {
-    return patientRepo.findOrCreate(phone, data)
+    const patient = await patientRepo.findOrCreate(phone, data)
+    if (!patient.uhid && patient.name && patient.name !== 'Unknown') {
+      patient.uhid = await idsService.ensureUhidForPhone(phone, patient.name)
+      await patient.save()
+    }
+    return patient
   }
 
   async getPatientById(id) {

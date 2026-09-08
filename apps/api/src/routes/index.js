@@ -3,6 +3,7 @@ import { authMiddleware } from '../middleware/auth.middleware.js'
 import { requireRole, ROLES } from '../middleware/rbac.middleware.js'
 import doctorRoutes from '../modules/doctor/doctor.routes.js'
 import bookingRoutes from '../modules/booking/booking.routes.js'
+import { doctorController } from '../modules/doctor/doctor.controller.js'
 import { bookingController } from '../modules/booking/booking.controller.js'
 import { reportController } from '../modules/booking/report.controller.js'
 import { serviceController } from '../modules/service/service.controller.js'
@@ -17,19 +18,71 @@ const STAFF = [SUPERADMIN, ADMIN, RECEPTIONIST, PHARMACY]
 
 const router = Router()
 
-// ─── Public routes ───────────────────────────────────────
+// ─── Public routes (Unprotected - Website Visitors) ───────
 router.use('/auth', authRoutes)
 
-// ─── All routes below require JWT ────────────────────────
+// Public Doctor Listings for website frontend (Team.jsx & BookAppointment.jsx)
+router.get('/doctors', doctorController.getAll)
+router.get('/doctors/:id', doctorController.getById)
+
+// Public Appointment Booking Submission for website frontend
+router.post('/bookings', async (req, res, next) => {
+  try {
+    const Doctor = (await import('../modules/doctor/doctor.model.js')).default
+    const patientService = (await import('../modules/patient/patient.service.js')).default
+
+    let doctorId = req.body.doctorId
+    let doctorName = req.body.doctor || req.body.doctorName
+
+    // Find doctor by name if doctorId not passed directly
+    if (!doctorId && doctorName) {
+      const docObj = await Doctor.findOne({ name: new RegExp(doctorName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') })
+      if (docObj) doctorId = docObj._id
+    }
+
+    const registrationData = {
+      name: req.body.fullName || req.body.patientName || req.body.name || 'Patient',
+      phone: req.body.phone || req.body.patientPhone || req.body.mobile || '',
+      age: req.body.age ? parseInt(req.body.age, 10) : 30,
+      gender: req.body.gender || 'Male',
+      district: req.body.district || 'Chandauli',
+      address: req.body.address || 'Chandauli',
+      department: req.body.department || '',
+      doctorId: doctorId || null,
+      preferredDate: req.body.preferredDate || req.body.appointmentDate || new Date().toISOString().split('T')[0],
+      problemDescription: req.body.message || req.body.problemDescription || '',
+      type: req.body.type || 'OPD',
+    }
+
+    const { patient, booking } = await patientService.registerPatientWithBooking(
+      registrationData,
+      { source: 'website' },
+      { validate: false }
+    )
+
+    res.status(201).json({
+      success: true,
+      bookingId: booking.bookingId,
+      tokenNumber: booking.tokenNumber,
+      uhid: patient?.uhid,
+      patient,
+      booking,
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── All routes below require JWT (Staff & Dashboard) ──────
 router.use(authMiddleware)
 
-// Doctors — read for all staff, write for admin/superadmin
+// Doctors — staff dashboard management
 router.use('/doctors', requireRole(SUPERADMIN, ADMIN, DOCTOR, RECEPTIONIST), doctorRoutes)
 
-// Bookings (OPD + hospitalization) — doctor sees own only (scoped in controller)
+// Bookings (OPD + hospitalization) — staff dashboard management
 router.use('/bookings', requireRole(SUPERADMIN, ADMIN, DOCTOR, RECEPTIONIST), bookingRoutes)
 
-// Medicine orders — pharmacy full, receptionist read-only (enforced in controller), doctor own-linked
+// Medicine orders — pharmacy full, receptionist read-only
 router.use('/medicine-orders', requireRole(SUPERADMIN, ADMIN, PHARMACY, RECEPTIONIST, DOCTOR), medicineOrderRoutes)
 
 // Staff management — superadmin + admin
@@ -48,7 +101,7 @@ router.post('/timeslots',         requireRole(SUPERADMIN, ADMIN), bookingControl
 router.delete('/timeslots/:id',   requireRole(SUPERADMIN, ADMIN), bookingController.deleteSlot)
 router.patch('/timeslots/:id/toggle', requireRole(SUPERADMIN, ADMIN), bookingController.toggleSlot)
 
-// Patients — doctor sees own only (scoped in controller)
+// Patients — doctor sees own only
 router.get('/patients/mine',  requireRole(DOCTOR), patientController.getMine)
 router.post('/patients/register', requireRole(SUPERADMIN, ADMIN, RECEPTIONIST), patientController.register)
 router.get('/patients',       requireRole(SUPERADMIN, ADMIN, DOCTOR, RECEPTIONIST, PHARMACY), patientController.search)

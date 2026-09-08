@@ -21,11 +21,32 @@ export const mockDepartments = [
 
 // ── Doctors ──
 export const mockDoctors = [
-  { id: 1, department_id: 1, name: 'Dr. Anand Prakash Tiwari', specialization: 'Gynecologist', consultation_fee: 500, is_active: true, avatar: null, phone: '+91 98765 00001', email: 'anand@kgnanda.com', created_at: '2026-07-15T10:00:00Z' },
-  { id: 2, department_id: 1, name: 'Dr. Vandana', specialization: 'Gynecologist', consultation_fee: 300, is_active: true, avatar: null, phone: '+91 98765 00002', email: 'vandana@kgnanda.com', created_at: '2026-07-20T10:00:00Z' },
-  { id: 3, department_id: 2, name: 'Dr. Abhishek Kumar Singh', specialization: 'General Physician', consultation_fee: 300, is_active: true, avatar: null, phone: '+91 98765 00003', email: 'abhishek@kgnanda.com', created_at: '2026-08-01T10:00:00Z' },
-  { id: 4, department_id: 5, name: 'Dr. Yogesh Pandey', specialization: 'General Surgeon', consultation_fee: 600, is_active: true, avatar: null, phone: '+91 98765 00004', email: 'yogesh@kgnanda.com', created_at: '2026-08-10T10:00:00Z' },
-  { id: 5, department_id: 7, name: 'Dr. Vikram Singh', specialization: 'Urologist', consultation_fee: 800, is_active: true, avatar: null, phone: '+91 98765 00005', email: 'vikram@kgnanda.com', created_at: '2026-08-15T10:00:00Z' }
+  {
+    id: 1,
+    department_id: 1,
+    name: 'Dr. Anand Prakash Tiwari',
+    role: 'Senior Gynaecologist & Infertility Specialist',
+    department: 'Obstetrics & Gynaecology',
+    qualification: 'MBBS, M.S. (Obs & Gyane)',
+    qualifications: 'MBBS, M.S. (Obs & Gyane)',
+    experience: '15+ Years',
+    image: '/Home/Dr. Anand Prakash.png',
+    imageUrl: '/Home/Dr. Anand Prakash.png',
+    ImageUrl: '/Home/Dr. Anand Prakash.png',
+    specialty: 'High-Risk Pregnancy, Normal & Cesarean Delivery, Infertility Treatment, Laparoscopic Gynecological Surgery, PCOS & Menstrual Disorders, Antenatal & Postnatal Care',
+    AOF: 'High-Risk Pregnancy, Normal & Cesarean Delivery, Infertility Treatment, Laparoscopic Gynecological Surgery, PCOS & Menstrual Disorders, Antenatal & Postnatal Care',
+    specialization: 'Gynecologist',
+    consultation_fee: 500,
+    is_active: true,
+    avatar: null,
+    phone: '+91 98765 00001',
+    email: 'anand@kgnanda.com',
+    created_at: '2026-07-15T10:00:00Z',
+  },
+  { id: 2, department_id: 1, name: 'Dr. Vandana', role: 'Gynecologist', specialization: 'Gynecologist', consultation_fee: 300, is_active: true, avatar: null, phone: '+91 98765 00002', email: 'vandana@kgnanda.com', created_at: '2026-07-20T10:00:00Z' },
+  { id: 3, department_id: 2, name: 'Dr. Abhishek Kumar Singh', role: 'General Physician', specialization: 'General Physician', consultation_fee: 300, is_active: true, avatar: null, phone: '+91 98765 00003', email: 'abhishek@kgnanda.com', created_at: '2026-08-01T10:00:00Z' },
+  { id: 4, department_id: 5, name: 'Dr. Yogesh Pandey', role: 'General Surgeon', specialization: 'General Surgeon', consultation_fee: 600, is_active: true, avatar: null, phone: '+91 98765 00004', email: 'yogesh@kgnanda.com', created_at: '2026-08-10T10:00:00Z' },
+  { id: 5, department_id: 7, name: 'Dr. Vikram Singh', role: 'Urologist', specialization: 'Urologist', consultation_fee: 800, is_active: true, avatar: null, phone: '+91 98765 00005', email: 'vikram@kgnanda.com', created_at: '2026-08-15T10:00:00Z' }
 ]
 
 // ── Services ──

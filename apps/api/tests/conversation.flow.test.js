@@ -14,7 +14,7 @@ vi.mock('../src/modules/booking/booking.service.js', () => ({
   default: { createBooking: vi.fn() }
 }))
 vi.mock('../src/modules/patient/patient.service.js', () => ({
-  default: { findOrCreateByPhone: vi.fn(), registerPatientWithBooking: vi.fn() }
+  default: { findByPhone: vi.fn(), findOrCreateByPhone: vi.fn(), registerPatientWithBooking: vi.fn() }
 }))
 vi.mock('../src/modules/medicine/medicineOrder.service.js', () => ({
   default: { createOrder: vi.fn() }
@@ -63,6 +63,7 @@ function setupDefaultMocks() {
   doctorService.getActiveDoctors.mockResolvedValue([DOCTOR])
   doctorService.getDoctorsByDepartment.mockResolvedValue([DOCTOR])
   doctorService.getDoctorById.mockResolvedValue(DOCTOR)
+  patientService.findByPhone.mockResolvedValue(null)
   patientService.findOrCreateByPhone.mockResolvedValue(PATIENT_NEW)
   patientService.registerPatientWithBooking.mockResolvedValue({
     patient: { _id: 'pat1', name: 'John Doe', uhid: 'KGN-2026-00001' },
@@ -216,12 +217,14 @@ describe('Conversation Booking Flow (current)', () => {
     expect(stateStore[PHONE].currentStep).toBe('WELCOME')
   })
 
-  it('completes the medicine flow with a prescription image', async () => {
+  it('completes the medicine flow with a prescription image (asking name for first-time user)', async () => {
     mockProvider.downloadMedia.mockResolvedValue({ mimeType: 'image/jpeg', buffer: Buffer.from('img') })
     await send('hi')
     await send('3')
     expect(stateStore[PHONE].currentStep).toBe('MED_PRESCRIPTION')
     await conversationService.handleMessage(PHONE, { type: 'image', imageId: 'img1' })
+    expect(stateStore[PHONE].currentStep).toBe('MED_NAME')
+    await send('Ramesh Kumar')
     expect(stateStore[PHONE].currentStep).toBe('MED_ADDRESS')
     const reply = await send('Civil Lines, Jaunpur 222001')
     expect(medicineOrderService.createOrder).toHaveBeenCalled()
