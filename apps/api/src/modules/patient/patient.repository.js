@@ -5,6 +5,10 @@ class PatientRepository {
     return Patient.findOne({ phone })
   }
 
+  async findAllByPhone(phone) {
+    return Patient.find({ phone, name: { $ne: 'Unknown' } }).sort({ createdAt: 1 })
+  }
+
   async findOrCreate(phone, data = {}) {
     const name = data.name ? String(data.name).trim() : ''
 

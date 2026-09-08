@@ -14,7 +14,7 @@ vi.mock('../src/modules/booking/booking.service.js', () => ({
   default: { createBooking: vi.fn() }
 }))
 vi.mock('../src/modules/patient/patient.service.js', () => ({
-  default: { findByPhone: vi.fn(), findOrCreateByPhone: vi.fn(), registerPatientWithBooking: vi.fn() }
+  default: { findByPhone: vi.fn(), findOrCreateByPhone: vi.fn(), registerPatientWithBooking: vi.fn(), findAllByPhone: vi.fn() }
 }))
 vi.mock('../src/modules/medicine/medicineOrder.service.js', () => ({
   default: { createOrder: vi.fn() }
@@ -64,6 +64,7 @@ function setupDefaultMocks() {
   doctorService.getDoctorsByDepartment.mockResolvedValue([DOCTOR])
   doctorService.getDoctorById.mockResolvedValue(DOCTOR)
   patientService.findByPhone.mockResolvedValue(null)
+  patientService.findAllByPhone.mockResolvedValue([])
   patientService.findOrCreateByPhone.mockResolvedValue(PATIENT_NEW)
   patientService.registerPatientWithBooking.mockResolvedValue({
     patient: { _id: 'pat1', name: 'John Doe', uhid: 'KGN-2026-00001' },
@@ -143,7 +144,7 @@ describe('Conversation Booking Flow (current)', () => {
   })
 
   it('routes a returning patient through WHO_FOR', async () => {
-    patientService.findOrCreateByPhone.mockResolvedValue(PATIENT_RETURNING)
+    patientService.findAllByPhone.mockResolvedValue([PATIENT_RETURNING])
     await send('hi'); await send('1'); await send('1'); await send('1')
     const reply = await send('1')
     expect(reply).toContain('BOOKING FOR WHOM')

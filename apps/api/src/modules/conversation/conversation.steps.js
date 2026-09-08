@@ -67,8 +67,21 @@ export const MESSAGES = {
     return msg
   },
 
-  whoFor: (patientName) =>
-    `👤 *BOOKING FOR WHOM?*\n\nWelcome back!\n\n1️⃣ ${patientName}\n2️⃣ Someone Else / Family Member\n\n0️⃣ Back | 00 Main Menu`,
+  whoFor: (patients = []) => {
+    let msg = `👤 *BOOKING FOR WHOM?*\n*कृपया चुनें कि अपॉइंटमेंट किसके लिए है:*\n\n`
+    if (Array.isArray(patients) && patients.length > 0) {
+      patients.forEach((p, idx) => {
+        msg += `${idx + 1}️⃣ ${p.name}\n`
+      })
+      msg += `${patients.length + 1}️⃣ Someone Else / Family Member (नया मरीज)\n\n`
+    } else if (typeof patients === 'string' && patients) {
+      msg += `1️⃣ ${patients}\n2️⃣ Someone Else / Family Member (नया मरीज)\n\n`
+    } else {
+      msg += `1️⃣ Someone Else / Family Member (नया मरीज)\n\n`
+    }
+    msg += `0️⃣ Back | 00 Main Menu`
+    return msg
+  },
 
   patientName: () =>
     `📝 *Patient Name / मरीज का नाम*\n*Please enter the patient's full name.*\nमरीज का पूरा नाम दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
@@ -124,8 +137,21 @@ export const MESSAGES = {
   medStart: () =>
     `💊 *Online Medicine Order*\nऑनलाइन घर बैठे दवा मंगाने की सुविधा\n\n📷 *Please send a photo of your prescription.*\nकृपया अपनी पर्ची की फोटो भेजें।\n\n0️⃣ Back | 00 Main Menu`,
 
-  medWhoFor: (patientName) =>
-    `👤 *ORDER MEDICINE FOR WHOM?*\nदवा किसके लिए मंगा रहे हैं?\n\nWelcome back!\n\n1️⃣ ${patientName}\n2️⃣ Someone Else / Family Member\n\n0️⃣ Back | 00 Main Menu`,
+  medWhoFor: (patients = []) => {
+    let msg = `💊 *ORDER MEDICINE FOR WHOM?*\n*दवा किसके लिए मंगा रहे हैं?*\n\n`
+    if (Array.isArray(patients) && patients.length > 0) {
+      patients.forEach((p, idx) => {
+        msg += `${idx + 1}️⃣ ${p.name}\n`
+      })
+      msg += `${patients.length + 1}️⃣ Someone Else / Family Member (नया मरीज)\n\n`
+    } else if (typeof patients === 'string' && patients) {
+      msg += `1️⃣ ${patients}\n2️⃣ Someone Else / Family Member (नया मरीज)\n\n`
+    } else {
+      msg += `1️⃣ Someone Else / Family Member (नया मरीज)\n\n`
+    }
+    msg += `0️⃣ Back | 00 Main Menu`
+    return msg
+  },
 
   medName: () =>
     `👤 *Patient Name / मरीज का नाम*\n*Please enter the patient's full name.*\nकृपया मरीज का पूरा नाम दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,

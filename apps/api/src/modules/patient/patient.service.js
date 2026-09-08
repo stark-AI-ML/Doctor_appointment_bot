@@ -11,6 +11,10 @@ class PatientService {
     return patientRepo.findByPhone(phone)
   }
 
+  async findAllByPhone(phone) {
+    return patientRepo.findAllByPhone(phone)
+  }
+
   async findOrCreateByPhone(phone, data = {}) {
     const patient = await patientRepo.findOrCreate(phone, data)
     if (!patient.uhid && patient.name && patient.name !== 'Unknown') {
