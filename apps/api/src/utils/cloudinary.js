@@ -1,5 +1,8 @@
 import { v2 as cloudinary } from 'cloudinary'
 import logger from './logger.js'
+import fs from 'fs'
+import path from 'path'
+import crypto from 'crypto'
 
 /**
  * Configure Cloudinary from environment variables.
@@ -25,25 +28,57 @@ if (isCloudinaryConfigured()) {
 }
 
 /**
- * Upload a prescription image (buffer, base64 string, or local file path) to Cloudinary.
- * @param {string|Buffer} fileInput - Base64 data string, local file path, or file buffer
- * @param {object} options - Optional upload settings (folder, public_id, etc.)
+ * Upload an image (Buffer, base64 DataURL, or local filepath) to Cloudinary.
+ * @param {string|Buffer} fileInput - Base64 data string, local filepath, or file buffer
+ * @param {object} options - Upload options (folder, prefix, filename, etc.)
  * @returns {Promise<string>} Secure Cloudinary HTTPS URL or fallback local URL
  */
-export async function uploadPrescriptionImage(fileInput, options = {}) {
-  const folder = options.folder || process.env.CLOUDINARY_FOLDER || 'docbot_prescriptions'
+export async function uploadImageToCloudinary(fileInput, options = {}) {
+  if (!fileInput) return ''
+
+  // If already a hosted HTTPS URL or relative upload URL, return as-is
+  if (typeof fileInput === 'string' && (fileInput.startsWith('http://') || fileInput.startsWith('https://') || fileInput.startsWith('/uploads/'))) {
+    return fileInput
+  }
+
+  const folder = options.folder || process.env.CLOUDINARY_FOLDER || 'docbot_general'
+  const prefix = options.prefix || 'img'
+
+  // Convert Buffer to data URI string if needed
+  let uploadSource = fileInput
+  if (Buffer.isBuffer(fileInput)) {
+    const mimeType = options.mimeType || 'image/jpeg'
+    uploadSource = `data:${mimeType};base64,${fileInput.toString('base64')}`
+  }
 
   if (!isCloudinaryConfigured()) {
-    logger.warn('Cloudinary not configured. Returning fallback prescription URL.')
-    if (typeof fileInput === 'string' && (fileInput.startsWith('http') || fileInput.startsWith('/uploads'))) {
-      return fileInput
+    logger.warn(`Cloudinary not configured. Fallback processing for ${prefix}.`)
+    try {
+      const ext = options.ext || 'jpg'
+      const filename = options.filename || `${prefix}_${Date.now()}_${crypto.randomBytes(4).toString('hex')}.${ext}`
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
+
+      const filepath = path.join(uploadDir, filename)
+      if (Buffer.isBuffer(fileInput)) {
+        fs.writeFileSync(filepath, fileInput)
+      } else if (typeof uploadSource === 'string' && uploadSource.startsWith('data:')) {
+        const base64Data = uploadSource.replace(/^data:image\/\w+;base64,/, '')
+        fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'))
+      } else if (typeof fileInput === 'string' && fs.existsSync(fileInput)) {
+        fs.copyFileSync(fileInput, filepath)
+      } else {
+        return `/uploads/${filename}`
+      }
+      return `/uploads/${filename}`
+    } catch (err) {
+      logger.error('Local fallback upload error:', err)
+      return typeof fileInput === 'string' && fileInput.length < 500 ? fileInput : ''
     }
-    const filename = options.filename || `rx_${Date.now()}_demo.jpg`
-    return `/uploads/${filename}`
   }
 
   try {
-    const result = await cloudinary.uploader.upload(fileInput, {
+    const result = await cloudinary.uploader.upload(uploadSource, {
       folder,
       resource_type: 'auto',
       allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'pdf'],
@@ -53,12 +88,34 @@ export async function uploadPrescriptionImage(fileInput, options = {}) {
       ],
       ...options,
     })
-    logger.info(`Prescription uploaded to Cloudinary: ${result.secure_url}`)
+    logger.info(`Image uploaded to Cloudinary [${folder}]: ${result.secure_url}`)
     return result.secure_url
   } catch (error) {
     logger.error('Cloudinary upload error:', error)
     throw new Error(`Cloudinary upload failed: ${error.message}`)
   }
+}
+
+/**
+ * Upload a doctor profile photo to Cloudinary (folder: docbot_doctors)
+ */
+export async function uploadDoctorImage(fileInput, options = {}) {
+  return uploadImageToCloudinary(fileInput, {
+    folder: 'docbot_doctors',
+    prefix: 'doc',
+    ...options,
+  })
+}
+
+/**
+ * Upload a prescription image to Cloudinary (folder: docbot_prescriptions)
+ */
+export async function uploadPrescriptionImage(fileInput, options = {}) {
+  return uploadImageToCloudinary(fileInput, {
+    folder: process.env.CLOUDINARY_FOLDER || 'docbot_prescriptions',
+    prefix: 'rx',
+    ...options,
+  })
 }
 
 export default cloudinary

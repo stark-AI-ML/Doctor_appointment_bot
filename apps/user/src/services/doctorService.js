@@ -8,6 +8,7 @@ const MOCK_DELAY = 300
  * Backend now uses canonical fields; aliases provided by toJSON for compat.
  */
 function normalizeDoctor(d) {
+  const imgUrl = d.image || d.avatar || d.ImageUrl || d.imageUrl || ''
   return {
     id: d.id || d._id,
     name: d.name,
@@ -18,7 +19,8 @@ function normalizeDoctor(d) {
     specialty: d.specialty || d.AOF || '',
     consultation_fee: d.consultationFee ?? d.consultation_fee ?? 0,
     experience: d.experience ?? '0',
-    image: d.image || d.ImageUrl || d.imageUrl || '',
+    image: imgUrl,
+    avatar: imgUrl,
     gender: d.gender || null,
     address: d.address || '',
     is_active: d.isActive ?? d.is_active ?? true,
@@ -40,7 +42,7 @@ function toBackendDoctor(formData) {
     specialty: formData.specialty || formData.AOF,
     consultationFee: Number(formData.consultation_fee || formData.consultationFee || 0),
     experience: formData.experience,
-    image: formData.image || formData.ImageUrl || formData.imageUrl,
+    image: formData.image || formData.avatar || formData.ImageUrl || formData.imageUrl || '',
     gender: formData.gender || undefined,
     address: formData.address || '',
     maxPatientsPerDay: Number(formData.maxPatientsPerDay || 30),

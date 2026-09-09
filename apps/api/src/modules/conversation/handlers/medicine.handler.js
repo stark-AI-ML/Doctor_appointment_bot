@@ -3,8 +3,7 @@ import patientService from '../../patient/patient.service.js'
 import medicineOrderService from '../../medicine/medicineOrder.service.js'
 import { STEPS, MESSAGES } from '../conversation.steps.js'
 import logger from '../../../utils/logger.js'
-import fs from 'fs'
-import path from 'path'
+import { uploadPrescriptionImage } from '../../../utils/cloudinary.js'
 import crypto from 'crypto'
 
 export const medicineHandler = {
@@ -19,16 +18,14 @@ export const medicineHandler = {
 
     try {
       const media = await service.messagingProvider.downloadMedia(message.imageId)
-      const ext = media.mimeType.split('/')[1] || 'jpg'
+      const ext = media.mimeType ? media.mimeType.split('/')[1] || 'jpg' : 'jpg'
       const filename = `rx_${Date.now()}_${crypto.randomBytes(4).toString('hex')}.${ext}`
-      
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
-      
-      const filepath = path.join(uploadDir, filename)
-      fs.writeFileSync(filepath, media.buffer)
-      
-      const prescriptionUrl = `/uploads/${filename}`
+
+      const prescriptionUrl = await uploadPrescriptionImage(media.buffer, {
+        filename,
+        mimeType: media.mimeType || 'image/jpeg',
+        ext,
+      })
 
       const patients = await patientService.findAllByPhone(phone)
       if (patients.length > 0) {

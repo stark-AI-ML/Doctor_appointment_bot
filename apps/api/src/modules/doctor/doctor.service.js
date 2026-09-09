@@ -1,5 +1,6 @@
 import doctorRepo from './doctor.repository.js'
 import { cache } from '../../config/redis.js'
+import { uploadDoctorImage } from '../../utils/cloudinary.js'
 
 const CACHE_KEY = 'doctors:all'
 const CACHE_ACTIVE = 'doctors:active'
@@ -23,12 +24,24 @@ class DoctorService {
   }
 
   async createDoctor(data) {
+    const rawImage = data.image || data.avatar || data.imageUrl || ''
+    if (rawImage && (rawImage.startsWith('data:image/') || rawImage.length > 500)) {
+      data.image = await uploadDoctorImage(rawImage)
+    } else if (rawImage) {
+      data.image = rawImage
+    }
     const doctor = await doctorRepo.create(data)
     await cache.invalidate('doctors:*')
     return doctor
   }
 
   async updateDoctor(id, data) {
+    const rawImage = data.image || data.avatar || data.imageUrl || ''
+    if (rawImage && (rawImage.startsWith('data:image/') || rawImage.length > 500)) {
+      data.image = await uploadDoctorImage(rawImage)
+    } else if (rawImage) {
+      data.image = rawImage
+    }
     const doctor = await doctorRepo.update(id, data)
     await cache.invalidate('doctors:*')
     return doctor
