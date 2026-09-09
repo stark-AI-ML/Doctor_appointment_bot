@@ -93,6 +93,8 @@ class PatientService {
     if (!patient.uhid) {
       patient.uhid = await idsService.ensureUhidForPhone(phone, patient.name)
       await patient.save()
+    }
+
     const type = data.type === 'HOSPITALIZATION' ? 'HOSPITALIZATION' : 'OPD'
 
     // Every OPD booking gets a fresh daily incremental token (T-001, T-002...).
