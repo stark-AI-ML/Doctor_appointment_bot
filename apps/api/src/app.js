@@ -18,7 +18,8 @@ const defaultAllowed = [
   "http://localhost:5000",
   "https://kgnandahospital.com",
   "https://www.kgnandahospital.com",
-  "https://vercel.com/juli-singhs-projects/kg-nanda-w26l",
+  "https://kg-nanda-kappa.vercel.app/team",
+  "https://kg-nanda-w26l.vercel.app/",
 ];
 const envAllowed = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
