@@ -69,6 +69,7 @@ class ConversationService {
         case STEPS.PATIENT_AGE:      return await opdHandler.handlePatientAge(this, phone, state, input)
         case STEPS.PATIENT_GENDER:   return await opdHandler.handlePatientGender(this, phone, state, input)
         case STEPS.PATIENT_TYPE:     return await opdHandler.handlePatientType(this, phone, state, input)
+        case STEPS.OLD_PATIENT_UHID: return await opdHandler.handleOldPatientUhid(this, phone, state, input)
         case STEPS.PATIENT_DISTRICT: return await opdHandler.handlePatientDistrict(this, phone, state, input)
         case STEPS.PATIENT_ADDRESS:  return await opdHandler.handlePatientAddress(this, phone, state, input)
         case STEPS.PATIENT_PROBLEM:  return await opdHandler.handlePatientProblem(this, phone, state, input)
@@ -96,6 +97,7 @@ class ConversationService {
         default:                     return this.resetAndWelcome(phone)
       }
     } catch (err) {
+      console.error('CONVERSATION ERROR:', err)
       logger.error(`Conversation error for ${phone}:`, err.message)
       await this.sendMessage(phone, 'Error processing request. Please type "menu".')
     }
@@ -116,13 +118,8 @@ class ConversationService {
         return this.sendMessage(phone, MESSAGES.departments(deps))
       }
       case '2': { // Hospitalization
-        const patients = (await patientService.findAllByPhone(phone)) || []
-        if (patients.length > 0) {
-          await conversationRepo.upsert(phone, { currentFlow: 'HOSPITALIZATION', currentStep: STEPS.HOSP_WHO_FOR })
-          return this.sendMessage(phone, MESSAGES.hospWhoFor(patients))
-        }
-        await conversationRepo.upsert(phone, { currentFlow: 'HOSPITALIZATION', currentStep: STEPS.HOSP_NAME })
-        return this.sendMessage(phone, MESSAGES.hospStart())
+        await conversationRepo.upsert(phone, { currentFlow: 'HOSPITALIZATION', currentStep: STEPS.HOSP_TYPE })
+        return this.sendMessage(phone, MESSAGES.hospType())
       }
       case '3': // Medicine Order
         await conversationRepo.upsert(phone, { currentFlow: 'MEDICINE', currentStep: STEPS.MED_PRESCRIPTION })

@@ -15,6 +15,7 @@ export const STEPS = {
   PATIENT_AGE: "PATIENT_AGE",
   PATIENT_GENDER: "PATIENT_GENDER",
   PATIENT_TYPE: "PATIENT_TYPE",
+  OLD_PATIENT_UHID: "OLD_PATIENT_UHID",
   PATIENT_DISTRICT: "PATIENT_DISTRICT",
   PATIENT_ADDRESS: "PATIENT_ADDRESS",
   PATIENT_PROBLEM: "PATIENT_PROBLEM",
@@ -104,7 +105,10 @@ export const MESSAGES = {
     `⚧ *Gender / लिंग*\n*Please reply with:*\n1️⃣ Male / पुरुष\n2️⃣ Female / महिला\n3️⃣ Other / अन्य\n\n0️⃣ Back | 00 Main Menu`,
 
   patientType: (name = '') =>
-    `📋 *PATIENT TYPE / मरीज का प्रकार*${name ? `\n*Patient: ${name}*` : ''}\n\n*Is this an Existing/Old Patient or a New Patient at KG Nanda Hospital?*\nक्या मरीज अस्पताल का पुराना मरीज है या नया मरीज?\n\n1️⃣ Old / Existing Patient (पुराना मरीज)\n2️⃣ New Patient (नया मरीज)\n\n0️⃣ Back | 00 Main Menu`,
+    `📋 *PATIENT SELECTION / मरीज का प्रकार*${name ? `\n*Patient: ${name}*` : ''}\n\n*Is the patient an Old/Existing Patient or a New Patient at KG Nanda Hospital?*\nक्या मरीज अस्पताल का पुराना मरीज है या नया मरीज?\n\n1️⃣ Old / Existing Patient (पुराना मरीज - Hospital Registered)\n2️⃣ New Patient (नया मरीज - First Time Registration)\n\n0️⃣ Back | 00 Main Menu`,
+
+  oldPatientUhid: () =>
+    `🆔 *UHID / Old OPD Number / पुराना मरीज आईडी*\n\n*Please enter your UHID Number or Registered Patient Name:*\nकृपया अपना UHID नंबर या पंजीकृत मरीज का नाम दर्ज करें (उदा. KGN-2026-00001 या मरीज का नाम):\n\n0️⃣ Back | 00 Main Menu`,
 
   patientDistrict: () =>
     `📍 *District / जिले का नाम*\n*Please enter your district name.*\nअपने जिले का नाम दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
