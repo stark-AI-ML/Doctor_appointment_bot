@@ -14,110 +14,76 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 24px;
 }
 
 /* ── Doctor Card ── */
 .doctorCard {
   position: relative;
-  background: var(--bg-card);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  transition: all var(--transition-base);
-  animation: fadeIn 0.4s ease-out forwards;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 20px 20px;
+  transition: all 0.25s ease;
+  animation: fadeIn 0.35s ease-out forwards;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .doctorCard:hover {
-  border-color: var(--border-secondary);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
 }
 
-.doctorHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
-}
-
-.doctorAvatar {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-lg);
-  font-weight: 700;
-  color: white;
-  flex-shrink: 0;
-}
-
-.doctorName {
-  font-size: var(--font-md);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--space-1);
-}
-
-.doctorSpec {
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
-}
-
-.doctorMeta {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border-primary);
-}
-
-.metaRow {
+/* ── Card Top Row: Rating & Switch ── */
+.cardTopRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--font-sm);
+  margin-bottom: 8px;
 }
 
-.metaLabel {
-  color: var(--text-muted);
+.ratingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #ffedd5;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
 }
 
-.metaValue {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.doctorActions {
-  display: flex;
-  gap: var(--space-2);
+.starIcon {
+  color: #ea580c;
+  fill: #ea580c;
 }
 
 .statusToggle {
-  position: absolute;
-  top: var(--space-4);
-  right: var(--space-4);
+  display: flex;
+  align-items: center;
 }
 
 /* ── Toggle Switch ── */
 .toggle {
   position: relative;
-  width: 40px;
+  width: 42px;
   height: 22px;
-  border-radius: var(--radius-full);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-secondary);
+  border-radius: 9999px;
+  background: #cbd5e1;
+  border: none;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .toggle.active {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: #0284c7;
 }
 
 .toggle::after {
@@ -125,53 +91,449 @@
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 16px;
-  height: 16px;
-  border-radius: var(--radius-full);
-  background: white;
-  transition: transform var(--transition-fast);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .toggle.active::after {
-  transform: translateX(18px);
+  transform: translateX(20px);
 }
 
-/* ── Form ── */
-.form {
+/* ── Centered Profile Section ── */
+.profileSection {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  align-items: center;
+  text-align: center;
+  margin-bottom: 14px;
 }
 
-.formGroup {
+.avatarWrapper {
+  position: relative;
+  width: 82px;
+  height: 82px;
+  margin: 0 auto 12px;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
 }
 
-.formLabel {
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
+.doctorAvatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+  border: 3.5px solid #ffffff;
+  box-shadow: 0 0 0 4px #eff6ff, 0 8px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease;
+}
+
+.doctorAvatarImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 20%;
+  border: 3.5px solid #ffffff;
+  box-shadow: 0 0 0 4px #eff6ff, 0 8px 20px rgba(0, 0, 0, 0.08);
+  display: block;
+  background-color: #f8fafc;
+  transition: transform 0.25s ease;
+}
+
+.doctorName {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 3px 0;
+  line-height: 1.3;
+}
+
+.doctorContact {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 12px 0;
   font-weight: 500;
 }
 
+.specBadgeWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.specBadge {
+  background: #eff6ff;
+  color: #0284c7;
+  border: 1px solid #dbeafe;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* ── Meta Info ── */
+.doctorMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 0 14px;
+  border-top: 1px dashed #e2e8f0;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 14px;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.metaLabel {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.metaValue {
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.statusActive {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.statusInactive {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ── Action Buttons ── */
+.doctorActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.editBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editBtn:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #0284c7;
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #fee2e2;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteBtn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* ── Form Modal ── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Doctor Photo Upload Hero Card ── */
+.imageUploadCard {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%);
+  border: 1px solid #e0f2fe;
+  border-radius: 16px;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+.avatarPickerWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.imagePreviewCircle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 3px #e0f2fe, 0 6px 16px rgba(2, 132, 199, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.previewImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  display: block;
+}
+
+.previewPlaceholder {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  width: 100%;
+  height: 100%;
+}
+
+.cameraIcon {
+  color: #94a3b8;
+}
+
+.avatarCameraBadge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0284c7;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.avatarCameraBadge:hover {
+  background: #0369a1;
+  transform: scale(1.1);
+}
+
+.uploadInfoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.uploadTitleRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.uploadMainTitle {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.uploadHint {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.uploadActionButtons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.uploadBtnLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 1px solid #bfdbfe;
+  color: #0284c7;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.08);
+}
+
+.uploadBtnLabel:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+  transform: translateY(-1px);
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.removePhotoBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.removePhotoBtn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* ── Form Fields & Input Wrappers ── */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formRowTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.formLabel {
+  font-size: 12.5px;
+  color: #334155;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.reqStar {
+  color: #f43f5e;
+  font-weight: 700;
+}
+
+.inputWithIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputLeadingIcon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
 .formInput {
-  padding: var(--space-3) var(--space-4);
-  background: var(--bg-input);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-md);
-  font-size: var(--font-base);
-  color: var(--text-primary);
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 13.5px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.formInput::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
 }
 
 .formInput:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-glow);
-  outline: none;
+  background: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3.5px rgba(2, 132, 199, 0.12);
+}
+
+.formInput:focus + .inputLeadingIcon,
+.inputWithIcon:focus-within .inputLeadingIcon {
+  color: #0284c7;
+}
+
+.formSelect {
+  cursor: pointer;
+  appearance: auto;
 }
 
 @media (max-width: 640px) {
   .grid {
     grid-template-columns: 1fr;
   }
+
+  .formRowTwo {
+    grid-template-columns: 1fr;
+  }
 }
+
