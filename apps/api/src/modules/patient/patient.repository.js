@@ -53,19 +53,6 @@ class PatientRepository {
     return Patient.findById(id)
   }
 
-  async findByUhidOrName(query, phone) {
-    if (!query) return null
-    const q = String(query).trim()
-    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    let patient = await Patient.findOne({ uhid: new RegExp(`^${escaped}$`, 'i') })
-    if (patient) return patient
-    if (phone) {
-      patient = await Patient.findOne({ phone, name: new RegExp(escaped, 'i') })
-      if (patient) return patient
-    }
-    return Patient.findOne({ name: new RegExp(`^${escaped}$`, 'i') })
-  }
-
   async search(query, filters = {}) {
     const { isOld, sortBy = 'createdAt', sortOrder = 'desc' } = filters
     const filterQuery = {}

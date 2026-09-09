@@ -4,32 +4,6 @@ import { STEPS, MESSAGES } from '../conversation.steps.js'
 import { resolveDate, formatDateDisplay } from '../../../utils/dateHelpers.js'
 
 export const hospitalizationHandler = {
-  async handleHospType(service, phone, state, input) {
-    if (input === '1') { // Old / Existing Patient
-      const patients = await patientService.findAllByPhone(phone)
-      if (patients.length > 0) {
-        await conversationRepo.upsert(phone, {
-          currentStep: STEPS.HOSP_WHO_FOR,
-          stateData: { ...state.stateData, isOld: true }
-        })
-        return service.sendMessage(phone, MESSAGES.hospWhoFor(patients))
-      } else {
-        await conversationRepo.upsert(phone, {
-          currentStep: STEPS.OLD_PATIENT_UHID,
-          stateData: { ...state.stateData, isOld: true }
-        })
-        return service.sendMessage(phone, MESSAGES.oldPatientUhid())
-      }
-    } else if (input === '2') { // New Patient
-      await conversationRepo.upsert(phone, {
-        currentStep: STEPS.HOSP_NAME,
-        stateData: { ...state.stateData, isOld: false }
-      })
-      return service.sendMessage(phone, MESSAGES.hospStart())
-    }
-    return service.sendMessage(phone, MESSAGES.invalidInput())
-  },
-
   async handleHospWhoFor(service, phone, state, input) {
     const patients = await patientService.findAllByPhone(phone)
     const idx = parseInt(input, 10)
@@ -37,22 +11,22 @@ export const hospitalizationHandler = {
     if (!isNaN(idx) && idx >= 1 && idx <= patients.length) {
       const selected = patients[idx - 1]
       await conversationRepo.upsert(phone, {
-        currentStep: STEPS.HOSP_PROBLEM,
+        currentStep: STEPS.HOSP_TYPE,
         tempName: selected.name,
         tempAge: selected.age,
         tempGender: selected.gender,
         stateData: {
           ...state.stateData,
           isExistingPatient: true,
-          isOld: true,
+          isOld: selected.isOld ?? true,
           district: selected.district || 'N/A',
           address: selected.address || 'N/A'
         }
       })
-      return service.sendMessage(phone, MESSAGES.hospProblem())
+      return service.sendMessage(phone, MESSAGES.hospType(selected.name))
     } else if (idx === patients.length + 1) {
-      await conversationRepo.upsert(phone, { currentStep: STEPS.OLD_PATIENT_UHID })
-      return service.sendMessage(phone, MESSAGES.oldPatientUhid())
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_NAME })
+      return service.sendMessage(phone, MESSAGES.hospStart())
     }
     return service.sendMessage(phone, MESSAGES.invalidInput())
   },
@@ -81,7 +55,28 @@ export const hospitalizationHandler = {
     const genderMap = { '1': 'Male', '2': 'Female', '3': 'Other' }
     const gender = genderMap[input]
     if (!gender) return service.sendMessage(phone, MESSAGES.invalidInput())
-    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_DISTRICT, tempGender: gender })
+    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_TYPE, tempGender: gender })
+    return service.sendMessage(phone, MESSAGES.hospType(state.tempName))
+  },
+
+  async handleHospType(service, phone, state, input) {
+    let isOld = false
+    if (input === '1') isOld = true
+    else if (input === '2') isOld = false
+    else return service.sendMessage(phone, MESSAGES.invalidInput())
+
+    const isExisting = state.stateData?.isExistingPatient === true
+    const hasAddress = Boolean(state.stateData?.district && state.stateData?.district !== 'N/A' && state.stateData?.address && state.stateData?.address !== 'N/A')
+    const nextStep = (isExisting && hasAddress) ? STEPS.HOSP_PROBLEM : STEPS.HOSP_DISTRICT
+
+    await conversationRepo.upsert(phone, {
+      currentStep: nextStep,
+      stateData: { ...state.stateData, isOld }
+    })
+
+    if (isExisting && hasAddress) {
+      return service.sendMessage(phone, MESSAGES.hospProblem())
+    }
     return service.sendMessage(phone, MESSAGES.hospDistrict())
   },
 

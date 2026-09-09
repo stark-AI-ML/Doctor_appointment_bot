@@ -67,39 +67,20 @@ export const opdHandler = {
     
     const dateStr = date.toLocaleDateString('en-IN')
     
+    const patients = await patientService.findAllByPhone(phone)
+    
     await conversationRepo.upsert(phone, {
-      currentStep: STEPS.PATIENT_TYPE,
       selectedDate: date.toISOString(),
       stateData: { ...state.stateData, dateStr }
     })
 
-    return service.sendMessage(phone, MESSAGES.patientType())
-  },
-
-  async handlePatientType(service, phone, state, input) {
-    if (input === '1') { // Old / Existing Patient
-      const patients = await patientService.findAllByPhone(phone)
-      if (patients.length > 0) {
-        await conversationRepo.upsert(phone, {
-          currentStep: STEPS.WHO_FOR,
-          stateData: { ...state.stateData, isOld: true }
-        })
-        return service.sendMessage(phone, MESSAGES.whoFor(patients))
-      } else {
-        await conversationRepo.upsert(phone, {
-          currentStep: STEPS.OLD_PATIENT_UHID,
-          stateData: { ...state.stateData, isOld: true }
-        })
-        return service.sendMessage(phone, MESSAGES.oldPatientUhid())
-      }
-    } else if (input === '2') { // New Patient
-      await conversationRepo.upsert(phone, {
-        currentStep: STEPS.PATIENT_NAME,
-        stateData: { ...state.stateData, isOld: false, isExistingPatient: false }
-      })
+    if (patients.length > 0) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.WHO_FOR })
+      return service.sendMessage(phone, MESSAGES.whoFor(patients))
+    } else {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_NAME })
       return service.sendMessage(phone, MESSAGES.patientName())
     }
-    return service.sendMessage(phone, MESSAGES.invalidInput())
   },
 
   async handleWhoFor(service, phone, state, input) {
@@ -109,53 +90,24 @@ export const opdHandler = {
     if (!isNaN(idx) && idx >= 1 && idx <= patients.length) {
       const selected = patients[idx - 1]
       await conversationRepo.upsert(phone, {
-        currentStep: STEPS.PATIENT_PROBLEM,
+        currentStep: STEPS.PATIENT_TYPE,
         tempName: selected.name,
         tempAge: selected.age,
         tempGender: selected.gender,
         stateData: { 
           ...state.stateData,
           isExistingPatient: true,
-          isOld: true,
+          isOld: selected.isOld ?? true,
           district: selected.district || 'N/A', 
           address: selected.address || 'N/A' 
         }
       })
-      return service.sendMessage(phone, MESSAGES.patientProblem())
+      return service.sendMessage(phone, MESSAGES.patientType(selected.name))
     } else if (idx === patients.length + 1) {
-      await conversationRepo.upsert(phone, { currentStep: STEPS.OLD_PATIENT_UHID })
-      return service.sendMessage(phone, MESSAGES.oldPatientUhid())
+      await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_NAME })
+      return service.sendMessage(phone, MESSAGES.patientName())
     }
     return service.sendMessage(phone, MESSAGES.invalidInput())
-  },
-
-  async handleOldPatientUhid(service, phone, state, input) {
-    if (!input || input.length < 2) return service.sendMessage(phone, MESSAGES.invalidInput())
-    
-    const existing = await patientService.findByUhidOrName(input, phone)
-    if (existing) {
-      await conversationRepo.upsert(phone, {
-        currentStep: STEPS.PATIENT_PROBLEM,
-        tempName: existing.name,
-        tempAge: existing.age,
-        tempGender: existing.gender,
-        stateData: {
-          ...state.stateData,
-          isExistingPatient: true,
-          isOld: true,
-          district: existing.district || 'N/A',
-          address: existing.address || 'N/A'
-        }
-      })
-      return service.sendMessage(phone, MESSAGES.patientProblem())
-    }
-
-    await conversationRepo.upsert(phone, {
-      currentStep: STEPS.PATIENT_AGE,
-      tempName: input,
-      stateData: { ...state.stateData, isOld: true }
-    })
-    return service.sendMessage(phone, MESSAGES.patientAge())
   },
 
   async handlePatientName(service, phone, state, input) {
@@ -182,7 +134,28 @@ export const opdHandler = {
     const genderMap = { '1': 'Male', '2': 'Female', '3': 'Other' }
     const gender = genderMap[input]
     if (!gender) return service.sendMessage(phone, MESSAGES.invalidInput())
-    await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_DISTRICT, tempGender: gender })
+    await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_TYPE, tempGender: gender })
+    return service.sendMessage(phone, MESSAGES.patientType(state.tempName))
+  },
+
+  async handlePatientType(service, phone, state, input) {
+    let isOld = false
+    if (input === '1') isOld = true
+    else if (input === '2') isOld = false
+    else return service.sendMessage(phone, MESSAGES.invalidInput())
+
+    const isExisting = state.stateData?.isExistingPatient === true
+    const hasAddress = Boolean(state.stateData?.district && state.stateData?.district !== 'N/A' && state.stateData?.address && state.stateData?.address !== 'N/A')
+    const nextStep = (isExisting && hasAddress) ? STEPS.PATIENT_PROBLEM : STEPS.PATIENT_DISTRICT
+
+    await conversationRepo.upsert(phone, {
+      currentStep: nextStep,
+      stateData: { ...state.stateData, isOld }
+    })
+
+    if (isExisting && hasAddress) {
+      return service.sendMessage(phone, MESSAGES.patientProblem())
+    }
     return service.sendMessage(phone, MESSAGES.patientDistrict())
   },
 
@@ -200,19 +173,19 @@ export const opdHandler = {
     await conversationRepo.upsert(phone, { currentStep: STEPS.REVIEW, stateData: { ...state.stateData, problem: input } })
     
     const freshState = await conversationRepo.findByPhone(phone)
-    const doctor = freshState.selectedDoctorId ? await doctorService.getDoctorById(freshState.selectedDoctorId) : null
+    const doctor = await doctorService.getDoctorById(freshState.selectedDoctorId)
     
     return service.sendMessage(phone, MESSAGES.review({
-      doctorName: doctor?.name || 'Doctor',
-      date: freshState.stateData?.dateStr || 'N/A',
+      doctorName: doctor.name,
+      date: freshState.stateData.dateStr,
       name: freshState.tempName,
-      mobile: freshState.stateData?.mobile || phone,
+      mobile: freshState.stateData.mobile || phone,
       age: freshState.tempAge,
       gender: freshState.tempGender,
-      isOld: freshState.stateData?.isOld,
-      district: freshState.stateData?.district || 'N/A',
-      address: freshState.stateData?.address || 'N/A',
-      problem: freshState.stateData?.problem || 'N/A',
+      isOld: freshState.stateData.isOld,
+      district: freshState.stateData.district,
+      address: freshState.stateData.address,
+      problem: freshState.stateData.problem,
     }))
   },
 

@@ -14,7 +14,7 @@ vi.mock('../src/modules/booking/booking.service.js', () => ({
   default: { createBooking: vi.fn() }
 }))
 vi.mock('../src/modules/patient/patient.service.js', () => ({
-  default: { findByPhone: vi.fn(), findByUhidOrName: vi.fn(), findOrCreateByPhone: vi.fn(), registerPatientWithBooking: vi.fn(), findAllByPhone: vi.fn() }
+  default: { findByPhone: vi.fn(), findOrCreateByPhone: vi.fn(), registerPatientWithBooking: vi.fn(), findAllByPhone: vi.fn() }
 }))
 vi.mock('../src/modules/medicine/medicineOrder.service.js', () => ({
   default: { createOrder: vi.fn() }
@@ -64,7 +64,6 @@ function setupDefaultMocks() {
   doctorService.getDoctorsByDepartment.mockResolvedValue([DOCTOR])
   doctorService.getDoctorById.mockResolvedValue(DOCTOR)
   patientService.findByPhone.mockResolvedValue(null)
-  patientService.findByUhidOrName.mockResolvedValue(null)
   patientService.findAllByPhone.mockResolvedValue([])
   patientService.findOrCreateByPhone.mockResolvedValue(PATIENT_NEW)
   patientService.registerPatientWithBooking.mockResolvedValue({
@@ -87,15 +86,15 @@ async function driveToReview() {
   await send('1')        // OPD → departments
   await send('1')        // dept → doctors
   await send('1')        // doctor → dates
-  await send('1')        // date 1 → PATIENT_TYPE
-  await send('2')        // PATIENT_TYPE (2 = New Patient) → PATIENT_NAME
-  await send('John Doe') // PATIENT_NAME → mobile
-  await send('9876543210') // mobile → age
-  await send('30')       // age → gender
-  await send('1')        // Male → district
-  await send('Jaunpur')  // district → address
-  await send('Civil Lines 222001') // address → problem
-  return send('Fever for 2 days')   // problem → REVIEW
+  await send('1')        // date → patient name (new patient)
+  await send('John Doe') // → mobile
+  await send('9876543210') // → age
+  await send('30')       // → gender
+  await send('1')        // Male → patient type
+  await send('2')        // New Patient → district
+  await send('Jaunpur')  // → address
+  await send('Civil Lines 222001') // → problem
+  return send('Fever for 2 days')   // → REVIEW
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -147,14 +146,14 @@ describe('Conversation Booking Flow (current)', () => {
 
   it('routes a returning patient through WHO_FOR', async () => {
     patientService.findAllByPhone.mockResolvedValue([PATIENT_RETURNING])
-    await send('hi'); await send('1'); await send('1'); await send('1'); await send('1')
-    const typeMsg = await send('1') // Select 1 = Old Patient
-    expect(typeMsg).toContain('BOOKING FOR WHOM')
+    await send('hi'); await send('1'); await send('1'); await send('1')
+    const reply = await send('1')
+    expect(reply).toContain('BOOKING FOR WHOM')
     expect(stateStore[PHONE].currentStep).toBe('WHO_FOR')
 
-    const next = await send('2') // someone else / enter UHID
-    expect(next).toContain('UHID')
-    expect(stateStore[PHONE].currentStep).toBe('OLD_PATIENT_UHID')
+    const next = await send('2') // someone else → full form
+    expect(next).toContain('Patient Name')
+    expect(stateStore[PHONE].currentStep).toBe('PATIENT_NAME')
   })
 
   it('steps back with 0', async () => {
@@ -186,7 +185,7 @@ describe('Conversation Booking Flow (current)', () => {
   })
 
   it('rejects bad mobile/age/gender in patient form', async () => {
-    await send('hi'); await send('1'); await send('1'); await send('1'); await send('1'); await send('2')
+    await send('hi'); await send('1'); await send('1'); await send('1'); await send('1')
     await send('John Doe')
     let reply = await send('123')
     expect(reply).toContain('Invalid input')
@@ -204,14 +203,13 @@ describe('Conversation Booking Flow (current)', () => {
       booking: { _id: 'b2', bookingId: 'BK-20260907-002', tokenNumber: 'HOSP-001' },
     })
     await send('hi')
-    await send('2') // Hospitalization -> HOSP_TYPE
-    expect(stateStore[PHONE].currentStep).toBe('HOSP_TYPE')
-    await send('2') // New Patient
+    await send('2')
     expect(stateStore[PHONE].currentStep).toBe('HOSP_NAME')
     await send('Ramesh')
     await send('9876543210') // mobile
     await send('45')         // age
     await send('1')          // Male
+    await send('1')          // Old/Existing Patient (isOld = true)
     await send('Jaunpur')    // district
     await send('Civil Lines') // address
     await send('Chest pain') // problem
@@ -221,7 +219,7 @@ describe('Conversation Booking Flow (current)', () => {
     expect(stateStore[PHONE].currentStep).toBe('HOSP_REVIEW')
     const reply = await send('1') // confirm review -> done
     expect(patientService.registerPatientWithBooking).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'HOSPITALIZATION', isOld: false, name: 'Ramesh' }),
+      expect.objectContaining({ type: 'HOSPITALIZATION', isOld: true, name: 'Ramesh' }),
       { source: 'whatsapp' },
       { validate: false }
     )
@@ -232,15 +230,15 @@ describe('Conversation Booking Flow (current)', () => {
   it('routes a returning patient through HOSP_WHO_FOR in hospitalization flow', async () => {
     patientService.findAllByPhone.mockResolvedValue([PATIENT_RETURNING])
     await send('hi')
-    const typeMsg = await send('2') // Hospitalization -> HOSP_TYPE
+    const reply = await send('2')
+    expect(reply).toContain('HOSPITALIZATION')
+    expect(stateStore[PHONE].currentStep).toBe('HOSP_WHO_FOR')
+
+    const typeMsg = await send('1') // Select Raj Kumar
     expect(typeMsg).toContain('PATIENT TYPE')
     expect(stateStore[PHONE].currentStep).toBe('HOSP_TYPE')
 
-    const whoMsg = await send('1') // Old Patient -> HOSP_WHO_FOR
-    expect(whoMsg).toContain('HOSPITALIZATION')
-    expect(stateStore[PHONE].currentStep).toBe('HOSP_WHO_FOR')
-
-    await send('1') // Select Raj Kumar -> HOSP_PROBLEM
+    await send('1') // Old Patient (isOld = true) -> problem (since Raj Kumar has district/address)
     expect(stateStore[PHONE].currentStep).toBe('HOSP_PROBLEM')
     await send('Severe pain')
     const review = await send('1') // date option 1 -> HOSP_REVIEW
