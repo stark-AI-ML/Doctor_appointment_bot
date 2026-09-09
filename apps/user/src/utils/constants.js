@@ -46,19 +46,46 @@ export const NAV_ITEMS = [
 ]
 
 /**
- * Specializations — used in doctor forms
+ * Specializations / Hospital Departments — used in doctor forms
  */
 export const SPECIALIZATIONS = [
+  'Obstetrics & Gynaecology',
+  'Laparoscopic & General Surgery',
+  'General Medicine',
+  'Critical Care',
+  'Orthopaedics',
+  'Urology',
+  'General Surgery (Shalya)',
+  'Paediatric',
+  'ENT',
+  'Anaesthetist',
+  'RMO - Resident Medical Officer',
   'General Physician',
   'Dermatologist',
-  'Orthopedic',
   'Cardiologist',
   'Pediatrician',
-  'ENT Specialist',
   'Dentist',
   'Neurologist',
-  'Gynecologist',
-  'Ophthalmologist',
+]
+
+/**
+ * Standard Medical Degrees / Qualifications — used in doctor forms
+ */
+export const DEGREE_OPTIONS = [
+  'MBBS',
+  'MBBS, MS',
+  'MBBS, MD',
+  'M.S. (Obs & Gynae)',
+  'MBBS, DNB',
+  'MBBS, MCH',
+  'MBBS, DGO',
+  'MBBS, DCH',
+  'MS (Shalya)',
+  'BAMS',
+  'BAMS (RMO)',
+  'BAMS, MD',
+  'BMS, PGDNC',
+  'Other / Custom...',
 ]
 
 /**

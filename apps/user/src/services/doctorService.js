@@ -3,6 +3,10 @@ import { mockDoctors } from '../data/mockData'
 
 const MOCK_DELAY = 300
 
+function matchesId(d, id) {
+  return String(d.id || d._id) === String(id)
+}
+
 /**
  * Normalize a doctor from backend → UI shape.
  * Backend now uses canonical fields; aliases provided by toJSON for compat.
@@ -11,7 +15,7 @@ function normalizeDoctor(d) {
   const imgUrl = d.image || d.avatar || d.ImageUrl || d.imageUrl || ''
   return {
     id: d.id || d._id,
-    name: d.name,
+    name: d.name || '',
     role: d.role || '',
     department: d.department || d.departmentId?.name || '',
     qualification: d.qualification || d.qualifications || '',
@@ -19,6 +23,9 @@ function normalizeDoctor(d) {
     specialty: d.specialty || d.AOF || '',
     consultation_fee: d.consultationFee ?? d.consultation_fee ?? 0,
     experience: d.experience ?? '0',
+    displaySchedule: d.displaySchedule || '',
+    phone: d.phone || '',
+    email: d.email || '',
     image: imgUrl,
     avatar: imgUrl,
     gender: d.gender || null,
@@ -36,14 +43,17 @@ function toBackendDoctor(formData) {
   return {
     name: formData.name,
     role: formData.role || formData.specialization,
-    department: formData.department,
+    department: formData.department || formData.specialization,
     qualification: formData.qualification || formData.qualifications,
     specialization: formData.specialization || formData.department,
     specialty: formData.specialty || formData.AOF,
     consultationFee: Number(formData.consultation_fee || formData.consultationFee || 0),
     experience: formData.experience,
+    displaySchedule: formData.displaySchedule || '',
+    phone: formData.phone || '',
+    email: formData.email || '',
     image: formData.image || formData.avatar || formData.ImageUrl || formData.imageUrl || '',
-    gender: formData.gender || undefined,
+    gender: formData.gender ? String(formData.gender).toLowerCase() : undefined,
     address: formData.address || '',
     maxPatientsPerDay: Number(formData.maxPatientsPerDay || 30),
   }
@@ -56,7 +66,7 @@ export const doctorService = {
   async getDoctors() {
     if (isMockMode()) {
       await new Promise((r) => setTimeout(r, MOCK_DELAY))
-      return [...mockDoctors]
+      return mockDoctors.map(normalizeDoctor)
     }
     const { data } = await api.get('/doctors')
     return data.map(normalizeDoctor)
@@ -65,7 +75,8 @@ export const doctorService = {
   async getDoctor(id) {
     if (isMockMode()) {
       await new Promise((r) => setTimeout(r, 200))
-      return mockDoctors.find((d) => d.id === Number(id)) || null
+      const doc = mockDoctors.find((d) => matchesId(d, id))
+      return doc ? normalizeDoctor(doc) : null
     }
     const { data } = await api.get(`/doctors/${id}`)
     return normalizeDoctor(data)
@@ -74,11 +85,11 @@ export const doctorService = {
   async createDoctor(doctorData) {
     if (isMockMode()) {
       await new Promise((r) => setTimeout(r, MOCK_DELAY))
+      const normalizedInput = normalizeDoctor(doctorData)
       const newDoctor = {
-        id: mockDoctors.length + 1,
-        ...doctorData,
+        ...normalizedInput,
+        id: `doc-${Date.now()}`,
         is_active: true,
-        avatar: null,
         created_at: new Date().toISOString(),
       }
       mockDoctors.push(newDoctor)
@@ -91,10 +102,11 @@ export const doctorService = {
   async updateDoctor(id, doctorData) {
     if (isMockMode()) {
       await new Promise((r) => setTimeout(r, MOCK_DELAY))
-      const idx = mockDoctors.findIndex((d) => d.id === Number(id))
+      const idx = mockDoctors.findIndex((d) => matchesId(d, id))
       if (idx > -1) {
-        mockDoctors[idx] = { ...mockDoctors[idx], ...doctorData }
-        return mockDoctors[idx]
+        const updated = normalizeDoctor({ ...mockDoctors[idx], ...doctorData, id })
+        mockDoctors[idx] = updated
+        return updated
       }
       throw new Error('Doctor not found')
     }
@@ -105,7 +117,7 @@ export const doctorService = {
   async deleteDoctor(id) {
     if (isMockMode()) {
       await new Promise((r) => setTimeout(r, MOCK_DELAY))
-      const idx = mockDoctors.findIndex((d) => d.id === Number(id))
+      const idx = mockDoctors.findIndex((d) => matchesId(d, id))
       if (idx > -1) mockDoctors.splice(idx, 1)
       return { success: true }
     }
@@ -116,9 +128,11 @@ export const doctorService = {
   async toggleActive(id) {
     if (isMockMode()) {
       await new Promise((r) => setTimeout(r, MOCK_DELAY))
-      const doctor = mockDoctors.find((d) => d.id === Number(id))
-      if (doctor) doctor.is_active = !doctor.is_active
-      return doctor
+      const doctor = mockDoctors.find((d) => matchesId(d, id))
+      if (doctor) {
+        doctor.is_active = !doctor.is_active
+        return normalizeDoctor(doctor)
+      }
     }
     const { data } = await api.patch(`/doctors/${id}/toggle`)
     return normalizeDoctor(data)

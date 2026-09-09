@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Edit3, Trash2, Stethoscope, Star, Phone, Mail, Camera, UploadCloud, X, User, IndianRupee, Check } from 'lucide-react'
+import {
+  Plus, Edit3, Trash2, Stethoscope, Phone, Mail, Camera, UploadCloud, User, IndianRupee, Check,
+  Award, Briefcase, Sparkles, Clock, Users, MapPin, ShieldCheck
+} from 'lucide-react'
 import toast from 'react-hot-toast'
 import { doctorService } from '../services/doctorService'
 import { formatCurrency, getInitials } from '../utils/formatters'
-import { SPECIALIZATIONS } from '../utils/constants'
+import { SPECIALIZATIONS, DEGREE_OPTIONS } from '../utils/constants'
 import Button from '../components/common/Button'
 import PageHeader from '../components/common/PageHeader'
 import Modal from '../components/common/Modal'
@@ -20,15 +23,21 @@ const AVATAR_GRADIENTS = [
   'linear-gradient(135deg, #06b6d4, #0e7490)',
 ]
 
-// Mock ratings for presentation
-const RATINGS = ['4.9', '5.0', '4.8', '4.7', '4.9', '4.8']
-
 const emptyForm = {
   name: '',
+  role: '',
+  qualification: '',
+  customQualification: '',
   specialization: '',
+  specialty: '',
+  experience: '',
   consultation_fee: '',
+  gender: '',
   phone: '',
   email: '',
+  displaySchedule: '',
+  maxPatientsPerDay: 30,
+  address: '',
   avatar: '',
 }
 
@@ -47,7 +56,7 @@ export default function Doctors() {
     mutationFn: doctorService.createDoctor,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['doctors'] })
-      toast.success('Doctor added!')
+      toast.success('Doctor added successfully!')
       closeForm()
     },
     onError: () => toast.error('Failed to add doctor'),
@@ -57,7 +66,7 @@ export default function Doctors() {
     mutationFn: ({ id, data }) => doctorService.updateDoctor(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['doctors'] })
-      toast.success('Doctor updated!')
+      toast.success('Doctor profile updated!')
       closeForm()
     },
     onError: () => toast.error('Failed to update doctor'),
@@ -87,13 +96,25 @@ export default function Doctors() {
 
   const openEdit = (doctor) => {
     setEditingDoctor(doctor)
+    const existingQual = doctor.qualification || doctor.qualifications || ''
+    const isStandardDegree = DEGREE_OPTIONS.includes(existingQual)
+
     setForm({
-      name: doctor.name,
-      specialization: doctor.specialization,
-      consultation_fee: doctor.consultation_fee,
+      name: doctor.name || '',
+      role: doctor.role || '',
+      qualification: isStandardDegree ? existingQual : (existingQual ? 'Other / Custom...' : ''),
+      customQualification: isStandardDegree ? '' : existingQual,
+      specialization: doctor.specialization || doctor.department || '',
+      specialty: doctor.specialty || doctor.AOF || '',
+      experience: doctor.experience || '',
+      consultation_fee: doctor.consultation_fee ?? doctor.consultationFee ?? '',
+      gender: doctor.gender || '',
       phone: doctor.phone || '',
       email: doctor.email || '',
-      avatar: doctor.avatar || '',
+      displaySchedule: doctor.displaySchedule || '',
+      maxPatientsPerDay: doctor.maxPatientsPerDay ?? 30,
+      address: doctor.address || '',
+      avatar: doctor.avatar || doctor.image || '',
     })
     setShowForm(true)
   }
@@ -125,19 +146,39 @@ export default function Doctors() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    const finalQualification =
+      form.qualification === 'Other / Custom...'
+        ? form.customQualification
+        : form.qualification
+
     const data = {
-      ...form,
-      consultation_fee: Number(form.consultation_fee),
+      name: form.name,
+      role: form.role,
+      qualification: finalQualification,
+      department: form.specialization,
+      specialization: form.specialization,
+      specialty: form.specialty,
+      experience: form.experience,
+      consultation_fee: Number(form.consultation_fee || 0),
+      gender: form.gender || undefined,
+      phone: form.phone,
+      email: form.email,
+      displaySchedule: form.displaySchedule,
+      maxPatientsPerDay: Number(form.maxPatientsPerDay || 30),
+      address: form.address,
+      avatar: form.avatar,
     }
+
     if (editingDoctor) {
-      updateMutation.mutate({ id: editingDoctor.id, data })
+      const targetId = editingDoctor.id || editingDoctor._id
+      updateMutation.mutate({ id: targetId, data })
     } else {
       createMutation.mutate(data)
     }
   }
 
   const handleDelete = (id) => {
-    if (window.confirm('Delete this doctor?')) {
+    if (window.confirm('Delete this doctor profile?')) {
       deleteMutation.mutate(id)
     }
   }
@@ -148,7 +189,7 @@ export default function Doctors() {
     <div className={styles.page}>
       <PageHeader
         title="Doctors"
-        subtitle={`${doctors?.length || 0} doctors registered · toggle availability or manage profiles`}
+        subtitle={`${doctors?.length || 0} doctors registered · toggle availability or manage doctor cards`}
         icon={Stethoscope}
         actions={<Button icon={Plus} onClick={openAdd}>Add Doctor</Button>}
       />
@@ -161,9 +202,13 @@ export default function Doctors() {
               className={styles.doctorCard}
               style={{ animationDelay: `${i * 0.06}s` }}
             >
-              {/* Card Top Bar: Active Switch */}
+              {/* Card Top Bar: Gender & Active Switch */}
               <div className={styles.cardTopRow}>
-                <div />
+                {doctor.gender ? (
+                  <span className={styles.genderBadge}>
+                    {doctor.gender.toUpperCase()}
+                  </span>
+                ) : <div />}
                 <div className={styles.statusToggle}>
                   <button
                     type="button"
@@ -194,22 +239,55 @@ export default function Doctors() {
                   )}
                 </div>
 
-                <h3 className={styles.doctorName}>{doctor.name}</h3>
-                <p className={styles.doctorContact}>
-                  {doctor.email || doctor.phone || 'KG Nanda Hospital'}
-                </p>
+                <div className={styles.nameHeader}>
+                  <h3 className={styles.doctorName}>{doctor.name}</h3>
+                  {doctor.qualification && (
+                    <span className={styles.degreeBadge}>{doctor.qualification}</span>
+                  )}
+                </div>
+
+                {doctor.role && <p className={styles.doctorRole}>{doctor.role}</p>}
 
                 <div className={styles.specBadgeWrapper}>
-                  <span className={styles.specBadge}>{doctor.specialization}</span>
+                  <span className={styles.specBadge}>{doctor.specialization || doctor.department || 'General'}</span>
                 </div>
+
+                {doctor.specialty && (
+                  <div className={styles.focusAreaWrapper}>
+                    <Sparkles size={12} className={styles.focusIcon} />
+                    <span className={styles.focusText} title={doctor.specialty}>{doctor.specialty}</span>
+                  </div>
+                )}
               </div>
 
-              {/* Consultation Fee & Status */}
+              {/* Doctor Metadata Grid */}
               <div className={styles.doctorMeta}>
                 <div className={styles.metaRow}>
-                  <span className={styles.metaLabel}>Consultation Fee</span>
+                  <span className={styles.metaLabel}>Fee</span>
                   <span className={styles.metaValue}>{formatCurrency(doctor.consultation_fee)}</span>
                 </div>
+
+                {doctor.experience && doctor.experience !== '0' && (
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Experience</span>
+                    <span className={styles.metaValue}>{doctor.experience}</span>
+                  </div>
+                )}
+
+                {doctor.displaySchedule && (
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Schedule</span>
+                    <span className={styles.metaValue}>{doctor.displaySchedule}</span>
+                  </div>
+                )}
+
+                {doctor.maxPatientsPerDay && (
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaLabel}>Max Patients</span>
+                    <span className={styles.metaValue}>{doctor.maxPatientsPerDay} / day</span>
+                  </div>
+                )}
+
                 <div className={styles.metaRow}>
                   <span className={styles.metaLabel}>Status</span>
                   <span
@@ -270,7 +348,7 @@ export default function Doctors() {
         }
       >
         <form className={styles.form} onSubmit={handleSubmit}>
-          {/* Doctor Photo Upload Hero Card */}
+          {/* Photo Upload Hero Card */}
           <div className={styles.imageUploadCard}>
             <div className={styles.avatarPickerWrapper}>
               <div className={styles.imagePreviewCircle}>
@@ -293,7 +371,7 @@ export default function Doctors() {
 
             <div className={styles.uploadInfoContent}>
               <div className={styles.uploadTitleRow}>
-                <span className={styles.uploadMainTitle}>Doctor Photo</span>
+                <span className={styles.uploadMainTitle}>Doctor Profile Photo</span>
                 <span className={styles.uploadHint}>JPG, PNG or WEBP (Max 2MB)</span>
               </div>
               <div className={styles.uploadActionButtons}>
@@ -322,26 +400,78 @@ export default function Doctors() {
             </div>
           </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              Full Name <span className={styles.reqStar}>*</span>
-            </label>
-            <div className={styles.inputWithIcon}>
-              <User size={16} className={styles.inputLeadingIcon} />
-              <input
-                className={styles.formInput}
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Dr. Full Name"
-                required
-              />
-            </div>
-          </div>
-
+          {/* Full Name & Degree / Qualification */}
           <div className={styles.formRowTwo}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>
-                Specialization <span className={styles.reqStar}>*</span>
+                Full Name <span className={styles.reqStar}>*</span>
+              </label>
+              <div className={styles.inputWithIcon}>
+                <User size={16} className={styles.inputLeadingIcon} />
+                <input
+                  className={styles.formInput}
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="e.g. Anand Prakash Tiwari"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>
+                Degree / Qualification
+              </label>
+              <div className={styles.inputWithIcon}>
+                <Award size={16} className={styles.inputLeadingIcon} />
+                <select
+                  className={`${styles.formInput} ${styles.formSelect}`}
+                  value={form.qualification}
+                  onChange={(e) => setForm({ ...form, qualification: e.target.value })}
+                >
+                  <option value="">Select degree qualification</option>
+                  {DEGREE_OPTIONS.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Custom Degree entry if 'Other / Custom...' selected */}
+          {form.qualification === 'Other / Custom...' && (
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Specify Custom Degree</label>
+              <div className={styles.inputWithIcon}>
+                <Award size={16} className={styles.inputLeadingIcon} />
+                <input
+                  className={styles.formInput}
+                  value={form.customQualification}
+                  onChange={(e) => setForm({ ...form, customQualification: e.target.value })}
+                  placeholder="e.g. M.S. (Obs & Gynae), Fellowship in Laparoscopy"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Role / Designation & Specialization */}
+          <div className={styles.formRowTwo}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Role / Designation</label>
+              <div className={styles.inputWithIcon}>
+                <Briefcase size={16} className={styles.inputLeadingIcon} />
+                <input
+                  className={styles.formInput}
+                  value={form.role}
+                  onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  placeholder="e.g. Senior Gynaecologist & Infertility Specialist"
+                />
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>
+                Specialization / Dept <span className={styles.reqStar}>*</span>
               </label>
               <div className={styles.inputWithIcon}>
                 <Stethoscope size={16} className={styles.inputLeadingIcon} />
@@ -351,14 +481,46 @@ export default function Doctors() {
                   onChange={(e) => setForm({ ...form, specialization: e.target.value })}
                   required
                 >
-                  <option value="">Select specialization</option>
+                  <option value="">Select department / specialization</option>
                   {SPECIALIZATIONS.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
               </div>
             </div>
+          </div>
 
+          {/* Area of Focus (Specialty) & Experience */}
+          <div className={styles.formRowTwo}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Area of Focus / Clinical Specialty</label>
+              <div className={styles.inputWithIcon}>
+                <Sparkles size={16} className={styles.inputLeadingIcon} />
+                <input
+                  className={styles.formInput}
+                  value={form.specialty}
+                  onChange={(e) => setForm({ ...form, specialty: e.target.value })}
+                  placeholder="e.g. High-Risk Pregnancy, Infertility, Laparoscopy"
+                />
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Experience</label>
+              <div className={styles.inputWithIcon}>
+                <Award size={16} className={styles.inputLeadingIcon} />
+                <input
+                  className={styles.formInput}
+                  value={form.experience}
+                  onChange={(e) => setForm({ ...form, experience: e.target.value })}
+                  placeholder="e.g. 15+ Years"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Fee & Max Patients Per Day */}
+          <div className={styles.formRowTwo}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>
                 Consultation Fee (₹) <span className={styles.reqStar}>*</span>
@@ -376,8 +538,57 @@ export default function Doctors() {
                 />
               </div>
             </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Max Patients / Day</label>
+              <div className={styles.inputWithIcon}>
+                <Users size={16} className={styles.inputLeadingIcon} />
+                <input
+                  className={styles.formInput}
+                  type="number"
+                  value={form.maxPatientsPerDay}
+                  onChange={(e) => setForm({ ...form, maxPatientsPerDay: e.target.value })}
+                  placeholder="30"
+                  min="1"
+                />
+              </div>
+            </div>
           </div>
 
+          {/* Gender & OPD Schedule */}
+          <div className={styles.formRowTwo}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Gender</label>
+              <div className={styles.inputWithIcon}>
+                <ShieldCheck size={16} className={styles.inputLeadingIcon} />
+                <select
+                  className={`${styles.formInput} ${styles.formSelect}`}
+                  value={form.gender}
+                  onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>OPD Schedule</label>
+              <div className={styles.inputWithIcon}>
+                <Clock size={16} className={styles.inputLeadingIcon} />
+                <input
+                  className={styles.formInput}
+                  value={form.displaySchedule}
+                  onChange={(e) => setForm({ ...form, displaySchedule: e.target.value })}
+                  placeholder="e.g. Mon-Sat 10:00 AM - 04:00 PM"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Phone & Email */}
           <div className={styles.formRowTwo}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Phone Number</label>
@@ -404,6 +615,20 @@ export default function Doctors() {
                   placeholder="doctor@kgnanda.com"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* OPD Room / Address */}
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>OPD Room / Location Address</label>
+            <div className={styles.inputWithIcon}>
+              <MapPin size={16} className={styles.inputLeadingIcon} />
+              <input
+                className={styles.formInput}
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                placeholder="e.g. OPD Room 102, Ground Floor, KG Nanda Hospital"
+              />
             </div>
           </div>
         </form>
