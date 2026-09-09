@@ -51,7 +51,7 @@ function dayAfterTomorrowISO() {
 }
 
 const EMPTY = {
-  phone: '', name: '', age: '', gender: 'Male',
+  phone: '', name: '', age: '', gender: 'Male', isOld: false,
   district: '', address: '', pinCode: '', problemDescription: '',
   departmentId: '', doctorId: '', preferredDate: tomorrowISO(), type: 'OPD',
 }
@@ -249,6 +249,12 @@ export default function Register() {
                   </select>
                 </FormField>
               </div>
+              <FormField label="Patient Status" hint="मरीज का प्रकार (पुराना / नया)" required>
+                <select id="reg-isOld" value={form.isOld ? 'true' : 'false'} onChange={(e) => setForm(f => ({ ...f, isOld: e.target.value === 'true' }))}>
+                  <option value="false">New Patient (नया मरीज)</option>
+                  <option value="true">Old / Existing Patient (पुराना मरीज)</option>
+                </select>
+              </FormField>
             </div>
           )}
 

@@ -28,8 +28,8 @@ class PatientService {
     return patientRepo.findById(id)
   }
 
-  async searchPatients(query) {
-    return patientRepo.search(query)
+  async searchPatients(query, filters = {}) {
+    return patientRepo.search(query, filters)
   }
 
   async updatePatient(id, data) {
@@ -66,6 +66,12 @@ class PatientService {
     }
 
     const phone = normalizePhone(data.phone)
+    const preferredDate = data.preferredDate ? new Date(data.preferredDate) : new Date()
+
+    const isOld = data.isOld !== undefined && data.isOld !== null
+      ? (data.isOld === true || data.isOld === 'true')
+      : false
+
     const patient = await patientRepo.findOrCreate(phone, {
       name: String(data.name).trim(),
       age: parseInt(data.age, 10),
@@ -73,7 +79,15 @@ class PatientService {
       district: data.district || '',
       address: data.address || '',
       pinCode: data.pinCode || '',
+      isOld,
+      lastVisited: preferredDate,
     })
+
+    if (patient.isOld !== isOld || !patient.lastVisited) {
+      patient.isOld = isOld
+      patient.lastVisited = preferredDate
+      await patient.save()
+    }
 
     // One UHID per phone + patient name combination.
     if (!patient.uhid) {

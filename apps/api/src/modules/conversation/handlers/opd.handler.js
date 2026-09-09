@@ -90,17 +90,19 @@ export const opdHandler = {
     if (!isNaN(idx) && idx >= 1 && idx <= patients.length) {
       const selected = patients[idx - 1]
       await conversationRepo.upsert(phone, {
-        currentStep: STEPS.PATIENT_PROBLEM,
+        currentStep: STEPS.PATIENT_TYPE,
         tempName: selected.name,
         tempAge: selected.age,
         tempGender: selected.gender,
         stateData: { 
-          ...state.stateData, 
+          ...state.stateData,
+          isExistingPatient: true,
+          isOld: selected.isOld ?? true,
           district: selected.district || 'N/A', 
           address: selected.address || 'N/A' 
         }
       })
-      return service.sendMessage(phone, MESSAGES.patientProblem())
+      return service.sendMessage(phone, MESSAGES.patientType(selected.name))
     } else if (idx === patients.length + 1) {
       await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_NAME })
       return service.sendMessage(phone, MESSAGES.patientName())
@@ -132,7 +134,27 @@ export const opdHandler = {
     const genderMap = { '1': 'Male', '2': 'Female', '3': 'Other' }
     const gender = genderMap[input]
     if (!gender) return service.sendMessage(phone, MESSAGES.invalidInput())
-    await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_DISTRICT, tempGender: gender })
+    await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_TYPE, tempGender: gender })
+    return service.sendMessage(phone, MESSAGES.patientType(state.tempName))
+  },
+
+  async handlePatientType(service, phone, state, input) {
+    let isOld = false
+    if (input === '1') isOld = true
+    else if (input === '2') isOld = false
+    else return service.sendMessage(phone, MESSAGES.invalidInput())
+
+    const isExisting = state.stateData?.isExistingPatient === true
+    const nextStep = isExisting ? STEPS.PATIENT_PROBLEM : STEPS.PATIENT_DISTRICT
+
+    await conversationRepo.upsert(phone, {
+      currentStep: nextStep,
+      stateData: { ...state.stateData, isOld }
+    })
+
+    if (isExisting) {
+      return service.sendMessage(phone, MESSAGES.patientProblem())
+    }
     return service.sendMessage(phone, MESSAGES.patientDistrict())
   },
 
@@ -159,6 +181,7 @@ export const opdHandler = {
       mobile: freshState.stateData.mobile || phone,
       age: freshState.tempAge,
       gender: freshState.tempGender,
+      isOld: freshState.stateData.isOld,
       district: freshState.stateData.district,
       address: freshState.stateData.address,
       problem: freshState.stateData.problem,
@@ -178,6 +201,7 @@ export const opdHandler = {
         name: state.tempName,
         age: state.tempAge,
         gender: state.tempGender,
+        isOld: state.stateData.isOld,
         district: state.stateData.district,
         address: state.stateData.address,
         doctorId: state.selectedDoctorId,

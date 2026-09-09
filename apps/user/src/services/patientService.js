@@ -14,6 +14,7 @@ function normalizePatient(p) {
     mobile: p.phone || p.mobile || '',
     age: p.age || null,
     gender: p.gender || null,
+    is_old: p.isOld ?? p.is_old ?? false,
     total_bookings: p.totalBookings ?? p.total_bookings ?? 0,
     last_visit: p.lastVisit || p.last_visit || null,
     created_at: p.createdAt || p.created_at,
@@ -40,18 +41,41 @@ function normalizeBookingForHistory(b) {
  * Patient Service — read-only operations (patients come from bookings)
  */
 export const patientService = {
-  async getPatients(search = '') {
+  async getPatients(search = '', isOld = '', sortBy = 'createdAt', sortOrder = 'desc') {
     if (isMockMode()) {
       await new Promise((r) => setTimeout(r, MOCK_DELAY))
+      let result = [...mockPatients]
+
+      if (isOld !== '' && isOld !== null && isOld !== undefined) {
+        const targetOld = String(isOld) === 'true'
+        result = result.filter((p) => Boolean(p.is_old) === targetOld)
+      }
+
       if (search) {
         const q = search.toLowerCase()
-        return mockPatients.filter(
+        result = result.filter(
           (p) => p.name.toLowerCase().includes(q) || p.mobile.includes(q)
         )
       }
-      return [...mockPatients]
+
+      result.sort((a, b) => {
+        if (sortBy === 'name') {
+          return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
+        }
+        if (sortBy === 'lastVisit' || sortBy === 'last_visit') {
+          const dA = new Date(a.last_visit || 0)
+          const dB = new Date(b.last_visit || 0)
+          return sortOrder === 'asc' ? dA - dB : dB - dA
+        }
+        if (sortBy === 'isOld') {
+          return sortOrder === 'asc' ? (a.is_old ? 1 : -1) : (b.is_old ? 1 : -1)
+        }
+        return sortOrder === 'asc' ? a.id - b.id : b.id - a.id
+      })
+
+      return result
     }
-    const { data } = await api.get('/patients', { params: { search } })
+    const { data } = await api.get('/patients', { params: { search, isOld, sortBy, sortOrder } })
     return data.map(normalizePatient)
   },
 

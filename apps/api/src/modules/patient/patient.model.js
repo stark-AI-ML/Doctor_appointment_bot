@@ -11,6 +11,8 @@ const patientSchema = new mongoose.Schema({
   address:   { type: String, default: '' },
   pinCode:   { type: String, default: '' },
   isRegistered: { type: Boolean, default: false },
+  isOld:     { type: Boolean, default: false }, // true = Old/Existing Patient, false = New Patient
+  lastVisited: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
 })
 

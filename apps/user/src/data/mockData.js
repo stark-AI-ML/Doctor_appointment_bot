@@ -345,16 +345,16 @@ export const mockChartData = [
 
 // ── Patients (derived from bookings) ──
 export const mockPatients = [
-  { id: 1, name: 'Rahul Kumar', mobile: '9876543210', total_bookings: 5, last_visit: '2026-08-20' },
-  { id: 2, name: 'Neha Singh', mobile: '9876543211', total_bookings: 3, last_visit: '2026-08-20' },
-  { id: 3, name: 'Amit Gupta', mobile: '9876543212', total_bookings: 2, last_visit: '2026-08-20' },
-  { id: 4, name: 'Pooja Yadav', mobile: '9876543213', total_bookings: 4, last_visit: '2026-08-21' },
-  { id: 5, name: 'Vikram Mehra', mobile: '9876543214', total_bookings: 1, last_visit: '2026-08-22' },
-  { id: 6, name: 'Sneha Kapoor', mobile: '9876543215', total_bookings: 6, last_visit: '2026-08-25' },
-  { id: 7, name: 'Ravi Sharma', mobile: '9876543216', total_bookings: 2, last_visit: '2026-08-26' },
-  { id: 8, name: 'Priya Nair', mobile: '9876543217', total_bookings: 3, last_visit: '2026-08-28' },
-  { id: 9, name: 'Arjun Reddy', mobile: '9876543218', total_bookings: 7, last_visit: '2026-08-30' },
-  { id: 10, name: 'Kavita Joshi', mobile: '9876543219', total_bookings: 1, last_visit: '2026-09-01' },
+  { id: 1, name: 'Rahul Kumar', mobile: '9876543210', is_old: true, total_bookings: 5, last_visit: '2026-08-20' },
+  { id: 2, name: 'Neha Singh', mobile: '9876543211', is_old: false, total_bookings: 3, last_visit: '2026-08-20' },
+  { id: 3, name: 'Amit Gupta', mobile: '9876543212', is_old: true, total_bookings: 2, last_visit: '2026-08-20' },
+  { id: 4, name: 'Pooja Yadav', mobile: '9876543213', is_old: false, total_bookings: 4, last_visit: '2026-08-21' },
+  { id: 5, name: 'Vikram Mehra', mobile: '9876543214', is_old: true, total_bookings: 1, last_visit: '2026-08-22' },
+  { id: 6, name: 'Sneha Kapoor', mobile: '9876543215', is_old: true, total_bookings: 6, last_visit: '2026-08-25' },
+  { id: 7, name: 'Ravi Sharma', mobile: '9876543216', is_old: false, total_bookings: 2, last_visit: '2026-08-26' },
+  { id: 8, name: 'Priya Nair', mobile: '9876543217', is_old: true, total_bookings: 3, last_visit: '2026-08-28' },
+  { id: 9, name: 'Arjun Reddy', mobile: '9876543218', is_old: false, total_bookings: 7, last_visit: '2026-08-30' },
+  { id: 10, name: 'Kavita Joshi', mobile: '9876543219', is_old: true, total_bookings: 1, last_visit: '2026-09-01' },
 ]
 
 // ── Mock Users (all roles, mock login) ──

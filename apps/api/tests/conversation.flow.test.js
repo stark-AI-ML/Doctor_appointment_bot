@@ -90,7 +90,8 @@ async function driveToReview() {
   await send('John Doe') // → mobile
   await send('9876543210') // → age
   await send('30')       // → gender
-  await send('1')        // Male → district
+  await send('1')        // Male → patient type
+  await send('2')        // New Patient → district
   await send('Jaunpur')  // → address
   await send('Civil Lines 222001') // → problem
   return send('Fever for 2 days')   // → REVIEW

@@ -17,7 +17,12 @@ export const patientController = {
           : patients
         return res.json(filtered.map((p) => p.toJSON()))
       }
-      const patients = await patientService.searchPatients(req.query.search)
+      const filters = {
+        isOld: req.query.isOld,
+        sortBy: req.query.sortBy,
+        sortOrder: req.query.sortOrder,
+      }
+      const patients = await patientService.searchPatients(req.query.search, filters)
       // Pharmacy sees only patients linked to medicine orders.
       let scoped = patients
       if (req.admin?.role === 'pharmacy') {
@@ -31,7 +36,7 @@ export const patientController = {
           const pJson = p.toJSON()
           const bookings = await bookingRepo.findAll({ patientId: p._id }, { page: 1, limit: 1 })
           pJson.totalBookings = bookings.total
-          pJson.lastVisit = bookings.data[0]?.createdAt || null
+          pJson.lastVisit = bookings.data[0]?.createdAt || p.lastVisited || null
           return pJson
         })
       )

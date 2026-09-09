@@ -43,15 +43,30 @@ export const backHandler = {
       await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_AGE })
       return service.sendMessage(phone, MESSAGES.patientAge())
     }
-    if (state.currentStep === STEPS.PATIENT_DISTRICT) {
+    if (state.currentStep === STEPS.PATIENT_TYPE) {
+      const isExisting = state.stateData?.isExistingPatient === true
+      if (isExisting) {
+        const patients = await patientService.findAllByPhone(phone)
+        await conversationRepo.upsert(phone, { currentStep: STEPS.WHO_FOR })
+        return service.sendMessage(phone, MESSAGES.whoFor(patients))
+      }
       await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_GENDER })
       return service.sendMessage(phone, MESSAGES.patientGender())
+    }
+    if (state.currentStep === STEPS.PATIENT_DISTRICT) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_TYPE })
+      return service.sendMessage(phone, MESSAGES.patientType(state.tempName))
     }
     if (state.currentStep === STEPS.PATIENT_ADDRESS) {
       await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_DISTRICT })
       return service.sendMessage(phone, MESSAGES.patientDistrict())
     }
     if (state.currentStep === STEPS.PATIENT_PROBLEM) {
+      const isExisting = state.stateData?.isExistingPatient === true
+      if (isExisting) {
+        await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_TYPE })
+        return service.sendMessage(phone, MESSAGES.patientType(state.tempName))
+      }
       await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_ADDRESS })
       return service.sendMessage(phone, MESSAGES.patientAddress())
     }

@@ -123,11 +123,13 @@ export const registrationService = {
           name: booking.patient_name,
           mobile: phoneDigits,
           uhid,
+          is_old: Boolean(data.isOld),
           total_bookings: 0,
           last_visit: data.preferredDate,
         }
         mockPatients.push(patient)
       }
+      patient.is_old = Boolean(data.isOld)
       patient.total_bookings += 1
       patient.last_visit = data.preferredDate
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Search, Eye, Users } from 'lucide-react'
+import { Search, Eye, Users, Filter } from 'lucide-react'
 import { patientService } from '../services/patientService'
 import { useDebounce } from '../hooks/useDebounce'
 import { formatDate, formatPhone, getInitials } from '../utils/formatters'
@@ -14,12 +14,18 @@ import styles from './Patients.module.css'
 
 export default function Patients() {
   const [search, setSearch] = useState('')
+  const [filterTab, setFilterTab] = useState('all') // 'all' | 'old' | 'new'
+  const [sortBy, setSortBy] = useState('lastVisit')
+  const [sortOrder, setSortOrder] = useState('desc')
   const [selectedPatient, setSelectedPatient] = useState(null)
   const debouncedSearch = useDebounce(search, 400)
 
   const { data: patients, isLoading } = useQuery({
-    queryKey: ['patients', debouncedSearch],
-    queryFn: () => patientService.getPatients(debouncedSearch),
+    queryKey: ['patients', debouncedSearch, filterTab, sortBy, sortOrder],
+    queryFn: () => {
+      const isOld = filterTab === 'old' ? 'true' : filterTab === 'new' ? 'false' : ''
+      return patientService.getPatients(debouncedSearch, isOld, sortBy, sortOrder)
+    },
   })
 
   const { data: patientDetail } = useQuery({
@@ -28,7 +34,7 @@ export default function Patients() {
     enabled: !!selectedPatient,
   })
 
-  const columns = ['Patient', 'Mobile', 'Total Bookings', 'Last Visit', 'Action']
+  const columns = ['Patient', 'Type / Status', 'Mobile', 'Total Bookings', 'Last Visit', 'Action']
 
   const renderRow = (patient) => (
     <tr key={patient.id}>
@@ -37,6 +43,11 @@ export default function Patients() {
           <div className={styles.patientAvatar}>{getInitials(patient.name)}</div>
           <span className={styles.patientName}>{patient.name}</span>
         </div>
+      </td>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
+        <span className={`${styles.typeBadge} ${patient.is_old ? styles.oldBadge : styles.newBadge}`}>
+          {patient.is_old ? 'Old Patient' : 'New Patient'}
+        </span>
       </td>
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)', color: 'var(--text-secondary)' }}>
         {formatPhone(patient.mobile)}
@@ -63,18 +74,63 @@ export default function Patients() {
     <div className={styles.page}>
       <PageHeader
         title="Patients"
-        subtitle="Everyone registered via WhatsApp or the front desk · shared UHID per phone"
+        subtitle="Everyone registered via WhatsApp or front desk · filter and sort by New vs Old Patient status"
         icon={Users}
       />
-      <div className={styles.searchWrapper}>
-        <Search className={styles.searchIcon} />
-        <input
-          className={styles.searchInput}
-          placeholder="Search by name or mobile..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          id="patient-search"
-        />
+      <div className={styles.filterContainer}>
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tab} ${filterTab === 'all' ? styles.activeTab : ''}`}
+            onClick={() => setFilterTab('all')}
+          >
+            All Patients
+          </button>
+          <button
+            className={`${styles.tab} ${filterTab === 'old' ? styles.activeTab : ''}`}
+            onClick={() => setFilterTab('old')}
+          >
+            Old Patients (पुराना मरीज)
+          </button>
+          <button
+            className={`${styles.tab} ${filterTab === 'new' ? styles.activeTab : ''}`}
+            onClick={() => setFilterTab('new')}
+          >
+            New Patients (नया मरीज)
+          </button>
+        </div>
+
+        <div className={styles.controlsGroup}>
+          <div className={styles.searchWrapper}>
+            <Search className={styles.searchIcon} />
+            <input
+              className={styles.searchInput}
+              placeholder="Search by name or mobile..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              id="patient-search"
+            />
+          </div>
+
+          <div className={styles.sortWrapper}>
+            <Filter size={15} className={styles.filterIcon} />
+            <select
+              className={styles.sortSelect}
+              value={`${sortBy}:${sortOrder}`}
+              onChange={(e) => {
+                const [by, order] = e.target.value.split(':')
+                setSortBy(by)
+                setSortOrder(order)
+              }}
+            >
+              <option value="lastVisit:desc">Last Visit (Newest First)</option>
+              <option value="lastVisit:asc">Last Visit (Oldest First)</option>
+              <option value="name:asc">Name (A – Z)</option>
+              <option value="name:desc">Name (Z – A)</option>
+              <option value="isOld:desc">Old Patients First</option>
+              <option value="isOld:asc">New Patients First</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <Card noPadding>

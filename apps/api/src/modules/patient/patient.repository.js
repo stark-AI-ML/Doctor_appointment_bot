@@ -17,7 +17,19 @@ class PatientRepository {
 
       // 1. Try to find existing patient with same phone and name (case-insensitive)
       let patient = await Patient.findOne({ phone, name: nameRegex })
-      if (patient) return patient
+      if (patient) {
+        let updated = false
+        if (data.isOld !== undefined && patient.isOld !== data.isOld) {
+          patient.isOld = Boolean(data.isOld)
+          updated = true
+        }
+        if (data.lastVisited) {
+          patient.lastVisited = data.lastVisited
+          updated = true
+        }
+        if (updated) await patient.save()
+        return patient
+      }
 
       // 2. Check if an 'Unknown' placeholder exists for this phone to upgrade it
       const unknownPatient = await Patient.findOne({ phone, name: 'Unknown' })
@@ -41,12 +53,26 @@ class PatientRepository {
     return Patient.findById(id)
   }
 
-  async search(query) {
-    if (!query) return Patient.find().sort({ createdAt: -1 }).limit(50)
-    const regex = new RegExp(query, 'i')
-    return Patient.find({
-      $or: [{ name: regex }, { phone: regex }],
-    }).sort({ createdAt: -1 })
+  async search(query, filters = {}) {
+    const { isOld, sortBy = 'createdAt', sortOrder = 'desc' } = filters
+    const filterQuery = {}
+
+    if (isOld !== undefined && isOld !== null && isOld !== '') {
+      filterQuery.isOld = isOld === 'true' || isOld === true
+    }
+
+    if (query) {
+      const regex = new RegExp(query, 'i')
+      filterQuery.$or = [{ name: regex }, { phone: regex }]
+    }
+
+    const sortObj = {}
+    if (sortBy === 'name') sortObj.name = sortOrder === 'asc' ? 1 : -1
+    else if (sortBy === 'lastVisited' || sortBy === 'lastVisit') sortObj.lastVisited = sortOrder === 'asc' ? 1 : -1
+    else if (sortBy === 'isOld') sortObj.isOld = sortOrder === 'asc' ? 1 : -1
+    else sortObj.createdAt = sortOrder === 'asc' ? 1 : -1
+
+    return Patient.find(filterQuery).sort(sortObj).limit(100)
   }
 
   async update(id, data) {

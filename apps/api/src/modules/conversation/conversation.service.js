@@ -67,6 +67,7 @@ class ConversationService {
         case STEPS.PATIENT_MOBILE:   return await opdHandler.handlePatientMobile(this, phone, state, input)
         case STEPS.PATIENT_AGE:      return await opdHandler.handlePatientAge(this, phone, state, input)
         case STEPS.PATIENT_GENDER:   return await opdHandler.handlePatientGender(this, phone, state, input)
+        case STEPS.PATIENT_TYPE:     return await opdHandler.handlePatientType(this, phone, state, input)
         case STEPS.PATIENT_DISTRICT: return await opdHandler.handlePatientDistrict(this, phone, state, input)
         case STEPS.PATIENT_ADDRESS:  return await opdHandler.handlePatientAddress(this, phone, state, input)
         case STEPS.PATIENT_PROBLEM:  return await opdHandler.handlePatientProblem(this, phone, state, input)

@@ -1,12 +1,24 @@
 .page { display: flex; flex-direction: column; gap: var(--space-5); }
-.searchWrapper { position: relative; width: 340px; }
+.filterContainer { display: flex; flex-direction: column; gap: var(--space-4); background: var(--bg-card); padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--border-primary); }
+.tabs { display: flex; align-items: center; gap: var(--space-2); border-bottom: 1px solid var(--border-primary); padding-bottom: var(--space-3); flex-wrap: wrap; }
+.tab { padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); font-size: var(--font-sm); font-weight: 500; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; }
+.tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+.activeTab { background: var(--primary-light, #eff6ff); color: var(--primary, #2563eb); font-weight: 600; }
+.controlsGroup { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+.searchWrapper { position: relative; width: 320px; flex-grow: 1; max-width: 400px; }
 .searchIcon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 16px; height: 16px; }
-.searchInput { width: 100%; padding: var(--space-3) var(--space-4) var(--space-3) var(--space-10); background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-md); font-size: var(--font-base); color: var(--text-primary); }
+.searchInput { width: 100%; padding: var(--space-2) var(--space-4) var(--space-2) var(--space-10); background: var(--bg-main, #f8fafc); border: 1px solid var(--border-primary); border-radius: var(--radius-md); font-size: var(--font-sm); color: var(--text-primary); }
+.sortWrapper { display: flex; align-items: center; gap: var(--space-2); background: var(--bg-main, #f8fafc); border: 1px solid var(--border-primary); border-radius: var(--radius-md); padding: var(--space-1) var(--space-3); }
+.filterIcon { color: var(--text-muted); }
+.sortSelect { border: none; background: transparent; font-size: var(--font-sm); color: var(--text-primary); cursor: pointer; padding: var(--space-1); outline: none; }
 .patientRow { display: flex; align-items: center; gap: var(--space-4); }
 .patientAvatar { width: 36px; height: 36px; border-radius: var(--radius-full); background: var(--gradient-blue); display: flex; align-items: center; justify-content: center; font-size: var(--font-sm); font-weight: 600; color: white; flex-shrink: 0; }
 .patientName { font-weight: 500; }
 .patientMobile { font-size: var(--font-sm); color: var(--text-secondary); }
+.typeBadge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.oldBadge { background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; }
+.newBadge { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
 .historyList { display: flex; flex-direction: column; gap: var(--space-3); }
 .historyItem { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border-primary); font-size: var(--font-sm); }
 .historyMeta { color: var(--text-secondary); }
-@media (max-width: 640px) { .searchWrapper { width: 100%; } }
+@media (max-width: 640px) { .searchWrapper { width: 100%; max-width: 100%; } .controlsGroup { flex-direction: column; align-items: stretch; } }

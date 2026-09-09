@@ -43,6 +43,8 @@ const bookingSchema = new mongoose.Schema(
       default: "whatsapp",
     },
     email: { type: String },
+    // Option A: isOld is derived from Patient model.
+    // Future Note (Option B): If historical per-booking snapshot is required (e.g., "was patient old/new at time of this booking"), add `isOld: { type: Boolean }` here.
     // Who registered this booking. null = WhatsApp bot; user id = staff member.
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
