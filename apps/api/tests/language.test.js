@@ -22,4 +22,13 @@ describe('LanguageService (Multi-language & Fallbacks)', () => {
     expect(bilingualName).toBe('Dr. Abhinav Katiyar / डॉ. अभिनव कटियार')
     expect(bilingualQual).toBe('Laparoscopic Surgeon (लेप्रोस्कोपिक शल्य चिकित्सक)')
   })
+
+  it('prevents duplicate Dr. Dr. or डॉ. डॉ. prefixes when already present in input', () => {
+    const doc = {
+      name: 'Dr. Dr. Abhinav Katiyar',
+      nameHindi: 'डॉ. डॉ. अभिनव कटियार',
+    }
+    const { bilingualName } = languageService.formatDoctor(doc)
+    expect(bilingualName).toBe('Dr. Abhinav Katiyar / डॉ. अभिनव कटियार')
+  })
 })
