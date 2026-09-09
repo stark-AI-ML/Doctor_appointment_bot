@@ -196,6 +196,12 @@ export const opdHandler = {
     }
     if (input !== '1') return service.sendMessage(phone, MESSAGES.invalidInput())
 
+    const doctorCheck = await doctorService.getDoctorById(state.selectedDoctorId)
+    if (!doctorCheck || doctorCheck.isActive === false) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.OPD_DEPARTMENT })
+      return service.sendMessage(phone, MESSAGES.doctorUnavailable())
+    }
+
     const { patient, booking } = await patientService.registerPatientWithBooking(
       {
         phone,

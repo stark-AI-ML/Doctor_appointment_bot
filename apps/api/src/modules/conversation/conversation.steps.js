@@ -235,4 +235,7 @@ Bichhiya Kala, Chandauli \n\n*Services / सेवाएं:*\n• OPD Consultat
 
   invalidInput: () =>
     `❌ Invalid input. Please try again or type "menu".\nगलत इनपुट। कृपया पुनः प्रयास करें।`,
+
+  doctorUnavailable: () =>
+    `❌ *Selected Doctor is Unavailable / डॉक्टर उपलब्ध नहीं हैं*\n*The selected doctor is currently offline or inactive. Please select another doctor.*\nचयनित डॉक्टर वर्तमान में उपलब्ध या सक्रिय नहीं हैं। कृपया दूसरे डॉक्टर का चयन करें।`,
 };

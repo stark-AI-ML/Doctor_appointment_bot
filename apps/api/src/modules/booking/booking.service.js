@@ -40,6 +40,14 @@ class BookingService {
    * Create a booking — marks slot as unavailable.
    */
   async createBooking({ doctorId, departmentId, patientId, serviceId, slotId, source = 'whatsapp', type = 'OPD', problemDescription, tokenNumber, preferredDate, createdBy = null, createdByRole = null }) {
+    // Verify doctor is available/active if doctorId provided
+    if (doctorId) {
+      const doctor = await doctorRepo.findById(doctorId)
+      if (doctor && doctor.isActive === false) {
+        throw new AppError('The selected doctor is currently offline or inactive', 400)
+      }
+    }
+
     // Verify slot is available if provided
     if (slotId) {
       const slot = await slotRepo.findById(slotId)

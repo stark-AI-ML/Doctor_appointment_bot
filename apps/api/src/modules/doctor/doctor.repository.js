@@ -34,12 +34,12 @@ class DoctorRepository {
   }
 
   async findActive() {
-    return Doctor.find({ isActive: true }).populate('departmentId', 'name').sort({ name: 1 })
+    return Doctor.find({ isActive: { $ne: false } }).populate('departmentId', 'name').sort({ name: 1 })
   }
 
   async findByDepartment(departmentId, { activeOnly = true } = {}) {
     const filter = { departmentId }
-    if (activeOnly) filter.isActive = true
+    if (activeOnly) filter.isActive = { $ne: false }
     return Doctor.find(filter).populate('departmentId', 'name').sort({ name: 1 })
   }
 
