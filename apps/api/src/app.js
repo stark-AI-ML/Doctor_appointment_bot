@@ -1,82 +1,89 @@
-import express from 'express'
-import cors from 'cors'
-import env from './config/env.js'
-import { connectDB } from './config/database.js'
-import logger from './utils/logger.js'
-import { errorHandler } from './middleware/errorHandler.js'
-import routes from './routes/index.js'
-import { createMessagingProvider } from './integrations/whatsapp/whatsapp.factory.js'
-import { createWebhookRouter } from './integrations/whatsapp/whatsapp.webhook.js'
-import conversationService from './modules/conversation/conversation.service.js'
+import express from "express";
+import cors from "cors";
+import env from "./config/env.js";
+import { connectDB } from "./config/database.js";
+import logger from "./utils/logger.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import routes from "./routes/index.js";
+import { createMessagingProvider } from "./integrations/whatsapp/whatsapp.factory.js";
+import { createWebhookRouter } from "./integrations/whatsapp/whatsapp.webhook.js";
+import conversationService from "./modules/conversation/conversation.service.js";
 
-const app = express()
+const app = express();
 
 // ─── Middleware ──────────────────────────────────────────
 const defaultAllowed = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'http://localhost:5000',
-  'https://kgnandahospital.com',
-  'https://www.kgnandahospital.com',
-]
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://localhost:5000",
+  "https://kgnandahospital.com",
+  "https://www.kgnandahospital.com",
+  "https://vercel.com/juli-singhs-projects/kg-nanda-w26l",
+];
 const envAllowed = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim())
-  : []
-const allowedOrigins = Array.from(new Set([...defaultAllowed, ...envAllowed]))
+  ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
+  : [];
+const allowedOrigins = Array.from(new Set([...defaultAllowed, ...envAllowed]));
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('kgnandahospital.com')) {
-        callback(null, true)
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith("kgnandahospital.com")
+      ) {
+        callback(null, true);
       } else {
-        callback(null, true) // Permissive fallback to prevent CORS blocks during testing
+        callback(null, true); // Permissive fallback to prevent CORS blocks during testing
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-token'],
-  })
-)
-app.use(express.json())
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-admin-token"],
+  }),
+);
+app.use(express.json());
 
-app.use(express.static('public'))
+app.use(express.static("public"));
 
 // Request logger (dev only)
 if (env.isDev) {
   app.use((req, _res, next) => {
-    if (!req.url.includes('/webhook')) {
-      logger.debug(`${req.method} ${req.url}`)
+    if (!req.url.includes("/webhook")) {
+      logger.debug(`${req.method} ${req.url}`);
     }
-    next()
-  })
+    next();
+  });
 }
 
 // ─── API Routes ─────────────────────────────────────────
-app.use('/api', routes)
+app.use("/api", routes);
 
 // ─── WhatsApp Webhook ───────────────────────────────────
-const messagingProvider = createMessagingProvider()
-conversationService.setProvider(messagingProvider)
-app.use('/webhook/whatsapp', createWebhookRouter(messagingProvider))
+const messagingProvider = createMessagingProvider();
+conversationService.setProvider(messagingProvider);
+app.use("/webhook/whatsapp", createWebhookRouter(messagingProvider));
 
 // ─── Health Check ───────────────────────────────────────
-app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }))
+app.get("/health", (_req, res) =>
+  res.json({ status: "ok", timestamp: new Date().toISOString() }),
+);
 
 // ─── Error Handler ──────────────────────────────────────
-app.use(errorHandler)
+app.use(errorHandler);
 
 // ─── Start ──────────────────────────────────────────────
 async function start() {
-  await connectDB()
+  await connectDB();
   app.listen(env.port, () => {
-    logger.info(`DocBot API running on http://localhost:${env.port}`)
-    logger.info('WhatsApp provider: Meta Cloud API')
-    logger.info(`Environment: ${env.nodeEnv}`)
-  })
+    logger.info(`DocBot API running on http://localhost:${env.port}`);
+    logger.info("WhatsApp provider: Meta Cloud API");
+    logger.info(`Environment: ${env.nodeEnv}`);
+  });
 }
 
 start().catch((err) => {
-  logger.error('Failed to start:', err.message)
-  process.exit(1)
-})
+  logger.error("Failed to start:", err.message);
+  process.exit(1);
+});
