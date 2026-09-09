@@ -1,18 +1,92 @@
 import conversationRepo from '../conversation.repository.js'
 import patientService from '../../patient/patient.service.js'
 import { STEPS, MESSAGES } from '../conversation.steps.js'
-import { resolveDate } from '../../../utils/dateHelpers.js'
+import { resolveDate, formatDateDisplay } from '../../../utils/dateHelpers.js'
 
 export const hospitalizationHandler = {
+  async handleHospWhoFor(service, phone, state, input) {
+    const patients = await patientService.findAllByPhone(phone)
+    const idx = parseInt(input, 10)
+
+    if (!isNaN(idx) && idx >= 1 && idx <= patients.length) {
+      const selected = patients[idx - 1]
+      await conversationRepo.upsert(phone, {
+        currentStep: STEPS.HOSP_TYPE,
+        tempName: selected.name,
+        tempAge: selected.age,
+        tempGender: selected.gender,
+        stateData: {
+          ...state.stateData,
+          isExistingPatient: true,
+          isOld: selected.isOld ?? true,
+          district: selected.district || 'N/A',
+          address: selected.address || 'N/A'
+        }
+      })
+      return service.sendMessage(phone, MESSAGES.hospType(selected.name))
+    } else if (idx === patients.length + 1) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_NAME })
+      return service.sendMessage(phone, MESSAGES.hospStart())
+    }
+    return service.sendMessage(phone, MESSAGES.invalidInput())
+  },
+
   async handleHospName(service, phone, state, input) {
-    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_AGE, tempName: input })
+    if (!input || input.length < 2) return service.sendMessage(phone, MESSAGES.invalidInput())
+    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_MOBILE, tempName: input })
+    return service.sendMessage(phone, MESSAGES.hospMobile())
+  },
+
+  async handleHospMobile(service, phone, state, input) {
+    const cleanNum = input.replace(/\D/g, '')
+    if (cleanNum.length < 10) return service.sendMessage(phone, MESSAGES.invalidInput())
+    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_AGE, stateData: { ...state.stateData, mobile: cleanNum } })
     return service.sendMessage(phone, MESSAGES.hospAge())
   },
 
   async handleHospAge(service, phone, state, input) {
     const age = parseInt(input, 10)
     if (isNaN(age) || age < 1 || age > 120) return service.sendMessage(phone, MESSAGES.invalidInput())
-    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_PROBLEM, tempAge: age })
+    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_GENDER, tempAge: age })
+    return service.sendMessage(phone, MESSAGES.hospGender())
+  },
+
+  async handleHospGender(service, phone, state, input) {
+    const genderMap = { '1': 'Male', '2': 'Female', '3': 'Other' }
+    const gender = genderMap[input]
+    if (!gender) return service.sendMessage(phone, MESSAGES.invalidInput())
+    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_TYPE, tempGender: gender })
+    return service.sendMessage(phone, MESSAGES.hospType(state.tempName))
+  },
+
+  async handleHospType(service, phone, state, input) {
+    let isOld = false
+    if (input === '1') isOld = true
+    else if (input === '2') isOld = false
+    else return service.sendMessage(phone, MESSAGES.invalidInput())
+
+    const isExisting = state.stateData?.isExistingPatient === true
+    const hasAddress = Boolean(state.stateData?.district && state.stateData?.district !== 'N/A' && state.stateData?.address && state.stateData?.address !== 'N/A')
+    const nextStep = (isExisting && hasAddress) ? STEPS.HOSP_PROBLEM : STEPS.HOSP_DISTRICT
+
+    await conversationRepo.upsert(phone, {
+      currentStep: nextStep,
+      stateData: { ...state.stateData, isOld }
+    })
+
+    if (isExisting && hasAddress) {
+      return service.sendMessage(phone, MESSAGES.hospProblem())
+    }
+    return service.sendMessage(phone, MESSAGES.hospDistrict())
+  },
+
+  async handleHospDistrict(service, phone, state, input) {
+    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_ADDRESS, stateData: { ...state.stateData, district: input } })
+    return service.sendMessage(phone, MESSAGES.hospAddress())
+  },
+
+  async handleHospAddress(service, phone, state, input) {
+    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_PROBLEM, stateData: { ...state.stateData, address: input } })
     return service.sendMessage(phone, MESSAGES.hospProblem())
   },
 
@@ -34,12 +108,44 @@ export const hospitalizationHandler = {
     if (!date) date = resolveDate(input)
     if (!date) return service.sendDateOptions(phone, state, (opts) => MESSAGES.hospDate(opts))
 
-    await patientService.registerPatientWithBooking(
+    const dateStr = formatDateDisplay(date)
+    await conversationRepo.upsert(phone, {
+      currentStep: STEPS.HOSP_REVIEW,
+      selectedDate: date,
+      stateData: { ...state.stateData, dateStr }
+    })
+
+    const freshState = await conversationRepo.findByPhone(phone)
+    return service.sendMessage(phone, MESSAGES.hospReview({
+      date: dateStr,
+      name: freshState.tempName,
+      mobile: freshState.stateData.mobile || phone,
+      age: freshState.tempAge,
+      gender: freshState.tempGender,
+      isOld: freshState.stateData.isOld,
+      district: freshState.stateData.district,
+      address: freshState.stateData.address,
+      problem: freshState.stateData.problem,
+    }))
+  },
+
+  async handleHospReview(service, phone, state, input) {
+    if (input === '2') {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_NAME })
+      return service.sendMessage(phone, MESSAGES.hospStart())
+    }
+    if (input !== '1') return service.sendMessage(phone, MESSAGES.invalidInput())
+
+    const { patient, booking } = await patientService.registerPatientWithBooking(
       {
         phone,
         name: state.tempName,
         age: state.tempAge,
-        preferredDate: new Date(date),
+        gender: state.tempGender,
+        isOld: state.stateData.isOld,
+        district: state.stateData.district,
+        address: state.stateData.address,
+        preferredDate: state.selectedDate,
         problemDescription: state.stateData.problem,
         type: 'HOSPITALIZATION',
       },
@@ -47,7 +153,10 @@ export const hospitalizationHandler = {
       { validate: false }
     )
 
-    await service.sendMessage(phone, MESSAGES.hospDone())
+    await service.sendMessage(phone, MESSAGES.hospDone({
+      uhid: patient?.uhid || 'KGN-NEW',
+      tokenNumber: booking?.tokenNumber || 'HOSP-001'
+    }))
     await conversationRepo.resetState(phone)
   },
 }

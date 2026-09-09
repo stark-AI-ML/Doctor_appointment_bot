@@ -76,20 +76,64 @@ export const backHandler = {
     }
 
     // ── Hospitalization Flow ──────────────────────────────
-    if (state.currentStep === STEPS.HOSP_NAME) {
+    if (state.currentStep === STEPS.HOSP_WHO_FOR) {
       return service.resetAndWelcome(phone)
     }
-    if (state.currentStep === STEPS.HOSP_AGE) {
+    if (state.currentStep === STEPS.HOSP_NAME) {
+      const patients = await patientService.findAllByPhone(phone)
+      if (patients.length > 0) {
+        await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_WHO_FOR })
+        return service.sendMessage(phone, MESSAGES.hospWhoFor(patients))
+      }
+      return service.resetAndWelcome(phone)
+    }
+    if (state.currentStep === STEPS.HOSP_MOBILE) {
       await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_NAME })
       return service.sendMessage(phone, MESSAGES.hospStart())
     }
-    if (state.currentStep === STEPS.HOSP_PROBLEM) {
+    if (state.currentStep === STEPS.HOSP_AGE) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_MOBILE })
+      return service.sendMessage(phone, MESSAGES.hospMobile())
+    }
+    if (state.currentStep === STEPS.HOSP_GENDER) {
       await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_AGE })
       return service.sendMessage(phone, MESSAGES.hospAge())
+    }
+    if (state.currentStep === STEPS.HOSP_TYPE) {
+      const isExisting = state.stateData?.isExistingPatient === true
+      if (isExisting) {
+        const patients = await patientService.findAllByPhone(phone)
+        await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_WHO_FOR })
+        return service.sendMessage(phone, MESSAGES.hospWhoFor(patients))
+      }
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_GENDER })
+      return service.sendMessage(phone, MESSAGES.hospGender())
+    }
+    if (state.currentStep === STEPS.HOSP_DISTRICT) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_TYPE })
+      return service.sendMessage(phone, MESSAGES.hospType(state.tempName))
+    }
+    if (state.currentStep === STEPS.HOSP_ADDRESS) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_DISTRICT })
+      return service.sendMessage(phone, MESSAGES.hospDistrict())
+    }
+    if (state.currentStep === STEPS.HOSP_PROBLEM) {
+      const isExisting = state.stateData?.isExistingPatient === true
+      const hasAddress = Boolean(state.stateData?.district && state.stateData?.district !== 'N/A' && state.stateData?.address && state.stateData?.address !== 'N/A')
+      if (isExisting && hasAddress) {
+        await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_TYPE })
+        return service.sendMessage(phone, MESSAGES.hospType(state.tempName))
+      }
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_ADDRESS })
+      return service.sendMessage(phone, MESSAGES.hospAddress())
     }
     if (state.currentStep === STEPS.HOSP_DATE) {
       await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_PROBLEM })
       return service.sendMessage(phone, MESSAGES.hospProblem())
+    }
+    if (state.currentStep === STEPS.HOSP_REVIEW) {
+      await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_DATE })
+      return service.sendDateOptions(phone, state, (opts) => MESSAGES.hospDate(opts))
     }
 
     // ── Medicine Flow ─────────────────────────────────────

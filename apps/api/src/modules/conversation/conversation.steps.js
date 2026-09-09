@@ -21,10 +21,17 @@ export const STEPS = {
   REVIEW: "REVIEW",
 
   // Hospitalization Flow
+  HOSP_WHO_FOR: "HOSP_WHO_FOR",
   HOSP_NAME: "HOSP_NAME",
+  HOSP_MOBILE: "HOSP_MOBILE",
   HOSP_AGE: "HOSP_AGE",
+  HOSP_GENDER: "HOSP_GENDER",
+  HOSP_TYPE: "HOSP_TYPE",
+  HOSP_DISTRICT: "HOSP_DISTRICT",
+  HOSP_ADDRESS: "HOSP_ADDRESS",
   HOSP_PROBLEM: "HOSP_PROBLEM",
   HOSP_DATE: "HOSP_DATE",
+  HOSP_REVIEW: "HOSP_REVIEW",
 
   // Medicine Order Flow
   MED_PRESCRIPTION: "MED_PRESCRIPTION",
@@ -115,13 +122,44 @@ export const MESSAGES = {
     `✅ *Appointment Request Received!*\n✅ अपॉइंटमेंट अनुरोध सफलतापूर्वक प्राप्त हुआ!\n\n🎫 *Token No:* ${data.tokenNumber}\n🆔 *UHID No:* ${data.uhid}\n\n📋 *Appointment Details / विवरण:*\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Date: ${data.date}\n👤 Name: ${data.name}\n📱 Mobile: ${data.mobile}\n\n📌 *Our team will call you to confirm your appointment.*\n📌 हमारी टीम आपको कॉल करके अपॉइंटमेंट की पुष्टि करेगी।\n\n👉 *To return to the main menu, send "Hi" or "Start".*\n👉 मुख्य मेनू पर लौटने के लिए "Hi" या "Start" भेजें।`,
 
   // Hospitalization
+  hospWhoFor: (patients = []) => {
+    let msg = `🏥 *HOSPITALIZATION / भर्ती किसके लिए है?*\n\n*Please choose a patient:* / कृपया मरीज चुनें:\n\n`
+    if (Array.isArray(patients) && patients.length > 0) {
+      patients.forEach((p, idx) => {
+        msg += `${idx + 1}️⃣ ${p.name} (${p.age}y / ${p.gender || 'N/A'})\n`
+      })
+      msg += `${patients.length + 1}️⃣ ➕ Add New Patient / नया मरीज जोड़ें\n\n`
+    } else {
+      msg += `1️⃣ ➕ Add New Patient / नया मरीज जोड़ें\n\n`
+    }
+    msg += `0️⃣ Back | 00 Main Menu`
+    return msg
+  },
+
   hospStart: () =>
-    `🏥 *Hospitalization / Admission*\nअस्पताल में भर्ती हेतु अपॉइंटमेंट\n\n*To schedule a hospitalization, please provide patient name:*\nभर्ती हेतु कृपया मरीज का नाम बताएं:\n\n0️⃣ Back | 00 Main Menu`,
+    `🏥 *Hospitalization / Admission*\nअस्पताल में भर्ती हेतु अपॉइंटमेंट\n\n*To schedule a hospitalization, please enter the patient's full name:*\nभर्ती हेतु कृपया मरीज का पूरा नाम दर्ज करें:\n\n0️⃣ Back | 00 Main Menu`,
+
+  hospMobile: () =>
+    `📱 *Mobile Number / मोबाइल नंबर*\n*Please enter 10-digit mobile number of patient/guardian.*\nमरीज/अभिभावक का 10 अंकों का मोबाइल नंबर दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
 
   hospAge: () =>
     `🎂 *Please enter the patient's age.*\nमरीज की उम्र दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
+
+  hospGender: () =>
+    `⚧ *Gender / लिंग*\n*Please reply with:*\n1️⃣ Male / पुरुष\n2️⃣ Female / महिला\n3️⃣ Other / अन्य\n\n0️⃣ Back | 00 Main Menu`,
+
+  hospType: (name = '') =>
+    `📋 *PATIENT TYPE / मरीज का प्रकार*${name ? `\n*Patient: ${name}*` : ''}\n\n*Is this an Existing/Old Patient or a New Patient at KG Nanda Hospital?*\nक्या मरीज अस्पताल का पुराना मरीज है या नया मरीज?\n\n1️⃣ Old / Existing Patient (पुराना मरीज)\n2️⃣ New Patient (नया मरीज)\n\n0️⃣ Back | 00 Main Menu`,
+
+  hospDistrict: () =>
+    `📍 *District / जिले का नाम*\n*Please enter your district name.*\nअपने जिले का नाम दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
+
+  hospAddress: () =>
+    `🏠 *Complete Address with PIN Code*\nपूरा पता पिन कोड के साथ\n*Please enter your complete residential address including PIN code.*\nपिन कोड सहित अपना पूरा पता दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
+
   hospProblem: () =>
     `🩺 *Please describe the illness/problem.*\nबीमारी का विवरण दें।\n\n0️⃣ Back | 00 Main Menu`,
+
   hospDate: (options = []) => {
     let msg = `🏥 *Preferred Admission Date / पसंदीदा भर्ती तारीख:*\n\n`
     if (options.length) {
@@ -134,8 +172,12 @@ export const MESSAGES = {
     }
     return msg
   },
-  hospDone: () =>
-    `✅ *Hospitalization Request Received*\nअस्पताल में भर्ती का अनुरोध प्राप्त हुआ।\n\nOur staff will call you to confirm.\nहमारे कर्मचारी आपको कॉल करके पुष्टि करेंगे।\n\n👉 *To return to the main menu, send "Hi" or "Start".*\n👉 मुख्य मेनू पर लौटने के लिए "Hi" या "Start" भेजें।`,
+
+  hospReview: (data) =>
+    `📋 *REVIEW HOSPITALIZATION REQUEST*\n\n🏥 Type: Hospitalization / Admission\n📅 Preferred Date: ${data.date}\n\n👤 Patient: ${data.name}\n📱 Mobile: ${data.mobile}\n🎂 Age: ${data.age}\n⚧ Gender: ${data.gender}\n🏥 Patient Status: ${data.isOld ? 'Old / Existing Patient (पुराना मरीज)' : 'New Patient (नया मरीज)'}\n📍 District: ${data.district}\n🏠 Address: ${data.address}\n🩺 Illness/Problem: ${data.problem}\n\n*Confirm hospitalization request?*\n1️⃣ Confirm / पुष्टि करें\n2️⃣ Edit / बदलाव करें\n0️⃣ Main Menu`,
+
+  hospDone: (data = {}) =>
+    `✅ *Hospitalization Request Received!*\n✅ अस्पताल में भर्ती का अनुरोध प्राप्त हुआ!\n\n${data.uhid ? `🆔 *UHID No:* ${data.uhid}\n` : ''}${data.tokenNumber ? `🎫 *Token No:* ${data.tokenNumber}\n` : ''}\nOur staff will call you to confirm admission details.\nहमारे कर्मचारी आपको कॉल करके भर्ती की पुष्टि करेंगे।\n\n👉 *To return to the main menu, send "Hi" or "Start".*\n👉 मुख्य मेनू पर लौटने के लिए "Hi" या "Start" भेजें।`,
 
   // Medicine
   medStart: () =>

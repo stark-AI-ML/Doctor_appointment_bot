@@ -1,6 +1,7 @@
 import conversationRepo from './conversation.repository.js'
 import doctorService from '../doctor/doctor.service.js'
 import departmentService from '../department/department.service.js'
+import patientService from '../patient/patient.service.js'
 import { STEPS, MESSAGES } from './conversation.steps.js'
 import { getDateOptions } from '../../utils/dateHelpers.js'
 import logger from '../../utils/logger.js'
@@ -74,10 +75,17 @@ class ConversationService {
         case STEPS.REVIEW:           return await opdHandler.handleReview(this, phone, state, input)
         
         // Hospitalization Flow
+        case STEPS.HOSP_WHO_FOR:     return await hospitalizationHandler.handleHospWhoFor(this, phone, state, input)
         case STEPS.HOSP_NAME:        return await hospitalizationHandler.handleHospName(this, phone, state, input)
+        case STEPS.HOSP_MOBILE:      return await hospitalizationHandler.handleHospMobile(this, phone, state, input)
         case STEPS.HOSP_AGE:         return await hospitalizationHandler.handleHospAge(this, phone, state, input)
+        case STEPS.HOSP_GENDER:      return await hospitalizationHandler.handleHospGender(this, phone, state, input)
+        case STEPS.HOSP_TYPE:        return await hospitalizationHandler.handleHospType(this, phone, state, input)
+        case STEPS.HOSP_DISTRICT:    return await hospitalizationHandler.handleHospDistrict(this, phone, state, input)
+        case STEPS.HOSP_ADDRESS:     return await hospitalizationHandler.handleHospAddress(this, phone, state, input)
         case STEPS.HOSP_PROBLEM:     return await hospitalizationHandler.handleHospProblem(this, phone, state, input)
         case STEPS.HOSP_DATE:        return await hospitalizationHandler.handleHospDate(this, phone, state, input)
+        case STEPS.HOSP_REVIEW:      return await hospitalizationHandler.handleHospReview(this, phone, state, input)
         
         // Medicine Flow
         case STEPS.MED_PRESCRIPTION: return await medicineHandler.handleMedPrescription(this, phone, state, message)
@@ -107,9 +115,15 @@ class ConversationService {
         await conversationRepo.upsert(phone, { currentFlow: 'OPD_BOOKING', currentStep: STEPS.OPD_DEPARTMENT })
         return this.sendMessage(phone, MESSAGES.departments(deps))
       }
-      case '2': // Hospitalization
+      case '2': { // Hospitalization
+        const patients = (await patientService.findAllByPhone(phone)) || []
+        if (patients.length > 0) {
+          await conversationRepo.upsert(phone, { currentFlow: 'HOSPITALIZATION', currentStep: STEPS.HOSP_WHO_FOR })
+          return this.sendMessage(phone, MESSAGES.hospWhoFor(patients))
+        }
         await conversationRepo.upsert(phone, { currentFlow: 'HOSPITALIZATION', currentStep: STEPS.HOSP_NAME })
         return this.sendMessage(phone, MESSAGES.hospStart())
+      }
       case '3': // Medicine Order
         await conversationRepo.upsert(phone, { currentFlow: 'MEDICINE', currentStep: STEPS.MED_PRESCRIPTION })
         return this.sendMessage(phone, MESSAGES.medStart())

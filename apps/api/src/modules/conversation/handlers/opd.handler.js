@@ -145,14 +145,15 @@ export const opdHandler = {
     else return service.sendMessage(phone, MESSAGES.invalidInput())
 
     const isExisting = state.stateData?.isExistingPatient === true
-    const nextStep = isExisting ? STEPS.PATIENT_PROBLEM : STEPS.PATIENT_DISTRICT
+    const hasAddress = Boolean(state.stateData?.district && state.stateData?.district !== 'N/A' && state.stateData?.address && state.stateData?.address !== 'N/A')
+    const nextStep = (isExisting && hasAddress) ? STEPS.PATIENT_PROBLEM : STEPS.PATIENT_DISTRICT
 
     await conversationRepo.upsert(phone, {
       currentStep: nextStep,
       stateData: { ...state.stateData, isOld }
     })
 
-    if (isExisting) {
+    if (isExisting && hasAddress) {
       return service.sendMessage(phone, MESSAGES.patientProblem())
     }
     return service.sendMessage(phone, MESSAGES.patientDistrict())

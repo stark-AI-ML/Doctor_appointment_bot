@@ -35,7 +35,7 @@ import medicineOrderService from '../src/modules/medicine/medicineOrder.service.
 const DEPT = { _id: 'dept1', name: 'General Consultation' }
 const DOCTOR = { _id: 'doc1', name: 'Dr. Smith', qualifications: 'MBBS', departmentId: 'dept1' }
 const PATIENT_NEW = { _id: 'pat1', name: 'Unknown' }
-const PATIENT_RETURNING = { _id: 'pat1', name: 'Raj Kumar', age: 30, gender: 'Male', district: 'Jaunpur' }
+const PATIENT_RETURNING = { _id: 'pat1', name: 'Raj Kumar', age: 30, gender: 'Male', district: 'Jaunpur', address: 'Civil Lines' }
 const PHONE = '919999999999'
 
 let stateStore
@@ -197,26 +197,53 @@ describe('Conversation Booking Flow (current)', () => {
     expect(reply).toContain('Invalid input')
   })
 
-  it('completes the hospitalization flow via shared registration', async () => {
+  it('completes the hospitalization flow via shared registration including patient type (isOld)', async () => {
     patientService.registerPatientWithBooking.mockResolvedValue({
       patient: { _id: 'pat1', name: 'Ramesh', uhid: 'KGN-2026-00002' },
-      booking: { _id: 'b2', bookingId: 'BK-20260907-002', tokenNumber: null },
+      booking: { _id: 'b2', bookingId: 'BK-20260907-002', tokenNumber: 'HOSP-001' },
     })
     await send('hi')
     await send('2')
     expect(stateStore[PHONE].currentStep).toBe('HOSP_NAME')
     await send('Ramesh')
-    await send('45')
-    await send('Chest pain')
+    await send('9876543210') // mobile
+    await send('45')         // age
+    await send('1')          // Male
+    await send('1')          // Old/Existing Patient (isOld = true)
+    await send('Jaunpur')    // district
+    await send('Civil Lines') // address
+    await send('Chest pain') // problem
     expect(stateStore[PHONE].currentStep).toBe('HOSP_DATE')
-    const reply = await send('1')
+    const review = await send('1') // date selection -> REVIEW
+    expect(review).toContain('REVIEW HOSPITALIZATION')
+    expect(stateStore[PHONE].currentStep).toBe('HOSP_REVIEW')
+    const reply = await send('1') // confirm review -> done
     expect(patientService.registerPatientWithBooking).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'HOSPITALIZATION' }),
+      expect.objectContaining({ type: 'HOSPITALIZATION', isOld: true, name: 'Ramesh' }),
       { source: 'whatsapp' },
       { validate: false }
     )
     expect(reply).toContain('Hospitalization Request Received')
     expect(stateStore[PHONE].currentStep).toBe('WELCOME')
+  })
+
+  it('routes a returning patient through HOSP_WHO_FOR in hospitalization flow', async () => {
+    patientService.findAllByPhone.mockResolvedValue([PATIENT_RETURNING])
+    await send('hi')
+    const reply = await send('2')
+    expect(reply).toContain('HOSPITALIZATION')
+    expect(stateStore[PHONE].currentStep).toBe('HOSP_WHO_FOR')
+
+    const typeMsg = await send('1') // Select Raj Kumar
+    expect(typeMsg).toContain('PATIENT TYPE')
+    expect(stateStore[PHONE].currentStep).toBe('HOSP_TYPE')
+
+    await send('1') // Old Patient (isOld = true) -> problem (since Raj Kumar has district/address)
+    expect(stateStore[PHONE].currentStep).toBe('HOSP_PROBLEM')
+    await send('Severe pain')
+    const review = await send('1') // date option 1 -> HOSP_REVIEW
+    expect(review).toContain('REVIEW HOSPITALIZATION')
+    expect(stateStore[PHONE].currentStep).toBe('HOSP_REVIEW')
   })
 
   it('completes the medicine flow with a prescription image (asking name for first-time user)', async () => {
