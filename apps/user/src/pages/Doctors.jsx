@@ -25,10 +25,13 @@ const AVATAR_GRADIENTS = [
 
 const emptyForm = {
   name: '',
+  nameHindi: '',
   role: '',
   qualification: '',
+  qualificationHindi: '',
   customQualification: '',
   specialization: '',
+  specializationHindi: '',
   specialty: '',
   experience: '',
   consultation_fee: '',
@@ -101,10 +104,13 @@ export default function Doctors() {
 
     setForm({
       name: doctor.name || '',
+      nameHindi: doctor.nameHindi || '',
       role: doctor.role || '',
       qualification: isStandardDegree ? existingQual : (existingQual ? 'Other / Custom...' : ''),
+      qualificationHindi: doctor.qualificationHindi || '',
       customQualification: isStandardDegree ? '' : existingQual,
       specialization: doctor.specialization || doctor.department || '',
+      specializationHindi: doctor.specializationHindi || '',
       specialty: doctor.specialty || doctor.AOF || '',
       experience: doctor.experience || '',
       consultation_fee: doctor.consultation_fee ?? doctor.consultationFee ?? '',
@@ -153,10 +159,13 @@ export default function Doctors() {
 
     const data = {
       name: form.name,
+      nameHindi: form.nameHindi,
       role: form.role,
       qualification: finalQualification,
+      qualificationHindi: form.qualificationHindi,
       department: form.specialization,
       specialization: form.specialization,
+      specializationHindi: form.specializationHindi,
       specialty: form.specialty,
       experience: form.experience,
       consultation_fee: Number(form.consultation_fee || 0),
@@ -400,7 +409,7 @@ export default function Doctors() {
             </div>
           </div>
 
-          {/* Full Name & Degree / Qualification */}
+          {/* Full Name & Full Name (Hindi) */}
           <div className={styles.formRowTwo}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>
@@ -420,6 +429,24 @@ export default function Doctors() {
 
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>
+                Full Name (Hindi / हिंदी नाम)
+              </label>
+              <div className={styles.inputWithIcon}>
+                <User size={16} className={styles.inputLeadingIcon} />
+                <input
+                  className={styles.formInput}
+                  value={form.nameHindi}
+                  onChange={(e) => setForm({ ...form, nameHindi: e.target.value })}
+                  placeholder="उदा. आनंद प्रकाश तिवारी"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Degree / Qualification & Qualification (Hindi) */}
+          <div className={styles.formRowTwo}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>
                 Degree / Qualification
               </label>
               <div className={styles.inputWithIcon}>
@@ -434,6 +461,21 @@ export default function Doctors() {
                     <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>
+                Qualification (Hindi / हिंदी)
+              </label>
+              <div className={styles.inputWithIcon}>
+                <Award size={16} className={styles.inputLeadingIcon} />
+                <input
+                  className={styles.formInput}
+                  value={form.qualificationHindi}
+                  onChange={(e) => setForm({ ...form, qualificationHindi: e.target.value })}
+                  placeholder="उदा. लेप्रोस्कोपिक सर्जन, एम.डी"
+                />
               </div>
             </div>
           </div>

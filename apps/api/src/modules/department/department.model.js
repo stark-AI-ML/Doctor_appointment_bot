@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 
 const departmentSchema = new mongoose.Schema({
   name:        { type: String, required: true, unique: true },
+  nameHindi:   { type: String, default: '' },
   description: { type: String, default: '' },
   isActive:    { type: Boolean, default: true }
 }, { timestamps: true })

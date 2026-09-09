@@ -25,6 +25,7 @@ vi.mock('../src/utils/logger.js', () => ({
 
 // ── Imports ─────────────────────────────────────────────────────────
 import conversationService from '../src/modules/conversation/conversation.service.js'
+import { toEmojiDigit } from '../src/modules/conversation/conversation.steps.js'
 import conversationRepo from '../src/modules/conversation/conversation.repository.js'
 import doctorService from '../src/modules/doctor/doctor.service.js'
 import departmentService from '../src/modules/department/department.service.js'
@@ -275,5 +276,12 @@ describe('Conversation Booking Flow (current)', () => {
       expect(reply).toBeTruthy()
       expect(stateStore[PHONE].currentStep).toBe('WELCOME')
     }
+  })
+
+  it('correctly formats single and multi-digit numbers to keycap emojis (including numbers > 9)', () => {
+    expect(toEmojiDigit(1)).toBe('1️⃣')
+    expect(toEmojiDigit(9)).toBe('9️⃣')
+    expect(toEmojiDigit(10)).toBe('1️⃣0️⃣')
+    expect(toEmojiDigit(12)).toBe('1️⃣2️⃣')
   })
 })

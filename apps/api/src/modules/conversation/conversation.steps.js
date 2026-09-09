@@ -2,6 +2,8 @@
  * KG Nanda Hospital Conversation Steps and Bilingual Messages
  */
 
+import languageService from '../../utils/language.js'
+
 export const STEPS = {
   WELCOME: "WELCOME",
 
@@ -43,21 +45,33 @@ export const STEPS = {
   SUPPORT: "SUPPORT",
 };
 
+export const toEmojiDigit = (num) => {
+  return String(num)
+    .split("")
+    .map((digit) => (digit >= "0" && digit <= "9" ? `${digit}️⃣` : digit))
+    .join("");
+};
+
 export const MESSAGES = {
   welcome: () =>
     `🙏 *Namaste! Welcome to KG Nanda Hospital*\nनमस्ते! 🙏 के. जी. नंदा अस्पताल में आपका स्वागत है।\n\n*For any assistance, please select an option:*\nकिसी भी सहायता के लिए नीचे दिए गए विकल्प में से एक चुनें।\n\n1️⃣ OPD / Outpatient Department (ओपीडी)\n2️⃣ Hospitalization (अस्पताल में भर्ती)\n3️⃣ Online Medicine Order (ऑनलाइन दवा)\n4️⃣ General Query / Information (सामान्य जानकारी)\n5️⃣ Talk to Support (सहायता केंद्र)\n6️⃣ Email Help (ईमेल सहायता)\n\n👉 *Reply with the number to continue.*\n👉 आगे बढ़ने के लिए नंबर टाइप करें।`,
 
   departments: (deps) => {
     let msg = `🏥 *OPD / Outpatient Department*\nओपीडी / बाह्य रोग विभाग\n\n*Kindly select a department:*\nकृपया विभाग चुनें:\n\n`;
-    deps.forEach((d, i) => (msg += `${i + 1}️⃣ ${d.name}\n`));
+    deps.forEach((d, i) => {
+      const label = languageService.formatBilingual(d.name, d.nameHindi, { brackets: true });
+      msg += `${toEmojiDigit(i + 1)} ${label}\n`;
+    });
     msg += `\n👉 *Reply with number* | 0️⃣ *Main Menu*`;
     return msg;
   },
 
   doctors: (deptName, docs) => {
-    let msg = `👩‍⚕️ *${deptName}*\n\n`;
+    const bilingualDept = languageService.formatBilingual(deptName, null, { brackets: true });
+    let msg = `👩‍⚕️ *${bilingualDept}*\n\n`;
     docs.forEach((d, i) => {
-      msg += `${i + 1}️⃣ Dr. ${d.name}\n*${d.qualification || d.qualifications || "Consultant"}*\n\n`;
+      const { bilingualName, bilingualQual } = languageService.formatDoctor(d);
+      msg += `${toEmojiDigit(i + 1)} ${bilingualName}\n*${bilingualQual}*\n\n`;
     });
     msg += `👉 *Reply with doctor number to book appointment.*\n👉 अपॉइंटमेंट के लिए डॉक्टर नंबर टाइप करें।\n\n0️⃣ Back | 00 Main Menu`;
     return msg;
@@ -65,30 +79,30 @@ export const MESSAGES = {
 
   selectDate: (doctorName, options = []) => {
     if (!options.length) {
-      return `👨‍⚕️ *Doctor Selected: ${doctorName}*\nआपने ${doctorName} का चयन किया है।\n\n📅 *Select Appointment Date / अपॉइंटमेंट की तारीख चुनें:*\n\n*Please type your preferred date in this format:*\nकृपया अपनी पसंदीदा तारीख इस फॉर्मेट में टाइप करें:\n\n📅 *DD/MM/YYYY*\n*(Example: 30/08/2026)*\n\n0️⃣ Back | 00 Main Menu`
+      return `👨‍⚕️ *Doctor Selected: ${doctorName}*\nआपने ${doctorName} का चयन किया है।\n\n📅 *Select Appointment Date / अपॉइंटमेंट की तारीख चुनें:*\n\n*Please type your preferred date in this format:*\nकृपया अपनी पसंदीदा तारीख इस फॉर्मेट में टाइप करें:\n\n📅 *DD/MM/YYYY*\n*(Example: 30/08/2026)*\n\n0️⃣ Back | 00 Main Menu`;
     }
-    let msg = `👨‍⚕️ *Doctor Selected: ${doctorName}*\nआपने ${doctorName} का चयन किया है।\n\n📅 *Select Appointment Date / अपॉइंटमेंट की तारीख चुनें:*\n\n`
+    let msg = `👨‍⚕️ *Doctor Selected: ${doctorName}*\nआपने ${doctorName} का चयन किया है।\n\n📅 *Select Appointment Date / अपॉइंटमेंट की तारीख चुनें:*\n\n`;
     options.forEach((opt, i) => {
-      msg += `${i + 1}️⃣ ${opt.dateStr} \n          ${opt.label}\n`
-    })
-    msg += `\n👉 *Reply with the number to book, or type a date (DD/MM/YYYY).*\n👉 अपॉइंटमेंट के लिए नंबर भेजें या तारीख (DD/MM/YYYY) टाइप करें।\n\n0️⃣ Back | 00 Main Menu`
-    return msg
+      msg += `${toEmojiDigit(i + 1)} ${opt.dateStr} \n          ${opt.label}\n`;
+    });
+    msg += `\n👉 *Reply with the number to book, or type a date (DD/MM/YYYY).*\n👉 अपॉइंटमेंट के लिए नंबर भेजें या तारीख (DD/MM/YYYY) टाइप करें।\n\n0️⃣ Back | 00 Main Menu`;
+    return msg;
   },
 
   whoFor: (patients = []) => {
-    let msg = `👤 *BOOKING FOR WHOM?*\n*कृपया चुनें कि अपॉइंटमेंट किसके लिए है:*\n\n`
+    let msg = `👤 *BOOKING FOR WHOM?*\n*कृपया चुनें कि अपॉइंटमेंट किसके लिए है:*\n\n`;
     if (Array.isArray(patients) && patients.length > 0) {
       patients.forEach((p, idx) => {
-        msg += `${idx + 1}️⃣ ${p.name}\n`
-      })
-      msg += `${patients.length + 1}️⃣ Someone Else / Family Member (नया मरीज)\n\n`
-    } else if (typeof patients === 'string' && patients) {
-      msg += `1️⃣ ${patients}\n2️⃣ Someone Else / Family Member (नया मरीज)\n\n`
+        msg += `${toEmojiDigit(idx + 1)} ${p.name}\n`;
+      });
+      msg += `${toEmojiDigit(patients.length + 1)} Someone Else / Family Member (नया मरीज)\n\n`;
+    } else if (typeof patients === "string" && patients) {
+      msg += `1️⃣ ${patients}\n2️⃣ Someone Else / Family Member (नया मरीज)\n\n`;
     } else {
-      msg += `1️⃣ Someone Else / Family Member (नया मरीज)\n\n`
+      msg += `1️⃣ Someone Else / Family Member (नया मरीज)\n\n`;
     }
-    msg += `0️⃣ Back | 00 Main Menu`
-    return msg
+    msg += `0️⃣ Back | 00 Main Menu`;
+    return msg;
   },
 
   patientName: () =>
@@ -103,8 +117,8 @@ export const MESSAGES = {
   patientGender: () =>
     `⚧ *Gender / लिंग*\n*Please reply with:*\n1️⃣ Male / पुरुष\n2️⃣ Female / महिला\n3️⃣ Other / अन्य\n\n0️⃣ Back | 00 Main Menu`,
 
-  patientType: (name = '') =>
-    `📋 *PATIENT TYPE / मरीज का प्रकार*${name ? `\n*Patient: ${name}*` : ''}\n\n*Is this an Existing/Old Patient or a New Patient at KG Nanda Hospital?*\nक्या मरीज अस्पताल का पुराना मरीज है या नया मरीज?\n\n1️⃣ Old / Existing Patient (पुराना मरीज)\n2️⃣ New Patient (नया मरीज)\n\n0️⃣ Back | 00 Main Menu`,
+  patientType: (name = "") =>
+    `📋 *PATIENT TYPE / मरीज का प्रकार*${name ? `\n*Patient: ${name}*` : ""}\n\n*Is this an Existing/Old Patient or a New Patient at KG Nanda Hospital?*\nक्या मरीज अस्पताल का पुराना मरीज है या नया मरीज?\n\n1️⃣ Old / Existing Patient (पुराना मरीज)\n2️⃣ New Patient (नया मरीज)\n\n0️⃣ Back | 00 Main Menu`,
 
   patientDistrict: () =>
     `📍 *District / जिले का नाम*\n*Please enter your district name.*\nअपने जिले का नाम दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
@@ -116,24 +130,24 @@ export const MESSAGES = {
     `🩺 *Health Problem / स्वास्थ्य समस्या*\n*Please briefly describe the patient's health problem.*\nकृपया मरीज की समस्या का संक्षिप्त विवरण दें।\n\n0️⃣ Back | 00 Main Menu`,
 
   review: (data) =>
-    `📋 *REVIEW APPOINTMENT REQUEST*\n\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Preferred Date: ${data.date}\n\n👤 Patient: ${data.name}\n📱 Mobile: ${data.mobile}\n🎂 Age: ${data.age}\n⚧ Gender: ${data.gender}\n🏥 Type: ${data.isOld ? 'Old / Existing Patient (पुराना मरीज)' : 'New Patient (नया मरीज)'}\n📍 District: ${data.district}\n🏠 Address: ${data.address}\n🩺 Problem: ${data.problem}\n\n*Confirm details?*\n1️⃣ Confirm / पुष्टि करें\n2️⃣ Edit / बदलाव करें\n0️⃣ Main Menu`,
+    `📋 *REVIEW APPOINTMENT REQUEST*\n\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Preferred Date: ${data.date}\n\n👤 Patient: ${data.name}\n📱 Mobile: ${data.mobile}\n🎂 Age: ${data.age}\n⚧ Gender: ${data.gender}\n🏥 Type: ${data.isOld ? "Old / Existing Patient (पुराना मरीज)" : "New Patient (नया मरीज)"}\n📍 District: ${data.district}\n🏠 Address: ${data.address}\n🩺 Problem: ${data.problem}\n\n*Confirm details?*\n1️⃣ Confirm / पुष्टि करें\n2️⃣ Edit / बदलाव करें\n0️⃣ Main Menu`,
 
   appointmentConfirmed: (data) =>
     `✅ *Appointment Request Received!*\n✅ अपॉइंटमेंट अनुरोध सफलतापूर्वक प्राप्त हुआ!\n\n🎫 *Token No:* ${data.tokenNumber}\n🆔 *UHID No:* ${data.uhid}\n\n📋 *Appointment Details / विवरण:*\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Date: ${data.date}\n👤 Name: ${data.name}\n📱 Mobile: ${data.mobile}\n\n📌 *Our team will call you to confirm your appointment.*\n📌 हमारी टीम आपको कॉल करके अपॉइंटमेंट की पुष्टि करेगी।\n\n👉 *To return to the main menu, send "Hi" or "Start".*\n👉 मुख्य मेनू पर लौटने के लिए "Hi" या "Start" भेजें।`,
 
   // Hospitalization
   hospWhoFor: (patients = []) => {
-    let msg = `🏥 *HOSPITALIZATION / भर्ती किसके लिए है?*\n\n*Please choose a patient:* / कृपया मरीज चुनें:\n\n`
+    let msg = `🏥 *HOSPITALIZATION / भर्ती किसके लिए है?*\n\n*Please choose a patient:* / कृपया मरीज चुनें:\n\n`;
     if (Array.isArray(patients) && patients.length > 0) {
       patients.forEach((p, idx) => {
-        msg += `${idx + 1}️⃣ ${p.name} (${p.age}y / ${p.gender || 'N/A'})\n`
-      })
-      msg += `${patients.length + 1}️⃣ ➕ Add New Patient / नया मरीज जोड़ें\n\n`
+        msg += `${toEmojiDigit(idx + 1)} ${p.name} (${p.age}y / ${p.gender || "N/A"})\n`;
+      });
+      msg += `${toEmojiDigit(patients.length + 1)} ➕ Add New Patient / नया मरीज जोड़ें\n\n`;
     } else {
-      msg += `1️⃣ ➕ Add New Patient / नया मरीज जोड़ें\n\n`
+      msg += `1️⃣ ➕ Add New Patient / नया मरीज जोड़ें\n\n`;
     }
-    msg += `0️⃣ Back | 00 Main Menu`
-    return msg
+    msg += `0️⃣ Back | 00 Main Menu`;
+    return msg;
   },
 
   hospStart: () =>
@@ -148,8 +162,8 @@ export const MESSAGES = {
   hospGender: () =>
     `⚧ *Gender / लिंग*\n*Please reply with:*\n1️⃣ Male / पुरुष\n2️⃣ Female / महिला\n3️⃣ Other / अन्य\n\n0️⃣ Back | 00 Main Menu`,
 
-  hospType: (name = '') =>
-    `📋 *PATIENT TYPE / मरीज का प्रकार*${name ? `\n*Patient: ${name}*` : ''}\n\n*Is this an Existing/Old Patient or a New Patient at KG Nanda Hospital?*\nक्या मरीज अस्पताल का पुराना मरीज है या नया मरीज?\n\n1️⃣ Old / Existing Patient (पुराना मरीज)\n2️⃣ New Patient (नया मरीज)\n\n0️⃣ Back | 00 Main Menu`,
+  hospType: (name = "") =>
+    `📋 *PATIENT TYPE / मरीज का प्रकार*${name ? `\n*Patient: ${name}*` : ""}\n\n*Is this an Existing/Old Patient or a New Patient at KG Nanda Hospital?*\nक्या मरीज अस्पताल का पुराना मरीज है या नया मरीज?\n\n1️⃣ Old / Existing Patient (पुराना मरीज)\n2️⃣ New Patient (नया मरीज)\n\n0️⃣ Back | 00 Main Menu`,
 
   hospDistrict: () =>
     `📍 *District / जिले का नाम*\n*Please enter your district name.*\nअपने जिले का नाम दर्ज करें।\n\n0️⃣ Back | 00 Main Menu`,
@@ -161,42 +175,42 @@ export const MESSAGES = {
     `🩺 *Please describe the illness/problem.*\nबीमारी का विवरण दें।\n\n0️⃣ Back | 00 Main Menu`,
 
   hospDate: (options = []) => {
-    let msg = `🏥 *Preferred Admission Date / पसंदीदा भर्ती तारीख:*\n\n`
+    let msg = `🏥 *Preferred Admission Date / पसंदीदा भर्ती तारीख:*\n\n`;
     if (options.length) {
       options.forEach((opt, i) => {
-        msg += `${i + 1}️⃣ ${opt.dateStr} \n          ${opt.label}\n`
-      })
-      msg += `\n👉 *Reply with the number to book, or type a date (DD/MM/YYYY).*\n👉 अपॉइंटमेंट के लिए नंबर भेजें या तारीख (DD/MM/YYYY) टाइप करें।\n0️⃣ Back | 00 Main Menu`
+        msg += `${toEmojiDigit(i + 1)} ${opt.dateStr} \n          ${opt.label}\n`;
+      });
+      msg += `\n👉 *Reply with the number to book, or type a date (DD/MM/YYYY).*\n👉 अपॉइंटमेंट के लिए नंबर भेजें या तारीख (DD/MM/YYYY) टाइप करें।\n0️⃣ Back | 00 Main Menu`;
     } else {
-      msg += `\n*Please type your preferred date in DD/MM/YYYY format.*\nकृपया DD/MM/YYYY फॉर्मेट में तारीख लिखें।\n0️⃣ Back | 00 Main Menu`
+      msg += `\n*Please type your preferred date in DD/MM/YYYY format.*\nकृपया DD/MM/YYYY फॉर्मेट में तारीख लिखें।\n0️⃣ Back | 00 Main Menu`;
     }
-    return msg
+    return msg;
   },
 
   hospReview: (data) =>
-    `📋 *REVIEW HOSPITALIZATION REQUEST*\n\n🏥 Type: Hospitalization / Admission\n📅 Preferred Date: ${data.date}\n\n👤 Patient: ${data.name}\n📱 Mobile: ${data.mobile}\n🎂 Age: ${data.age}\n⚧ Gender: ${data.gender}\n🏥 Patient Status: ${data.isOld ? 'Old / Existing Patient (पुराना मरीज)' : 'New Patient (नया मरीज)'}\n📍 District: ${data.district}\n🏠 Address: ${data.address}\n🩺 Illness/Problem: ${data.problem}\n\n*Confirm hospitalization request?*\n1️⃣ Confirm / पुष्टि करें\n2️⃣ Edit / बदलाव करें\n0️⃣ Main Menu`,
+    `📋 *REVIEW HOSPITALIZATION REQUEST*\n\n🏥 Type: Hospitalization / Admission\n📅 Preferred Date: ${data.date}\n\n👤 Patient: ${data.name}\n📱 Mobile: ${data.mobile}\n🎂 Age: ${data.age}\n⚧ Gender: ${data.gender}\n🏥 Patient Status: ${data.isOld ? "Old / Existing Patient (पुराना मरीज)" : "New Patient (नया मरीज)"}\n📍 District: ${data.district}\n🏠 Address: ${data.address}\n🩺 Illness/Problem: ${data.problem}\n\n*Confirm hospitalization request?*\n1️⃣ Confirm / पुष्टि करें\n2️⃣ Edit / बदलाव करें\n0️⃣ Main Menu`,
 
   hospDone: (data = {}) =>
-    `✅ *Hospitalization Request Received!*\n✅ अस्पताल में भर्ती का अनुरोध प्राप्त हुआ!\n\n${data.uhid ? `🆔 *UHID No:* ${data.uhid}\n` : ''}${data.tokenNumber ? `🎫 *Token No:* ${data.tokenNumber}\n` : ''}\nOur staff will call you to confirm admission details.\nहमारे कर्मचारी आपको कॉल करके भर्ती की पुष्टि करेंगे।\n\n👉 *To return to the main menu, send "Hi" or "Start".*\n👉 मुख्य मेनू पर लौटने के लिए "Hi" या "Start" भेजें।`,
+    `✅ *Hospitalization Request Received!*\n✅ अस्पताल में भर्ती का अनुरोध प्राप्त हुआ!\n\n${data.uhid ? `🆔 *UHID No:* ${data.uhid}\n` : ""}${data.tokenNumber ? `🎫 *Token No:* ${data.tokenNumber}\n` : ""}\nOur staff will call you to confirm admission details.\nहमारे कर्मचारी आपको कॉल करके भर्ती की पुष्टि करेंगे।\n\n👉 *To return to the main menu, send "Hi" or "Start".*\n👉 मुख्य मेनू पर लौटने के लिए "Hi" या "Start" भेजें।`,
 
   // Medicine
   medStart: () =>
     `💊 *Online Medicine Order*\nऑनलाइन घर बैठे दवा मंगाने की सुविधा\n\n📷 *Please send a photo of your prescription.*\nकृपया अपनी पर्ची की फोटो भेजें।\n\n0️⃣ Back | 00 Main Menu`,
 
   medWhoFor: (patients = []) => {
-    let msg = `💊 *ORDER MEDICINE FOR WHOM?*\n*दवा किसके लिए मंगा रहे हैं?*\n\n`
+    let msg = `💊 *ORDER MEDICINE FOR WHOM?*\n*दवा किसके लिए मंगा रहे हैं?*\n\n`;
     if (Array.isArray(patients) && patients.length > 0) {
       patients.forEach((p, idx) => {
-        msg += `${idx + 1}️⃣ ${p.name}\n`
-      })
-      msg += `${patients.length + 1}️⃣ Someone Else / Family Member (नया मरीज)\n\n`
-    } else if (typeof patients === 'string' && patients) {
-      msg += `1️⃣ ${patients}\n2️⃣ Someone Else / Family Member (नया मरीज)\n\n`
+        msg += `${toEmojiDigit(idx + 1)} ${p.name}\n`;
+      });
+      msg += `${toEmojiDigit(patients.length + 1)} Someone Else / Family Member (नया मरीज)\n\n`;
+    } else if (typeof patients === "string" && patients) {
+      msg += `1️⃣ ${patients}\n2️⃣ Someone Else / Family Member (नया मरीज)\n\n`;
     } else {
-      msg += `1️⃣ Someone Else / Family Member (नया मरीज)\n\n`
+      msg += `1️⃣ Someone Else / Family Member (नया मरीज)\n\n`;
     }
-    msg += `0️⃣ Back | 00 Main Menu`
-    return msg
+    msg += `0️⃣ Back | 00 Main Menu`;
+    return msg;
   },
 
   medName: () =>
@@ -210,7 +224,8 @@ export const MESSAGES = {
 
   // Info / Support
   info: () =>
-    `ℹ️ *General Query / Information*\nसामान्य जानकारी / अन्य जानकारी\n\n*Hospital Timings / अस्पताल का समय:*\n🕘 Mon–Sat: 9:00 AM – 8:00 PM\n🕘 Sunday: Emergency only\n\n*Address / पता:*\n📍 KG Nanda Hospital, Example Address, City\n\n*Services / सेवाएं:*\n• OPD Consultation\n• Hospitalization\n• Emergency Care\n• Online Medicine Delivery\n\n0️⃣ Main Menu`,
+    `ℹ️ *General Query / Information*\nसामान्य जानकारी / अन्य जानकारी\n\n*Hospital Timings / अस्पताल का समय:*\n🕘 Mon–Sat: 9:00 AM – 8:00 PM\n🕘 Sunday: Emergency only\n\n*Address / पता:*\n📍 KG Nanda Hospital, 
+Bichhiya Kala, Chandauli \n\n*Services / सेवाएं:*\n• OPD Consultation\n• Hospitalization\n• Emergency Care\n• Online Medicine Delivery\n\n0️⃣ Main Menu`,
 
   support: () =>
     `📞 *Talk to Support*\nअस्पताल सहायता केंद्र से संपर्क करें\n\n*For assistance, contact our helpline:*\n\n1️⃣ First Helpline: 8840376333\n2️⃣ Second Helpline: 9838850287\n\n0️⃣ Main Menu`,
