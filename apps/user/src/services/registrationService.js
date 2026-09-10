@@ -136,7 +136,23 @@ export const registrationService = {
       return { patient, booking }
     }
 
-    const { data: res } = await api.post('/patients/register', data)
+    const payload = {
+      name: data.name,
+      phone: data.phone,
+      age: Number(data.age),
+      gender: data.gender,
+      isOld: Boolean(data.isOld),
+      district: data.district,
+      address: data.address,
+      pinCode: data.pinCode || '',
+      type: data.type || 'OPD',
+      preferredDate: data.preferredDate,
+      problemDescription: data.problemDescription || '',
+      doctorId: data.doctorId || null,
+      departmentId: data.departmentId || null,
+    }
+
+    const { data: res } = await api.post('/patients/register', payload)
     return res
   },
 }

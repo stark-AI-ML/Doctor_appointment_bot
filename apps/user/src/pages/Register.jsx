@@ -1,10 +1,14 @@
 import { useState, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import {
   User, Phone, CalendarCheck, ClipboardCheck,
   CheckCircle, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { registrationService } from '../services/registrationService'
+import { doctorService } from '../services/doctorService'
+import { isMockMode } from '../services/api'
+import { mockDoctors } from '../data/mockData'
 import { useAuth } from '../hooks/useAuth'
 import Card from '../components/common/Card'
 import Button from '../components/common/Button'
@@ -89,19 +93,59 @@ export default function Register() {
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
 
-  const departments = useMemo(() => registrationService.getDepartments(), [])
-  const doctors = useMemo(
-    () => (form.departmentId ? registrationService.getDoctorsByDepartment(form.departmentId) : []),
-    [form.departmentId]
+  const { data: rawDoctors = [] } = useQuery({
+    queryKey: ['doctors'],
+    queryFn: doctorService.getDoctors,
+  })
+
+  const activeDoctors = useMemo(
+    () => (rawDoctors || []).filter((d) => d.is_active !== false),
+    [rawDoctors]
   )
-  const selectedDoctor = useMemo(
-    () => doctors.find((d) => String(d.id) === String(form.doctorId)),
-    [doctors, form.doctorId]
-  )
-  const selectedDept = useMemo(
-    () => departments.find((d) => String(d.id) === String(form.departmentId)),
-    [departments, form.departmentId]
-  )
+
+  const departments = useMemo(() => {
+    if (isMockMode()) {
+      return registrationService.getDepartments()
+    }
+    const map = new Map()
+    activeDoctors.forEach((d) => {
+      const deptName = d.department || d.specialization
+      const deptId = (d.departmentId && typeof d.departmentId === 'object')
+        ? (d.departmentId.id || d.departmentId._id)
+        : (d.departmentId || deptName)
+      if (deptName && !map.has(String(deptId))) {
+        map.set(String(deptId), { id: String(deptId), name: deptName })
+      }
+    })
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name))
+  }, [activeDoctors])
+
+  const doctors = useMemo(() => {
+    if (!form.departmentId) return []
+    if (isMockMode()) {
+      return registrationService.getDoctorsByDepartment(form.departmentId)
+    }
+    return activeDoctors.filter((d) => {
+      const deptName = d.department || d.specialization
+      const deptId = (d.departmentId && typeof d.departmentId === 'object')
+        ? (d.departmentId.id || d.departmentId._id)
+        : d.departmentId
+      return String(deptId) === String(form.departmentId) || deptName === form.departmentId
+    })
+  }, [activeDoctors, form.departmentId])
+
+  const selectedDoctor = useMemo(() => {
+    if (!form.doctorId) return null
+    if (isMockMode()) {
+      return mockDoctors.find((d) => String(d.id) === String(form.doctorId))
+    }
+    return activeDoctors.find((d) => String(d.id || d._id) === String(form.doctorId))
+  }, [activeDoctors, form.doctorId])
+
+  const selectedDept = useMemo(() => {
+    if (!form.departmentId) return null
+    return departments.find((d) => String(d.id) === String(form.departmentId) || d.name === form.departmentId)
+  }, [departments, form.departmentId])
 
   const set = (key) => (e) => {
     let value = e?.target ? e.target.value : e
@@ -145,9 +189,17 @@ export default function Register() {
     }
     setSubmitting(true)
     try {
-      const res = await registrationService.register(form, { staffCode: user?.staffCode })
+      const payload = {
+        ...form,
+        doctorId: selectedDoctor ? (selectedDoctor.id || selectedDoctor._id) : form.doctorId,
+        departmentId: selectedDoctor && selectedDoctor.departmentId
+          ? (typeof selectedDoctor.departmentId === 'object' ? (selectedDoctor.departmentId.id || selectedDoctor.departmentId._id) : selectedDoctor.departmentId)
+          : form.departmentId,
+      }
+      const res = await registrationService.register(payload, { staffCode: user?.staffCode })
       setResult(res)
-      toast.success('Registration complete — UHID ' + res.patient.uhid)
+      const uhidVal = res.patient?.uhid || res.uhid || ''
+      toast.success('Registration complete' + (uhidVal ? ' — UHID ' + uhidVal : ''))
     } catch (err) {
       toast.error(err.message || 'Registration failed')
     } finally {
@@ -164,7 +216,14 @@ export default function Register() {
 
   // ── Success: the same three numbers the bot confirms ──
   if (result) {
-    const { patient, booking } = result
+    const patient = result.patient || {}
+    const booking = result.booking || {}
+    const uhid = patient.uhid || booking.uhid || result.uhid
+    const tokenNo = booking.tokenNumber || booking.token_number || result.tokenNumber
+    const bookingId = booking.bookingId || booking.booking_id || result.bookingId
+    const patientName = patient.name || booking.patient_name || form.name
+    const bookingDate = booking.preferredDate || booking.date || form.preferredDate
+
     return (
       <div className={styles.page}>
         <PageHeader
@@ -176,23 +235,27 @@ export default function Register() {
           <div className={styles.success}>
             <div className={styles.successBadge}><CheckCircle size={44} /></div>
             <div className={styles.numbers}>
-              <div className={styles.numberCard} onClick={() => copyToClipboard(patient.uhid, 'UHID')} title="Click to copy">
-                <span className={styles.numberLabel}>UHID No · यूएचआईडी</span>
-                <span className={styles.numberValue}>{patient.uhid}</span>
-                <span className={styles.numberHint}>Click to copy • Same for this phone</span>
-              </div>
-              {booking.token_number && (
-                <div className={`${styles.numberCard} ${styles.tokenCard}`} onClick={() => copyToClipboard(booking.token_number, 'Token')} title="Click to copy">
+              {uhid && (
+                <div className={styles.numberCard} onClick={() => copyToClipboard(uhid, 'UHID')} title="Click to copy">
+                  <span className={styles.numberLabel}>UHID No · यूएचआईडी</span>
+                  <span className={styles.numberValue}>{uhid}</span>
+                  <span className={styles.numberHint}>Click to copy • Same for this phone</span>
+                </div>
+              )}
+              {tokenNo && (
+                <div className={`${styles.numberCard} ${styles.tokenCard}`} onClick={() => copyToClipboard(tokenNo, 'Token')} title="Click to copy">
                   <span className={styles.numberLabel}>Token No · टोकन</span>
-                  <span className={styles.numberValue}>{booking.token_number}</span>
+                  <span className={styles.numberValue}>{tokenNo}</span>
                   <span className={styles.numberHint}>Click to copy • Daily queue serial</span>
                 </div>
               )}
-              <div className={styles.numberCard} onClick={() => copyToClipboard(booking.booking_id, 'Booking ID')} title="Click to copy">
-                <span className={styles.numberLabel}>Booking ID</span>
-                <span className={styles.numberValueSm}>{booking.booking_id}</span>
-                <span className={styles.numberHint}>{booking.patient_name} • {formatDate(booking.date)}</span>
-              </div>
+              {bookingId && (
+                <div className={styles.numberCard} onClick={() => copyToClipboard(bookingId, 'Booking ID')} title="Click to copy">
+                  <span className={styles.numberLabel}>Booking ID</span>
+                  <span className={styles.numberValueSm}>{bookingId}</span>
+                  <span className={styles.numberHint}>{patientName} • {formatDate(bookingDate)}</span>
+                </div>
+              )}
             </div>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               <Button size="lg" onClick={resetAll}>Register Another Patient</Button>
@@ -344,7 +407,14 @@ export default function Register() {
                 >
                   <select id="reg-doctor" value={form.doctorId} onChange={set('doctorId')} disabled={!form.departmentId}>
                     <option value="">— Select doctor —</option>
-                    {doctors.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.specialization})</option>)}
+                    {doctors.map((d) => {
+                      const spec = d.specialization || d.department || d.qualification
+                      return (
+                        <option key={d.id} value={d.id}>
+                          {d.name}{spec ? ` (${spec})` : ''}
+                        </option>
+                      )
+                    })}
                   </select>
                 </FormField>
               </div>
@@ -365,7 +435,19 @@ export default function Register() {
                   <div><dt>Address</dt><dd>{form.address}{form.district ? `, ${form.district}` : ''}{form.pinCode ? ` — ${form.pinCode}` : ''}</dd></div>
                   <div><dt>Visit</dt><dd>{form.type === 'OPD' ? 'OPD' : 'Hospitalization'} · {formatDate(form.preferredDate)}</dd></div>
                   <div><dt>Department</dt><dd>{selectedDept?.name || '—'}</dd></div>
-                  <div><dt>Doctor</dt><dd>{selectedDoctor ? `${selectedDoctor.name} (${selectedDoctor.specialization})` : '—'}</dd></div>
+                  <div>
+                    <dt>Doctor</dt>
+                    <dd>
+                      {selectedDoctor ? (
+                        <>
+                          {selectedDoctor.name}
+                          {(selectedDoctor.specialization || selectedDoctor.department || selectedDoctor.qualification) ? (
+                            ` (${selectedDoctor.specialization || selectedDoctor.department || selectedDoctor.qualification})`
+                          ) : ''}
+                        </>
+                      ) : '—'}
+                    </dd>
+                  </div>
                   {form.problemDescription && <div><dt>Problem</dt><dd>{form.problemDescription}</dd></div>}
                 </dl>
               </div>

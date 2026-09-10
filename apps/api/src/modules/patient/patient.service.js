@@ -97,15 +97,34 @@ class PatientService {
 
     const type = data.type === 'HOSPITALIZATION' ? 'HOSPITALIZATION' : 'OPD'
 
+    const isValidObjectId = (id) => typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)
+    let doctorId = isValidObjectId(data.doctorId) ? data.doctorId : null
+    let departmentId = isValidObjectId(data.departmentId) ? data.departmentId : null
+
+    if (doctorId && !departmentId) {
+      try {
+        const { default: doctorRepo } = await import('../doctor/doctor.repository.js')
+        const doc = await doctorRepo.findById(doctorId)
+        if (doc && doc.departmentId) {
+          const docDeptId = doc.departmentId._id || doc.departmentId
+          if (isValidObjectId(String(docDeptId))) {
+            departmentId = String(docDeptId)
+          }
+        }
+      } catch (err) {
+        // ignore lookup error
+      }
+    }
+
     // Every OPD booking gets a fresh daily incremental token (T-001, T-002...).
     // Hospitalization has no queue → booking ID only.
     const tokenNumber = type === 'OPD'
-      ? await idsService.generateToken(data.doctorId, preferredDate)
+      ? await idsService.generateToken(doctorId, preferredDate)
       : null
 
     const booking = await bookingService.createBooking({
-      doctorId: data.doctorId || null,
-      departmentId: data.departmentId || null,
+      doctorId,
+      departmentId,
       patientId: patient._id,
       preferredDate,
       problemDescription: data.problemDescription || '',
