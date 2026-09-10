@@ -2,7 +2,7 @@ import patientRepo from './patient.repository.js'
 import bookingService from '../booking/booking.service.js'
 import idsService from '../ids/ids.service.js'
 import { normalizePhone } from '../../utils/phone.js'
-import { toGender, validateRegistration } from '../../utils/registration.js'
+import { toGender, validateRegistration, toObjectIdString } from '../../utils/registration.js'
 import { AppError } from '../../middleware/errorHandler.js'
 import logger from '../../utils/logger.js'
 
@@ -97,9 +97,11 @@ class PatientService {
 
     const type = data.type === 'HOSPITALIZATION' ? 'HOSPITALIZATION' : 'OPD'
 
-    const isValidObjectId = (id) => typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)
-    let doctorId = isValidObjectId(data.doctorId) ? data.doctorId : null
-    let departmentId = isValidObjectId(data.departmentId) ? data.departmentId : null
+    // Accept both valid id strings (frontend) and ObjectId instances
+    // (WhatsApp bot stores getId(doc) which is an ObjectId object).
+    // Anything else (names, numbers, garbage) → null.
+    let doctorId = toObjectIdString(data.doctorId)
+    let departmentId = toObjectIdString(data.departmentId)
 
     if (doctorId && !departmentId) {
       try {
@@ -107,8 +109,9 @@ class PatientService {
         const doc = await doctorRepo.findById(doctorId)
         if (doc && doc.departmentId) {
           const docDeptId = doc.departmentId._id || doc.departmentId
-          if (isValidObjectId(String(docDeptId))) {
-            departmentId = String(docDeptId)
+          const coerced = toObjectIdString(docDeptId)
+          if (coerced) {
+            departmentId = coerced
           }
         }
       } catch (err) {

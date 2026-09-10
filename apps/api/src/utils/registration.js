@@ -21,6 +21,18 @@ function digitsOnly(raw) {
   return String(raw || '').replace(/\D/g, '')
 }
 
+/**
+ * Coerce a possible Mongo id to its 24-hex string form, or null.
+ * Accepts valid strings AND ObjectId instances (Mongoose documents hand
+ * back ObjectId objects — e.g. the WhatsApp bot's selectedDoctorId —
+ * while the frontend sends plain strings). Anything else → null.
+ */
+export function toObjectIdString(id) {
+  if (typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)) return id
+  if (id && typeof id === 'object' && /^[0-9a-fA-F]{24}$/.test(String(id))) return String(id)
+  return null
+}
+
 import { parseAnyDate } from './dateHelpers.js'
 
 /**

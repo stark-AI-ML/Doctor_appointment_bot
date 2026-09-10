@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
+import mongoose from 'mongoose'
 import { normalizePhone } from '../src/utils/phone.js'
-import { toGender, validateRegistration } from '../src/utils/registration.js'
+import { toGender, validateRegistration, toObjectIdString } from '../src/utils/registration.js'
 import { requireRole } from '../src/middleware/rbac.middleware.js'
 import idsService from '../src/modules/ids/ids.service.js'
 
@@ -87,5 +88,24 @@ describe('requireRole', () => {
     expect(err2?.statusCode).toBe(403)
     const err3 = await run(null, 'admin')
     expect(err3?.statusCode).toBe(403)
+  })
+})
+
+describe('toObjectIdString', () => {
+  it('accepts valid 24-hex strings (frontend path)', () => {
+    expect(toObjectIdString('6a97371ad87abb2ebcdb4f0c')).toBe('6a97371ad87abb2ebcdb4f0c')
+  })
+  it('accepts ObjectId instances (WhatsApp bot path: getId(doc) is an ObjectId object)', () => {
+    const oid = new mongoose.Types.ObjectId('6a97371ad87abb2ebcdb4f0c')
+    expect(typeof oid).toBe('object')
+    expect(toObjectIdString(oid)).toBe('6a97371ad87abb2ebcdb4f0c')
+  })
+  it('rejects garbage to null (names, numbers, short ids, nullish)', () => {
+    expect(toObjectIdString('General Consultation')).toBeNull()
+    expect(toObjectIdString(1)).toBeNull()
+    expect(toObjectIdString('abc123')).toBeNull()
+    expect(toObjectIdString(null)).toBeNull()
+    expect(toObjectIdString(undefined)).toBeNull()
+    expect(toObjectIdString('')).toBeNull()
   })
 })
