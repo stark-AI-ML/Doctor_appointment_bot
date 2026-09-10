@@ -39,7 +39,7 @@ const bookingSchema = new mongoose.Schema(
     },
     bookingSource: {
       type: String,
-      enum: ["whatsapp", "admin", "manual", "website"],
+      enum: ["whatsapp", "admin", "offline", "website"],
       default: "whatsapp",
     },
     email: { type: String },

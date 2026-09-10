@@ -64,10 +64,13 @@ export const patientController = {
    */
   async register(req, res, next) {
     try {
+      // Source follows the channel, not the client: the receptionist Register
+      // page is the offline desk flow; admin/superadmin entries stay 'admin'.
+      const source = req.admin?.role === 'receptionist' ? 'offline' : 'admin'
       const { patient, booking } = await patientService.registerPatientWithBooking(
         req.body,
         {
-          source: 'admin',
+          source,
           createdBy: req.admin?.id || null,
           createdByRole: req.admin?.role || null,
         }
