@@ -11,9 +11,9 @@ function normalizeRecentBooking(b) {
   return {
     id: b.id || b._id,
     booking_id: b.bookingId,
-    patient_name: b.patientId?.name || 'Unknown',
-    mobile: b.patientId?.phone || '',
-    doctor_name: b.doctorId?.name || 'Unknown',
+    patient_name: (typeof b.patientId === 'object' && b.patientId?.name) ? b.patientId.name : (b.patient_name || b.patientName || '—'),
+    mobile: (typeof b.patientId === 'object' && b.patientId?.phone) ? b.patientId.phone : (b.mobile || b.phone || ''),
+    doctor_name: (typeof b.doctorId === 'object' && b.doctorId?.name) ? b.doctorId.name : (b.doctor_name || b.doctorName || '—'),
     date: b.slotId?.date || b.createdAt,
     time_slot: b.slotId ? `${b.slotId.startTime} - ${b.slotId.endTime}` : '—',
     status: b.status,
