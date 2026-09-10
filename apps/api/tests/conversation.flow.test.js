@@ -68,8 +68,8 @@ function setupDefaultMocks() {
   patientService.findAllByPhone.mockResolvedValue([])
   patientService.findOrCreateByPhone.mockResolvedValue(PATIENT_NEW)
   patientService.registerPatientWithBooking.mockResolvedValue({
-    patient: { _id: 'pat1', name: 'John Doe', uhid: 'KGN-2026-00001' },
-    booking: { _id: 'b1', bookingId: 'BK-20260907-001', tokenNumber: 'T-001' },
+    patient: { _id: 'pat1', name: 'John Doe', uhid: 'KGN-092026-00042' },
+    booking: { _id: 'b1', bookingId: 'BK-20260907-001', tokenNumber: 'T-OPD-07092026-001' },
   })
   medicineOrderService.createOrder.mockResolvedValue({ _id: 'm1', orderId: 'MED-202609-001' })
 }
@@ -140,8 +140,8 @@ describe('Conversation Booking Flow (current)', () => {
       { source: 'whatsapp' },
       { validate: false }
     )
-    expect(reply).toContain('T-001')
-    expect(reply).toContain('KGN-2026-00001')
+    expect(reply).toContain('T-OPD-07092026-001')
+    expect(reply).toContain('KGN-092026-00042')
     expect(stateStore[PHONE].currentStep).toBe('WELCOME')
   })
 
@@ -200,7 +200,7 @@ describe('Conversation Booking Flow (current)', () => {
 
   it('completes the hospitalization flow via shared registration including patient type (isOld)', async () => {
     patientService.registerPatientWithBooking.mockResolvedValue({
-      patient: { _id: 'pat1', name: 'Ramesh', uhid: 'KGN-2026-00002' },
+      patient: { _id: 'pat1', name: 'Ramesh', uhid: 'KGN-092026-00043' },
       booking: { _id: 'b2', bookingId: 'BK-20260907-002', tokenNumber: 'HOSP-001' },
     })
     await send('hi')

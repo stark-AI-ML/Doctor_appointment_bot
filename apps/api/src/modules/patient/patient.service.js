@@ -119,11 +119,9 @@ class PatientService {
       }
     }
 
-    // Every OPD booking gets a fresh daily incremental token (T-001, T-002...).
-    // Hospitalization has no queue → booking ID only.
-    const tokenNumber = type === 'OPD'
-      ? await idsService.generateToken(doctorId, preferredDate)
-      : null
+    // Token follows the user's selection: T-OPD-DDMMYYYY-001 or T-IPD-DDMMYYYY-001,
+    // sequential per doctor per day (walk-in hospitalization shares the daily 'general' series).
+    const tokenNumber = await idsService.generateToken(type, doctorId, preferredDate)
 
     const booking = await bookingService.createBooking({
       doctorId,

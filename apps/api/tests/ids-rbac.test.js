@@ -62,8 +62,9 @@ describe('validateRegistration', () => {
 
 describe('ids.service formats (pure)', () => {
   it('formats UHID/token/booking/staff codes per spec', () => {
-    expect(idsService.formats.uhid(2026, 41)).toBe('KGN-2026-00041')
-    expect(idsService.formats.token(1)).toBe('T-001')
+    expect(idsService.formats.uhid('092026', 42)).toBe('KGN-092026-00042')
+    expect(idsService.formats.token('OPD', '07092026', 1)).toBe('T-OPD-07092026-001')
+    expect(idsService.formats.token('IPD', '07092026', 12)).toBe('T-IPD-07092026-012')
     expect(idsService.formats.booking('20260907', 3)).toBe('BK-20260907-003')
     expect(idsService.formats.staffCode('receptionist', 4)).toBe('KGN_RC_004')
     expect(idsService.formats.staffCode('doctor', 1)).toBe('KGN_DOC_001')

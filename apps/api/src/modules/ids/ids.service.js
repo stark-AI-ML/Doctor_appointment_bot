@@ -25,11 +25,21 @@ function yyyymmdd(d = new Date()) {
   return `${dt.getFullYear()}${pad(dt.getMonth() + 1, 2)}${pad(dt.getDate(), 2)}`
 }
 
+function ddmmyyyy(d = new Date()) {
+  const dt = new Date(d)
+  return `${pad(dt.getDate(), 2)}${pad(dt.getMonth() + 1, 2)}${dt.getFullYear()}`
+}
+
+function mmyyyy(d = new Date()) {
+  const dt = new Date(d)
+  return `${pad(dt.getMonth() + 1, 2)}${dt.getFullYear()}`
+}
+
 class IdsService {
   /** For tests/seeding without DB races — pure format helpers. */
   formats = {
-    uhid: (year, seq) => `KGN-${year}-${pad(seq, 5)}`,
-    token: (seq) => `T-${pad(seq, 3)}`,
+    uhid: (mmyyyyStamp, seq) => `KGN-${mmyyyyStamp}-${pad(seq, 5)}`,
+    token: (typeLabel, ddmmyyyyStamp, seq) => `T-${typeLabel}-${ddmmyyyyStamp}-${pad(seq, 3)}`,
     booking: (yyyymmddStr, seq) => `BK-${yyyymmddStr}-${pad(seq, 3)}`,
     medOrder: (yyyymm, seq) => `MED-${yyyymm}-${pad(seq, 3)}`,
     staffCode: (role, seq) => `${STAFF_CODE_PREFIX[role]}${pad(seq, 3)}`,
@@ -38,7 +48,8 @@ class IdsService {
   /**
    * One UHID per phone number + patient name combination.
    * Reuses the UHID already held by any patient doc with this phone and name;
-   * generates a new yearly-series UHID when the (phone, name) combination has none.
+   * mints a new one from the global running series when the (phone, name)
+   * combination has none.
    */
   async ensureUhidForPhone(rawPhone, rawName = '') {
     const phone = normalizePhone(rawPhone)
@@ -53,23 +64,31 @@ class IdsService {
     const existing = await Patient.findOne(query).select('uhid')
     if (existing?.uhid) return existing.uhid
 
-    const seq = await nextSequence(`uhid:${yearOf()}`)
-    const uhid = this.formats.uhid(yearOf(), seq)
+    // Global running sequence — never resets, so every UHID stays unique (Q1).
+    const seq = await nextSequence('uhid:seq')
+    const uhid = this.formats.uhid(mmyyyy(), seq)
     logger.info(`Generated UHID ${uhid} for ${name || 'patient'} (${phone})`)
     return uhid
   }
 
-  /** Mint the next UHID in the yearly series (used by the backfill script). */
+  /** Mint the next UHID in the global series (used by the backfill script). */
   async generateUhidDirect(date = new Date()) {
-    const seq = await nextSequence(`uhid:${yearOf(date)}`)
-    return this.formats.uhid(yearOf(date), seq)
+    const seq = await nextSequence('uhid:seq')
+    return this.formats.uhid(mmyyyy(date), seq)
   }
 
-  /** Per-doctor-per-day sequential token: T-001, T-002… (OPD only). Resets daily. */
-  async generateToken(doctorId, date = new Date()) {
+  /**
+   * Daily sequential token per visit type: T-OPD-DDMMYYYY-001 / T-IPD-DDMMYYYY-001.
+   * Type comes from the user's selection (OPD or HOSPITALIZATION→IPD).
+   * Doctor scoping is unchanged (Q2): per doctor per day; without a doctor
+   * (walk-in hospitalization) it falls back to a shared daily 'general' series.
+   */
+  async generateToken(type, doctorId, date = new Date()) {
+    const label = type === 'HOSPITALIZATION' ? 'IPD' : 'OPD'
     const docKey = doctorId ? String(doctorId) : 'general'
-    const seq = await nextSequence(`token:${docKey}:${yyyymmdd(date)}`)
-    return this.formats.token(seq)
+    const stamp = ddmmyyyy(date)
+    const seq = await nextSequence(`token:${label}:${docKey}:${stamp}`)
+    return this.formats.token(label, stamp, seq)
   }
 
   /** Booking series — same BK-YYYYMMDD-NNN format, now race-safe. */
