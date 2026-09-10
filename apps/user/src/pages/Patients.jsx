@@ -142,25 +142,77 @@ export default function Patients() {
       <Modal
         isOpen={!!selectedPatient}
         onClose={() => setSelectedPatient(null)}
-        title={`${selectedPatient?.name || ''} — Booking History`}
+        title={`${selectedPatient?.name || ''} — Patient Profile & History`}
       >
-        {patientDetail?.bookings?.length > 0 ? (
-          <div className={styles.historyList}>
-            {patientDetail.bookings.map((b) => (
-              <div key={b.id} className={styles.historyItem}>
-                <div>
-                  <strong>{b.booking_id}</strong>
-                  <div className={styles.historyMeta}>
-                    {b.doctor_name} • {formatDate(b.date)} • {b.time_slot}
-                  </div>
-                </div>
-                <StatusBadge status={b.status} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Patient Card Header */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '12px 16px',
+            padding: '16px',
+            borderRadius: '8px',
+            background: 'var(--bg-elevated, rgba(255, 255, 255, 0.03))',
+            border: '1px solid var(--border-primary)'
+          }}>
+            <div>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '12px', display: 'block' }}>UHID Number</span>
+              <strong style={{ fontSize: '14px', color: 'var(--primary)' }}>{patientDetail?.uhid || selectedPatient?.uhid || '—'}</strong>
+            </div>
+            <div>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '12px', display: 'block' }}>Mobile</span>
+              <strong style={{ fontSize: '14px' }}>{formatPhone(patientDetail?.mobile || selectedPatient?.mobile)}</strong>
+            </div>
+            <div>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '12px', display: 'block' }}>Age / Gender</span>
+              <strong style={{ fontSize: '14px' }}>
+                {(patientDetail?.age || selectedPatient?.age) ? `${patientDetail?.age || selectedPatient?.age} yrs` : '—'} / {(patientDetail?.gender || selectedPatient?.gender || '—')}
+              </strong>
+            </div>
+            <div>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '12px', display: 'block' }}>Patient Type</span>
+              <span className={`${styles.typeBadge} ${(patientDetail?.is_old ?? selectedPatient?.is_old) ? styles.oldBadge : styles.newBadge}`}>
+                {(patientDetail?.is_old ?? selectedPatient?.is_old) ? 'Old Patient' : 'New Patient'}
+              </span>
+            </div>
+            {(patientDetail?.district || selectedPatient?.district) && (
+              <div>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '12px', display: 'block' }}>District</span>
+                <strong style={{ fontSize: '13px' }}>{patientDetail?.district || selectedPatient?.district}</strong>
               </div>
-            ))}
+            )}
+            {(patientDetail?.address || selectedPatient?.address) && (
+              <div style={{ gridColumn: 'span 2' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '12px', display: 'block' }}>Address</span>
+                <strong style={{ fontSize: '13px', fontWeight: 500 }}>{patientDetail?.address || selectedPatient?.address}</strong>
+              </div>
+            )}
           </div>
-        ) : (
-          <p style={{ color: 'var(--text-muted)' }}>No booking history</p>
-        )}
+
+          {/* Booking History Section */}
+          <div>
+            <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Booking History ({patientDetail?.bookings?.length || 0})
+            </h4>
+            {patientDetail?.bookings?.length > 0 ? (
+              <div className={styles.historyList}>
+                {patientDetail.bookings.map((b) => (
+                  <div key={b.id} className={styles.historyItem}>
+                    <div>
+                      <strong>{b.booking_id}</strong>
+                      <div className={styles.historyMeta}>
+                        {b.doctor_name} • {formatDate(b.date)} • {b.time_slot}
+                      </div>
+                    </div>
+                    <StatusBadge status={b.status} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>No booking history found</p>
+            )}
+          </div>
+        </div>
       </Modal>
     </div>
   )

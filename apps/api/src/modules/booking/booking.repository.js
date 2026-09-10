@@ -5,9 +5,9 @@ class BookingRepository {
     const skip = (page - 1) * limit
     const [data, total] = await Promise.all([
       Booking.find(filter)
-        .populate('doctorId', 'name department role')
-        .populate('patientId', 'name phone')
-        .populate('serviceId', 'name')
+        .populate('doctorId', 'name department role consultationFee')
+        .populate('patientId', 'name phone uhid age gender')
+        .populate('serviceId', 'name price duration')
         .populate('slotId', 'date startTime endTime')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -20,7 +20,7 @@ class BookingRepository {
   async findById(id) {
     return Booking.findById(id)
       .populate('doctorId', 'name department role consultationFee')
-      .populate('patientId', 'name phone age gender')
+      .populate('patientId', 'name phone uhid age gender')
       .populate('serviceId', 'name price duration')
       .populate('slotId', 'date startTime endTime')
   }
@@ -83,8 +83,9 @@ class BookingRepository {
   /** Recent bookings for dashboard */
   async getRecent(limit = 5) {
     return Booking.find()
-      .populate('doctorId', 'name')
-      .populate('patientId', 'name phone')
+      .populate('doctorId', 'name department role')
+      .populate('patientId', 'name phone uhid')
+      .populate('serviceId', 'name')
       .populate('slotId', 'date startTime endTime')
       .sort({ createdAt: -1 })
       .limit(limit)

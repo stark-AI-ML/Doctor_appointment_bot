@@ -92,11 +92,11 @@ export default function Appointments() {
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
         <div className={styles.patientInfo}>
           <span>{booking.patient_name}</span>
-          <span className={styles.patientMobile}>{formatPhone(booking.mobile)}</span>
+          <span className={styles.patientMobile}>{formatPhone(booking.mobile)}{booking.uhid ? ` • ${booking.uhid}` : ''}</span>
         </div>
       </td>
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
-        {booking.doctor_name}
+        {booking.doctor_name || '—'}
       </td>
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)', color: 'var(--text-secondary)', fontSize: '13px' }}>
         {formatDate(booking.date)}
@@ -317,11 +317,11 @@ export default function Appointments() {
             </div>
             <div className={styles.detailItem}>
               <span className={styles.detailLabel}>Doctor</span>
-              <span className={styles.detailValue}>{selectedBooking.doctor_name}</span>
+              <span className={styles.detailValue}>{selectedBooking.doctor_name || '—'}</span>
             </div>
             <div className={styles.detailItem}>
               <span className={styles.detailLabel}>Service</span>
-              <span className={styles.detailValue}>{selectedBooking.service_name}</span>
+              <span className={styles.detailValue}>{selectedBooking.service_name || '—'}</span>
             </div>
             <div className={styles.detailItem}>
               <span className={styles.detailLabel}>Visit Date</span>

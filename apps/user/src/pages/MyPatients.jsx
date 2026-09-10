@@ -154,7 +154,11 @@ export default function MyPatients() {
           <div className={styles.detailList}>
             <div className={styles.detailRow}><span>Token</span><strong>{selected.token_number || '—'}</strong></div>
             <div className={styles.detailRow}><span>UHID</span><strong>{selected.uhid || '—'}</strong></div>
-            <div className={styles.detailRow}><span>Booking</span><strong>{selected.booking_id}</strong></div>
+            <div className={styles.detailRow}><span>Booking ID</span><strong>{selected.booking_id}</strong></div>
+            <div className={styles.detailRow}><span>Patient Name</span><strong>{selected.patient_name}</strong></div>
+            <div className={styles.detailRow}><span>Mobile</span><strong>{formatPhone(selected.mobile)}</strong></div>
+            <div className={styles.detailRow}><span>Doctor</span><strong>{selected.doctor_name || '—'}</strong></div>
+            <div className={styles.detailRow}><span>Service</span><strong>{selected.service_name || '—'}</strong></div>
             <div className={styles.detailRow}><span>Date</span><strong>{formatDate(selected.date)}</strong></div>
             <div className={styles.detailRow}><span>Status</span><StatusBadge status={selected.status} /></div>
           </div>

@@ -11,12 +11,16 @@ function normalizePatient(p) {
   return {
     id: p.id || p._id,
     name: p.name,
+    uhid: p.uhid || '',
     mobile: p.phone || p.mobile || '',
     age: p.age || null,
     gender: p.gender || null,
+    district: p.district || '',
+    address: p.address || '',
+    pinCode: p.pinCode || '',
     is_old: p.isOld ?? p.is_old ?? false,
     total_bookings: p.totalBookings ?? p.total_bookings ?? 0,
-    last_visit: p.lastVisit || p.last_visit || null,
+    last_visit: p.lastVisit || p.last_visit || p.lastVisited || null,
     created_at: p.createdAt || p.created_at,
   }
 }
