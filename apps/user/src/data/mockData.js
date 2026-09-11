@@ -338,18 +338,19 @@ export const mockChartData = [
   { date: 'Sep 01', bookings: 17, confirmed: 8, cancelled: 0 },
 ]
 
-// ── Patients (derived from bookings) ──
+// ── Patients (derived from bookings; enriched for print slips) ──
 export const mockPatients = [
-  { id: 1, name: 'Rahul Kumar', mobile: '9876543210', is_old: true, total_bookings: 5, last_visit: '2026-08-20' },
-  { id: 2, name: 'Neha Singh', mobile: '9876543211', is_old: false, total_bookings: 3, last_visit: '2026-08-20' },
-  { id: 3, name: 'Amit Gupta', mobile: '9876543212', is_old: true, total_bookings: 2, last_visit: '2026-08-20' },
-  { id: 4, name: 'Pooja Yadav', mobile: '9876543213', is_old: false, total_bookings: 4, last_visit: '2026-08-21' },
-  { id: 5, name: 'Vikram Mehra', mobile: '9876543214', is_old: true, total_bookings: 1, last_visit: '2026-08-22' },
-  { id: 6, name: 'Sneha Kapoor', mobile: '9876543215', is_old: true, total_bookings: 6, last_visit: '2026-08-25' },
-  { id: 7, name: 'Ravi Sharma', mobile: '9876543216', is_old: false, total_bookings: 2, last_visit: '2026-08-26' },
-  { id: 8, name: 'Priya Nair', mobile: '9876543217', is_old: true, total_bookings: 3, last_visit: '2026-08-28' },
-  { id: 9, name: 'Arjun Reddy', mobile: '9876543218', is_old: false, total_bookings: 7, last_visit: '2026-08-30' },
-  { id: 10, name: 'Kavita Joshi', mobile: '9876543219', is_old: true, total_bookings: 1, last_visit: '2026-09-01' },
+  { id: 1, name: 'Rahul Kumar', mobile: '9876543210', uhid: 'KGN-2026-00001', age: 45, gender: 'Male', district: 'Prayagraj', address: '123, Rose Garden, Civil Lines', pinCode: '211001', isOld: false, total_bookings: 5, last_visit: '2026-08-20' },
+  { id: 2, name: 'Neha Singh', mobile: '9876543211', uhid: 'KGN-2026-00002', age: 28, gender: 'Female', district: 'Prayagraj', address: '45, MG Road', pinCode: '211001', isOld: false, total_bookings: 3, last_visit: '2026-08-20' },
+  { id: 3, name: 'Amit Gupta', mobile: '9876543212', uhid: 'KGN-2026-00003', age: 52, gender: 'Male', district: 'Jaunpur', address: '78, Station Road', pinCode: '222001', isOld: true, total_bookings: 2, last_visit: '2026-08-20' },
+  { id: 4, name: 'Pooja Yadav', mobile: '9876543213', uhid: 'KGN-2026-00004', age: 31, gender: 'Female', district: 'Jaunpur', address: '12, Olandganj', pinCode: '222001', isOld: true, total_bookings: 4, last_visit: '2026-08-21' },
+  { id: 5, name: 'Vikram Mehra', mobile: '9876543214', uhid: 'KGN-2026-00005', age: 60, gender: 'Male', district: 'Prayagraj', address: '9, Tagore Town', pinCode: '211002', isOld: false, total_bookings: 1, last_visit: '2026-08-22' },
+  { id: 6, name: 'Sneha Kapoor', mobile: '9876543215', uhid: 'KGN-2026-00006', age: 24, gender: 'Female', district: 'Varanasi', address: '3, Sigra', pinCode: '221001', isOld: true, total_bookings: 6, last_visit: '2026-08-25' },
+  { id: 7, name: 'Ravi Sharma', mobile: '9876543216', uhid: 'KGN-2026-00007', age: 38, gender: 'Male', district: 'Jaunpur', address: '56, Sadar Bazar', pinCode: '222001', isOld: false, total_bookings: 2, last_visit: '2026-08-26' },
+  { id: 8, name: 'Priya Nair', mobile: '9876543217', uhid: 'KGN-2026-00008', age: 29, gender: 'Female', district: 'Prayagraj', address: '21, Alopibagh', pinCode: '211006', isOld: true, total_bookings: 3, last_visit: '2026-08-28' },
+  { id: 9, name: 'Arjun Reddy', mobile: '9876543218', uhid: 'KGN-2026-00009', age: 47, gender: 'Male', district: 'Varanasi', address: '7, Lanka', pinCode: '221005', isOld: true, total_bookings: 7, last_visit: '2026-08-30' },
+  { id: 10, name: 'Kavita Joshi', mobile: '9876543219', uhid: 'KGN-2026-00010', age: 55, gender: 'Female', district: 'Jaunpur', address: '33, Wajidpur', pinCode: '222001', isOld: false, total_bookings: 1, last_visit: '2026-09-01' },
+  { id: 11, name: 'Ramesh Kumar', mobile: '9876543220', uhid: 'KGN-2026-00011', age: 62, gender: 'Male', district: 'Jaunpur', address: '14, Katra', pinCode: '222001', isOld: true, total_bookings: 1, last_visit: '2026-09-02' },
 ]
 
 // ── Mock Users (all roles, mock login) ──

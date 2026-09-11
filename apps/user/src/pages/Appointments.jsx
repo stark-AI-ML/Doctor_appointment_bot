@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Download, Eye, CheckCircle, XCircle, CalendarCheck } from 'lucide-react'
+import { Search, Download, Eye, CheckCircle, XCircle, CalendarCheck, Printer } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { bookingService } from '../services/bookingService'
 import { doctorService } from '../services/doctorService'
+import PrintSlipHandler from '../services/PrintSlipHandler'
+import { printService } from '../services/printService'
 import { useAuth } from '../hooks/useAuth'
 import { useDebounce } from '../hooks/useDebounce'
 import { formatDate, formatPhone } from '../utils/formatters'
@@ -71,6 +73,17 @@ export default function Appointments() {
     setShowDetail(true)
   }
 
+  // Print flow: enrich the row with patient/doctor details first so the
+  // slip renders real data (age, gender, address, UHID, specialization).
+  const handlePrint = async (booking) => {
+    try {
+      const slipData = await printService.getSlipData(booking)
+      PrintSlipHandler.printBooking(slipData)
+    } catch (err) {
+      toast.error('Could not load slip data')
+    }
+  }
+
   const bookings = bookingsData?.data || []
   const pagination = bookingsData
     ? {
@@ -130,11 +143,21 @@ export default function Appointments() {
           >
             <Eye size={16} />
           </button>
+          <button
+            className={styles.actionBtn}
+            onClick={() => handlePrint(booking)}
+            title="Print OPD Consultation Slip"
+          >
+            <Printer size={16} />
+          </button>
           {booking.status === BOOKING_STATUS.PENDING && (
             <button
               className={`${styles.actionBtn} ${styles.confirm}`}
-              onClick={() => handleStatusChange(booking.id, BOOKING_STATUS.CONFIRMED)}
-              title="Confirm"
+              onClick={() => {
+                handleStatusChange(booking.id, BOOKING_STATUS.CONFIRMED)
+                handlePrint({ ...booking, status: 'confirmed' })
+              }}
+              title="Confirm & Print Slip"
             >
               <CheckCircle size={16} />
             </button>
@@ -262,15 +285,35 @@ export default function Appointments() {
         title="Booking Details"
         footer={
           <>
-            {selectedBooking?.status === BOOKING_STATUS.PENDING && (
+            {selectedBooking?.status === BOOKING_STATUS.PENDING ? (
+              <>
+                <Button
+                  icon={CheckCircle}
+                  onClick={() => {
+                    handleStatusChange(selectedBooking.id, BOOKING_STATUS.CONFIRMED)
+                    setShowDetail(false)
+                  }}
+                >
+                  Confirm
+                </Button>
+                <Button
+                  icon={Printer}
+                  onClick={() => {
+                    handleStatusChange(selectedBooking.id, BOOKING_STATUS.CONFIRMED)
+                    handlePrint({ ...selectedBooking, status: 'confirmed' })
+                    setShowDetail(false)
+                  }}
+                >
+                  Confirm & Print
+                </Button>
+              </>
+            ) : (
               <Button
-                icon={CheckCircle}
-                onClick={() => {
-                  handleStatusChange(selectedBooking.id, BOOKING_STATUS.CONFIRMED)
-                  setShowDetail(false)
-                }}
+                icon={Printer}
+                variant="secondary"
+                onClick={() => handlePrint(selectedBooking)}
               >
-                Confirm
+                Print Slip
               </Button>
             )}
             <Button variant="secondary" onClick={() => setShowDetail(false)}>

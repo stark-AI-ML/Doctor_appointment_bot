@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Eye, CheckCircle, XCircle, BedDouble } from 'lucide-react'
+import { Search, Eye, CheckCircle, XCircle, BedDouble, Printer } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Card from '../components/common/Card'
 import PageHeader from '../components/common/PageHeader'
@@ -10,6 +10,8 @@ import Button from '../components/common/Button'
 import Modal from '../components/common/Modal'
 import { Loader } from '../components/common/Loader'
 import { bookingService } from '../services/bookingService'
+import PrintSlipHandler from '../services/PrintSlipHandler'
+import { printService } from '../services/printService'
 import { isMockMode } from '../services/api'
 import { formatDate } from '../utils/formatters'
 import styles from './Hospitalization.module.css'
@@ -50,6 +52,17 @@ export default function Hospitalization() {
     setShowDetail(true)
   }
 
+  // Print flow: enrich the row with patient details first so the
+  // ticket renders real data (age, gender, address, UHID).
+  const handlePrint = async (req) => {
+    try {
+      const slipData = await printService.getSlipData(req)
+      PrintSlipHandler.printBooking(slipData)
+    } catch (err) {
+      toast.error('Could not load ticket data')
+    }
+  }
+
   const requests = response?.data || []
   const columns = ['Request ID', 'Patient', 'Mobile', 'Pref. Date', 'Status', 'Actions']
 
@@ -74,6 +87,13 @@ export default function Hospitalization() {
         <div className={styles.rowActions}>
           <button className={styles.actionBtn} onClick={() => handleViewDetail(req)} title="View Details">
             <Eye size={16} />
+          </button>
+          <button
+            className={styles.actionBtn}
+            onClick={() => handlePrint(req)}
+            title="Print IPD Admission Ticket"
+          >
+            <Printer size={16} />
           </button>
         </div>
       </td>
@@ -121,15 +141,34 @@ export default function Hospitalization() {
         title="Hospitalization Request Details"
         footer={
           <>
-            {selectedReq?.status === 'pending' && (
+            {selectedReq?.status === 'pending' ? (
               <>
                 <Button icon={CheckCircle} onClick={() => handleStatusChange(selectedReq.id, 'confirmed')} disabled={statusMutation.isPending}>
                   Confirm Admission
+                </Button>
+                <Button
+                  icon={Printer}
+                  onClick={() => {
+                    handleStatusChange(selectedReq.id, 'confirmed')
+                    handlePrint({ ...selectedReq, status: 'confirmed' })
+                    setShowDetail(false)
+                  }}
+                  disabled={statusMutation.isPending}
+                >
+                  Confirm & Print Ticket
                 </Button>
                 <Button variant="danger" icon={XCircle} onClick={() => handleStatusChange(selectedReq.id, 'cancelled')} disabled={statusMutation.isPending}>
                   Cancel Request
                 </Button>
               </>
+            ) : (
+              <Button
+                icon={Printer}
+                variant="secondary"
+                onClick={() => handlePrint(selectedReq)}
+              >
+                Print Ticket
+              </Button>
             )}
             <Button variant="secondary" onClick={() => setShowDetail(false)}>
               Close

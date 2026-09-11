@@ -5,26 +5,32 @@ const MOCK_DELAY = 300
 
 /**
  * Normalize a booking from backend populated shape → flat UI shape.
+ * Carries the extra fields the print slip needs (age/gender/doctor spec).
  */
 function normalizeBooking(b) {
   return {
     id: b.id || b._id,
-    booking_id: b.bookingId || b.booking_id,
-    patient_name: (typeof b.patientId === 'object' && b.patientId?.name) ? b.patientId.name : (b.patient_name || b.patientName || '—'),
-    mobile: (typeof b.patientId === 'object' && b.patientId?.phone) ? b.patientId.phone : (b.mobile || b.phone || ''),
-    doctor_id: b.doctorId?.id || b.doctorId?._id || (typeof b.doctorId === 'string' ? b.doctorId : (b.doctor_id || null)),
-    doctor_name: (typeof b.doctorId === 'object' && b.doctorId?.name) ? b.doctorId.name : (b.doctor_name || b.doctorName || '—'),
-    service_name: (typeof b.serviceId === 'object' && b.serviceId?.name) ? b.serviceId.name : (b.service_name || (b.type === 'HOSPITALIZATION' ? 'Hospitalization' : 'OPD Consultation')),
-    date: b.slotId?.date || b.preferredDate || b.date || b.createdAt,
-    time_slot: b.slotId ? `${b.slotId.startTime} - ${b.slotId.endTime}` : (b.time_slot || '—'),
+    booking_id: b.bookingId,
+    patient_id: b.patientId?.id || b.patientId?._id || null,
+    patient_name: b.patientId?.name || 'Unknown',
+    mobile: b.patientId?.phone || '',
+    age: b.patientId?.age ?? null,
+    gender: b.patientId?.gender || '',
+    doctor_id: b.doctorId?.id || b.doctorId?._id || b.doctorId,
+    doctor_name: b.doctorId?.name || 'Unknown',
+    doctor_specialization: b.doctorId?.specialization || '',
+    service_name: b.serviceId?.name || '—',
+    date: b.slotId?.date || b.createdAt,
+    time_slot: b.slotId ? `${b.slotId.startTime} - ${b.slotId.endTime}` : '—',
     status: b.status,
-    booking_source: b.bookingSource || b.booking_source || 'whatsapp',
+    booking_source: b.bookingSource || 'whatsapp',
     problemDescription: b.problemDescription || '',
-    uhid: (typeof b.patientId === 'object' && b.patientId?.uhid) ? b.patientId.uhid : (b.uhid || null),
+    uhid: b.patientId?.uhid || b.uhid || null,
     token_number: b.tokenNumber || b.token_number || null,
     type: b.type || 'OPD',
-    created_at: b.createdAt || b.created_at,
-    updated_at: b.updatedAt || b.updated_at,
+    created_by: b.createdBy || b.created_by || null,
+    created_at: b.createdAt,
+    updated_at: b.updatedAt,
   }
 }
 
