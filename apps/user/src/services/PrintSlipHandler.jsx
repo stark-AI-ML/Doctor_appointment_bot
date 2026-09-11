@@ -236,8 +236,9 @@ ${this._slipBlock(booking, {
 
   <!-- Footer -->
   <div class="footer-bar">
-    <div class="contact"><span class="icon-circle wa-icon">${waSvg}</span> WhatsApp Chatbot <strong>8840376333</strong></div>
-    <div class="contact"><span class="icon-circle call-icon">${phoneSvg}</span> Call Helpline Number <strong>9838850287</strong></div>
+    <div class="contact"><span class="icon-circle wa-icon">${waSvg}</span> WhatsApp Chatbot <strong>+91 8853991899</strong></div>
+    <div class="contact"><span class="icon-circle call-icon">${phoneSvg}</span> Call Helpline Number <strong>+91 9838850287</strong></div>
+    <div class="contact"><span class="icon-circle call-icon">${phoneSvg}</span> <strong>+91 8840376333</strong></div>
   </div>
 </div>`
   }
