@@ -39,7 +39,7 @@ export class PrintSlipHandler {
       hour: '2-digit', minute: '2-digit', hour12: true,
     })
 
-    const appointmentDate = formatDate(booking.date)
+    const appointmentDate = formatDate(booking.preferredDate || booking.date)
     const source = booking.source_label || booking.created_by || booking.bookingSource || 'WhatsApp Bot'
     const address = [
       booking.address || '',

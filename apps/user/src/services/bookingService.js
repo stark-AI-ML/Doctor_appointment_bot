@@ -8,6 +8,7 @@ const MOCK_DELAY = 300
  * Carries the extra fields the print slip needs (age/gender/doctor spec).
  */
 function normalizeBooking(b) {
+  const resolvedDate = b.preferredDate || b.date || b.slotId?.date || b.createdAt
   return {
     id: b.id || b._id,
     booking_id: b.bookingId,
@@ -20,7 +21,8 @@ function normalizeBooking(b) {
     doctor_name: b.doctorId?.name || 'Unknown',
     doctor_specialization: b.doctorId?.specialization || '',
     service_name: b.serviceId?.name || '—',
-    date: b.slotId?.date || b.createdAt,
+    date: resolvedDate,
+    preferredDate: resolvedDate,
     time_slot: b.slotId ? `${b.slotId.startTime} - ${b.slotId.endTime}` : '—',
     status: b.status,
     booking_source: b.bookingSource || 'whatsapp',

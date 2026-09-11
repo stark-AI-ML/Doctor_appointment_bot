@@ -33,7 +33,7 @@ function normalizeBookingForHistory(b) {
     id: b.id || b._id,
     booking_id: b.bookingId || b.booking_id,
     doctor_name: (typeof b.doctorId === 'object' && b.doctorId?.name) ? b.doctorId.name : (b.doctor_name || b.doctorName || '—'),
-    date: b.slotId?.date || b.date || b.createdAt,
+    date: b.preferredDate || b.date || b.slotId?.date || b.createdAt,
     time_slot: b.slotId
       ? `${b.slotId.startTime} - ${b.slotId.endTime}`
       : b.time_slot || '—',

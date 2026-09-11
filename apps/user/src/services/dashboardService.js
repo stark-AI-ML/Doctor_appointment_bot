@@ -14,7 +14,7 @@ function normalizeRecentBooking(b) {
     patient_name: (typeof b.patientId === 'object' && b.patientId?.name) ? b.patientId.name : (b.patient_name || b.patientName || '—'),
     mobile: (typeof b.patientId === 'object' && b.patientId?.phone) ? b.patientId.phone : (b.mobile || b.phone || ''),
     doctor_name: (typeof b.doctorId === 'object' && b.doctorId?.name) ? b.doctorId.name : (b.doctor_name || b.doctorName || '—'),
-    date: b.slotId?.date || b.createdAt,
+    date: b.preferredDate || b.date || b.slotId?.date || b.createdAt,
     time_slot: b.slotId ? `${b.slotId.startTime} - ${b.slotId.endTime}` : '—',
     status: b.status,
     created_at: b.createdAt,
