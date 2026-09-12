@@ -172,14 +172,14 @@ export default function Hospitalization() {
               type="date"
               className={styles.dateInput}
               value={dateFilter}
-              onChange={(e) => { setDateFilter(e.target.value); setPage(1) }}
+              onChange={(e) => { setDateFilter(e.target.value); setPage(1); setSearch('') }}
               id="ipd-date-filter"
               title="Filter by visit date (Preferred Date)"
             />
             <button
               className={styles.clearDateBtn}
               style={{ position: 'static', marginLeft: 6, border: '1px solid var(--border-primary)', borderRadius: 6, padding: '4px 8px', fontSize: 12 }}
-              onClick={() => { setDateFilter(getTodayStr()); setPage(1) }}
+              onClick={() => { setDateFilter(getTodayStr()); setPage(1); setSearch('') }}
               title="Jump back to today"
             >
               Today
@@ -187,7 +187,7 @@ export default function Hospitalization() {
             {dateFilter && (
               <button
                 className={styles.clearDateBtn}
-                onClick={() => { setDateFilter(''); setPage(1) }}
+                onClick={() => { setDateFilter(''); setPage(1); setSearch('') }}
                 title="Show all dates"
               >
                 ×

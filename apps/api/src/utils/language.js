@@ -17,7 +17,8 @@ export class LanguageService {
       "General Surgery": "सामान्य शल्य चिकित्सा",
       "General Surgery (Shalya)": "सामान्य शल्य चिकित्सा (शल्य)",
       "General Medicine": "सामान्य चिकित्सा",
-      "Critical Care": "गंभीर देखभाल (क्रिटिकल केयर)",
+      // /change - i am doing this as it's required no more
+      // "Critical Care": "गंभीर देखभाल (क्रिटिकल केयर)",
       Orthopaedics: "हड्डी एवं जोड़ रोग (ऑर्थोपेडिक्स)",
       Urology: "मूत्र रोग (यूरोलॉजी)",
       Paediatric: "बाल रोग",
@@ -89,30 +90,30 @@ export class LanguageService {
    * Formats doctor entity with bilingual name and qualifications
    */
   formatDoctor(doctor = {}) {
-    let name = doctor.name ? doctor.name.trim() : ''
+    let name = doctor.name ? doctor.name.trim() : "";
     if (name) {
       name = /^dr\.?\s*/i.test(name)
-        ? name.replace(/^(dr\.?\s*)+/i, 'Dr. ')
-        : `Dr. ${name}`
+        ? name.replace(/^(dr\.?\s*)+/i, "Dr. ")
+        : `Dr. ${name}`;
     }
 
-    let nameHindi = doctor.nameHindi ? doctor.nameHindi.trim() : ''
+    let nameHindi = doctor.nameHindi ? doctor.nameHindi.trim() : "";
     if (nameHindi) {
       nameHindi = /^डॉ\.?\s*/.test(nameHindi)
-        ? nameHindi.replace(/^(डॉ\.?\s*)+/, 'डॉ. ')
-        : `डॉ. ${nameHindi}`
+        ? nameHindi.replace(/^(डॉ\.?\s*)+/, "डॉ. ")
+        : `डॉ. ${nameHindi}`;
     }
 
-    const bilingualName = nameHindi ? `${name} / ${nameHindi}` : name
+    const bilingualName = nameHindi ? `${name} / ${nameHindi}` : name;
 
-    const qual = doctor.qualification || doctor.qualifications || 'Consultant'
-    const qualHindi = doctor.qualificationHindi || this.getTranslation(qual)
-    const bilingualQual = qualHindi ? `${qual} (${qualHindi})` : qual
+    const qual = doctor.qualification || doctor.qualifications || "Consultant";
+    const qualHindi = doctor.qualificationHindi || this.getTranslation(qual);
+    const bilingualQual = qualHindi ? `${qual} (${qualHindi})` : qual;
 
     return {
       bilingualName,
       bilingualQual,
-    }
+    };
   }
 }
 

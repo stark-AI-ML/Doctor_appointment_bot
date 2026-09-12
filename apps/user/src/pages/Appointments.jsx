@@ -283,6 +283,9 @@ export default function Appointments() {
               onChange={(e) => {
                 setDateFilter(e.target.value)
                 setPage(1)
+                // New day = new queue: drop any leftover name/ID search so the
+                // day's full patient list shows (search + date combine as AND).
+                setSearch('')
               }}
               id="date-filter"
               title="Filter by visit date (Preferred Date)"
@@ -293,6 +296,7 @@ export default function Appointments() {
               onClick={() => {
                 setDateFilter(getTodayStr())
                 setPage(1)
+                setSearch('')
               }}
               title="Jump back to today"
             >
@@ -304,6 +308,7 @@ export default function Appointments() {
                 onClick={() => {
                   setDateFilter('')
                   setPage(1)
+                  setSearch('')
                 }}
                 title="Show all dates"
               >
