@@ -239,6 +239,12 @@ export const MESSAGES = {
   invalidInput: () =>
     `❌ Invalid input. Please try again or type "menu".\nगलत इनपुट। कृपया पुनः प्रयास करें।`,
 
+  invalidMobile: () =>
+    `❌ *Invalid Mobile Number / अमान्य मोबाइल नंबर*\n\n*Please enter a valid 10-digit mobile number.*\nकृपया 10 अंकों का सही मोबाइल नंबर दर्ज करें। (उदा: 9876543210)\n\n0️⃣ Back | 00 Main Menu`,
+
+  invalidPinCode: () =>
+    `❌ *Invalid PIN Code / अमान्य पिन कोड*\n\n*Please enter a valid 6-digit PIN code in your address.*\nकृपया अपने पते में 6 अंकों का सही पिन कोड दर्ज करें। (उदा: 232104)\n\n0️⃣ Back | 00 Main Menu`,
+
   doctorUnavailable: () =>
     `❌ *Selected Doctor is Unavailable / डॉक्टर उपलब्ध नहीं हैं*\n*The selected doctor is currently offline or inactive. Please select another doctor.*\nचयनित डॉक्टर वर्तमान में उपलब्ध या सक्रिय नहीं हैं। कृपया दूसरे डॉक्टर का चयन करें।`,
 };

@@ -18,6 +18,9 @@ export default function Patients() {
   const [sortBy, setSortBy] = useState('lastVisit')
   const [sortOrder, setSortOrder] = useState('desc')
   const [selectedPatient, setSelectedPatient] = useState(null)
+  const [page, setPage] = useState(1)
+  const limit = 10
+
   const debouncedSearch = useDebounce(search, 400)
 
   const { data: patients, isLoading } = useQuery({
@@ -33,6 +36,19 @@ export default function Patients() {
     queryFn: () => patientService.getPatient(selectedPatient.id),
     enabled: !!selectedPatient,
   })
+
+  const allPatients = patients || []
+  const total = allPatients.length
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+  const paginatedPatients = allPatients.slice((page - 1) * limit, page * limit)
+
+  const pagination = {
+    page,
+    limit,
+    total,
+    totalPages,
+    onPageChange: setPage,
+  }
 
   const columns = ['Patient', 'Type / Status', 'Mobile', 'Total Bookings', 'Last Visit', 'Action']
 
@@ -81,19 +97,19 @@ export default function Patients() {
         <div className={styles.tabs}>
           <button
             className={`${styles.tab} ${filterTab === 'all' ? styles.activeTab : ''}`}
-            onClick={() => setFilterTab('all')}
+            onClick={() => { setFilterTab('all'); setPage(1); }}
           >
             All Patients
           </button>
           <button
             className={`${styles.tab} ${filterTab === 'old' ? styles.activeTab : ''}`}
-            onClick={() => setFilterTab('old')}
+            onClick={() => { setFilterTab('old'); setPage(1); }}
           >
             Old Patients (पुराना मरीज)
           </button>
           <button
             className={`${styles.tab} ${filterTab === 'new' ? styles.activeTab : ''}`}
-            onClick={() => setFilterTab('new')}
+            onClick={() => { setFilterTab('new'); setPage(1); }}
           >
             New Patients (नया मरीज)
           </button>
@@ -106,7 +122,7 @@ export default function Patients() {
               className={styles.searchInput}
               placeholder="Search by name or mobile..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               id="patient-search"
             />
           </div>
@@ -120,6 +136,7 @@ export default function Patients() {
                 const [by, order] = e.target.value.split(':')
                 setSortBy(by)
                 setSortOrder(order)
+                setPage(1)
               }}
             >
               <option value="lastVisit:desc">Last Visit (Newest First)</option>
@@ -135,7 +152,13 @@ export default function Patients() {
 
       <Card noPadding>
         {isLoading ? <Loader /> : (
-          <Table columns={columns} data={patients || []} renderRow={renderRow} emptyMessage="No patients found" />
+          <Table
+            columns={columns}
+            data={paginatedPatients}
+            renderRow={renderRow}
+            pagination={pagination}
+            emptyMessage="No patients found"
+          />
         )}
       </Card>
 

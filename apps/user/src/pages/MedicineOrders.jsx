@@ -23,6 +23,8 @@ export default function MedicineOrders() {
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [showDetail, setShowDetail] = useState(false)
   const [staffNotes, setStaffNotes] = useState('')
+  const [page, setPage] = useState(1)
+  const limit = 10
 
   // Query
   const { data: response, isLoading } = useQuery({
@@ -54,6 +56,17 @@ export default function MedicineOrders() {
 
   const columns = ['Order ID', 'Patient', 'Mobile', 'Status', 'Actions']
   const orders = response?.data || []
+  const total = orders.length
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+  const paginatedOrders = orders.slice((page - 1) * limit, page * limit)
+
+  const pagination = {
+    page,
+    limit,
+    total,
+    totalPages,
+    onPageChange: setPage,
+  }
 
   const renderRow = (order) => (
     <tr key={order.id}>
@@ -94,7 +107,7 @@ export default function MedicineOrders() {
             className={styles.searchInput}
             placeholder="Search by name or ID..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
       </div>
@@ -107,8 +120,9 @@ export default function MedicineOrders() {
         ) : (
           <Table
             columns={columns}
-            data={orders}
+            data={paginatedOrders}
             renderRow={renderRow}
+            pagination={pagination}
             emptyMessage="No medicine orders found."
           />
         )}

@@ -27,6 +27,8 @@ export default function MyPatients() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
+  const [page, setPage] = useState(1)
+  const limit = 10
   const debouncedSearch = useDebounce(search, 400)
 
   const { data: bookingsData, isLoading } = useQuery({
@@ -55,6 +57,18 @@ export default function MyPatients() {
     }
     return [...list].sort((a, b) => (a.token_number || '').localeCompare(b.token_number || ''))
   }, [bookingsData, debouncedSearch])
+
+  const total = rows.length
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+  const paginatedRows = rows.slice((page - 1) * limit, page * limit)
+
+  const pagination = {
+    page,
+    limit,
+    total,
+    totalPages,
+    onPageChange: setPage,
+  }
 
   const columns = ['Token', 'Patient', 'UHID', 'Mobile', 'Date', 'Status', 'Action']
 
@@ -134,14 +148,20 @@ export default function MyPatients() {
           className={styles.searchInput}
           placeholder="Search by patient or token (T-001)..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           id="mypatients-search"
         />
       </div>
 
       <Card noPadding>
         {isLoading ? <Loader /> : (
-          <Table columns={columns} data={rows} renderRow={renderRow} emptyMessage="No patients assigned to you yet" />
+          <Table
+            columns={columns}
+            data={paginatedRows}
+            renderRow={renderRow}
+            pagination={pagination}
+            emptyMessage="No patients assigned to you yet"
+          />
         )}
       </Card>
 

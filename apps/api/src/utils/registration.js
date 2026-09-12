@@ -42,7 +42,7 @@ import { parseAnyDate } from './dateHelpers.js'
 export function validateRegistration(data = {}) {
   const errors = []
   if (!data.name || String(data.name).trim().length < 2) errors.push('Name must be at least 2 characters')
-  if (digitsOnly(data.phone).length < 10) errors.push('Valid 10-digit mobile number is required')
+  if (digitsOnly(data.phone).length !== 10) errors.push('Valid 10-digit mobile number is required')
   const age = parseInt(data.age, 10)
   if (data.age === undefined || data.age === null || String(data.age).trim() === '' || isNaN(age) || age < 1 || age > 120) {
     errors.push('Age must be between 1 and 120')

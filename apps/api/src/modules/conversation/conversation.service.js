@@ -118,9 +118,16 @@ class ConversationService {
             state,
             input,
           );
-        case STEPS.REVIEW:
-          return await opdHandler.handleReview(this, phone, state, input);
 
+        case STEPS.REVIEW:
+          await opdHandler.handleReview(this, phone, state, input);
+          await this.sendLocation(phone, {
+            latitude: 25.3524371,
+            longitude: 82.8434218,
+            name: "KG Nanda Hospital",
+            address: "Bichhiya Kala, Chandauli, Uttar Pradesh 232104",
+          });
+          return;
         // Hospitalization Flow
         case STEPS.HOSP_WHO_FOR:
           return await hospitalizationHandler.handleHospWhoFor(
@@ -193,13 +200,19 @@ class ConversationService {
             input,
           );
         case STEPS.HOSP_REVIEW:
-          return await hospitalizationHandler.handleHospReview(
+          await hospitalizationHandler.handleHospReview(
             this,
             phone,
             state,
             input,
           );
-
+          await this.sendLocation(phone, {
+            latitude: 25.3524371,
+            longitude: 82.8434218,
+            name: "KG Nanda Hospital",
+            address: "Bichhiya Kala, Chandauli, Uttar Pradesh 232104",
+          });
+          return;
         // Medicine Flow
         case STEPS.MED_PRESCRIPTION:
           return await medicineHandler.handleMedPrescription(
@@ -321,8 +334,8 @@ class ConversationService {
   }
 
   async sendLocation(phone, body) {
-    if (!this.messagingProvider) {
-      logger.warn("No messaging provider set — location not sent:", body);
+    if (!this.messagingProvider || typeof this.messagingProvider.sendLocationMessage !== 'function') {
+      logger.warn("No messaging provider set or sendLocationMessage missing — location not sent:", body);
       return;
     }
 

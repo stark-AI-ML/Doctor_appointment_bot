@@ -189,7 +189,7 @@ describe('Conversation Booking Flow (current)', () => {
     await send('hi'); await send('1'); await send('1'); await send('1'); await send('1')
     await send('John Doe')
     let reply = await send('123')
-    expect(reply).toContain('Invalid input')
+    expect(reply).toContain('Invalid Mobile Number')
     await send('9876543210')
     reply = await send('999')
     expect(reply).toContain('Invalid input')
@@ -212,7 +212,7 @@ describe('Conversation Booking Flow (current)', () => {
     await send('1')          // Male
     await send('1')          // Old/Existing Patient (isOld = true)
     await send('Jaunpur')    // district
-    await send('Civil Lines') // address
+    await send('Civil Lines 222001') // address with 6-digit PIN code
     await send('Chest pain') // problem
     expect(stateStore[PHONE].currentStep).toBe('HOSP_DATE')
     const review = await send('1') // date selection -> REVIEW
@@ -283,5 +283,25 @@ describe('Conversation Booking Flow (current)', () => {
     expect(toEmojiDigit(9)).toBe('9️⃣')
     expect(toEmojiDigit(10)).toBe('1️⃣0️⃣')
     expect(toEmojiDigit(12)).toBe('1️⃣2️⃣')
+  })
+
+  it('rejects mobile numbers not matching exactly 10 digits', async () => {
+    await send('hi'); await send('1'); await send('1'); await send('1'); await send('1')
+    await send('Jane Doe')
+    let reply = await send('987654321') // 9 digits
+    expect(reply).toContain('Invalid Mobile Number')
+    reply = await send('98765432100') // 11 digits
+    expect(reply).toContain('Invalid Mobile Number')
+    reply = await send('9876543210') // valid 10 digits
+    expect(reply).toContain('Age')
+  })
+
+  it('rejects addresses missing a 6-digit PIN code', async () => {
+    await send('hi'); await send('1'); await send('1'); await send('1'); await send('1')
+    await send('Jane Doe'); await send('9876543210'); await send('25'); await send('2'); await send('2'); await send('Jaunpur')
+    let reply = await send('No Pincode Address')
+    expect(reply).toContain('Invalid PIN Code')
+    reply = await send('Address with pin 232104')
+    expect(reply).toContain('Health Problem')
   })
 })

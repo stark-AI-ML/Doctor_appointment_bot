@@ -39,7 +39,7 @@ export const hospitalizationHandler = {
 
   async handleHospMobile(service, phone, state, input) {
     const cleanNum = input.replace(/\D/g, '')
-    if (cleanNum.length < 10) return service.sendMessage(phone, MESSAGES.invalidInput())
+    if (cleanNum.length !== 10) return service.sendMessage(phone, MESSAGES.invalidMobile())
     await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_AGE, stateData: { ...state.stateData, mobile: cleanNum } })
     return service.sendMessage(phone, MESSAGES.hospAge())
   },
@@ -86,7 +86,9 @@ export const hospitalizationHandler = {
   },
 
   async handleHospAddress(service, phone, state, input) {
-    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_PROBLEM, stateData: { ...state.stateData, address: input } })
+    const pinMatch = input.match(/\b\d{6}\b/)
+    if (!pinMatch) return service.sendMessage(phone, MESSAGES.invalidPinCode())
+    await conversationRepo.upsert(phone, { currentStep: STEPS.HOSP_PROBLEM, stateData: { ...state.stateData, address: input, pinCode: pinMatch[0] } })
     return service.sendMessage(phone, MESSAGES.hospProblem())
   },
 
@@ -145,6 +147,7 @@ export const hospitalizationHandler = {
         isOld: state.stateData.isOld,
         district: state.stateData.district,
         address: state.stateData.address,
+        pinCode: state.stateData.pinCode || '',
         preferredDate: state.selectedDate,
         problemDescription: state.stateData.problem,
         type: 'HOSPITALIZATION',

@@ -118,7 +118,7 @@ export const opdHandler = {
 
   async handlePatientMobile(service, phone, state, input) {
     const cleanNum = input.replace(/\D/g, '')
-    if (cleanNum.length < 10) return service.sendMessage(phone, MESSAGES.invalidInput())
+    if (cleanNum.length !== 10) return service.sendMessage(phone, MESSAGES.invalidMobile())
     await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_AGE, stateData: { ...state.stateData, mobile: cleanNum } })
     return service.sendMessage(phone, MESSAGES.patientAge())
   },
@@ -165,7 +165,9 @@ export const opdHandler = {
   },
 
   async handlePatientAddress(service, phone, state, input) {
-    await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_PROBLEM, stateData: { ...state.stateData, address: input } })
+    const pinMatch = input.match(/\b\d{6}\b/)
+    if (!pinMatch) return service.sendMessage(phone, MESSAGES.invalidPinCode())
+    await conversationRepo.upsert(phone, { currentStep: STEPS.PATIENT_PROBLEM, stateData: { ...state.stateData, address: input, pinCode: pinMatch[0] } })
     return service.sendMessage(phone, MESSAGES.patientProblem())
   },
 
@@ -211,6 +213,7 @@ export const opdHandler = {
         isOld: state.stateData.isOld,
         district: state.stateData.district,
         address: state.stateData.address,
+        pinCode: state.stateData.pinCode || '',
         doctorId: state.selectedDoctorId,
         departmentId: state.stateData.departmentId,
         preferredDate: state.selectedDate,

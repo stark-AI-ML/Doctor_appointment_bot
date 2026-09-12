@@ -92,6 +92,9 @@ export const medicineHandler = {
   },
 
   async handleMedAddress(service, phone, state, input) {
+    const pinMatch = input.match(/\b\d{6}\b/)
+    if (!pinMatch) return service.sendMessage(phone, MESSAGES.invalidPinCode())
+
     let patientId = state.stateData?.patientId
     if (!patientId) {
       const patientName = state.stateData?.patientName || 'Patient'
@@ -102,6 +105,7 @@ export const medicineHandler = {
     await medicineOrderService.createOrder({
       patientId,
       deliveryAddress: input,
+      pinCode: pinMatch[0],
       prescriptionUrl: state.stateData.prescriptionUrl
     })
 
