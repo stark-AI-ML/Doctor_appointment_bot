@@ -229,8 +229,7 @@ export const MESSAGES = {
   // Info / Support
   info: () =>
     `ℹ️ *General Query / Information*\nसामान्य जानकारी / अन्य जानकारी\n\n*Hospital Timings / अस्पताल का समय:*\n🕘 24x7 \n🕘 Sunday: Emergency only\n\n*Address / पता:*\n📍 KG Nanda Hospital, 
-Bichhiya Kala, Chandauli \n\n*Services / सेवाएं:*\n• OPD Consultation\n• Hospitalization\n• Emergency Care\n• Online Medicine Delivery\n\n https://www.google.com/maps/dir//KG+Nanda+Hospital+Chandauli,+Word+No.11+Sanjay+Nagar+Infront+of+Chaurashia+Petrol+Pump,+Bichhiya+Kala,+Chandauli,+Jasori,+Uttar+Pradesh+232104/@25.3524371,82.8434218,14z/data=!3m1!4b1!4m8!4m7!1m0!1m5!1m1!1s0x398e1628a794315b:0x180372a0f2950ada!2m2!1d83.2555991!2d25.2591387?entry=ttu&g_ep=EgoyMDI2MDkwOS4wIKXMDSoASAFQAw%3D%3D \n\n0️⃣ Main Menu`,
-
+    Bichhiya Kala, Chandauli \n\n*Services / सेवाएं:*\n• OPD Consultation\n• Hospitalization\n• Emergency Care\n• Online Medicine Delivery\n\n0️⃣ Main Menu`,
   support: () =>
     `📞 *Talk to Support*\nअस्पताल सहायता केंद्र से संपर्क करें\n\n*For assistance, contact our helpline:*\n\n1️⃣ First Helpline: 8840376333\n2️⃣ Second Helpline: 9838850287\n\n0️⃣ Main Menu`,
 
