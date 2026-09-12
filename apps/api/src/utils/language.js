@@ -17,6 +17,7 @@ export class LanguageService {
       "General Surgery": "सामान्य शल्य चिकित्सा",
       "General Surgery (Shalya)": "सामान्य शल्य चिकित्सा (शल्य)",
       "General Medicine": "सामान्य चिकित्सा",
+
       // /change - i am doing this as it's required no more
       // "Critical Care": "गंभीर देखभाल (क्रिटिकल केयर)",
       Orthopaedics: "हड्डी एवं जोड़ रोग (ऑर्थोपेडिक्स)",
@@ -25,7 +26,6 @@ export class LanguageService {
       Pediatrician: "बाल रोग विशेषज्ञ",
       Pediatric: "बाल रोग",
       ENT: "कान, नाक और गला (ENT)",
-      Anaesthetist: "एनेस्थीसिया विशेषज्ञ",
       "RMO - Resident Medical Officer": "आर.एम.ओ (निवासी चिकित्सा अधिकारी)",
       "General Physician": "सामान्य चिकित्सक",
       Dermatologist: "त्वचा रोग विशेषज्ञ",
