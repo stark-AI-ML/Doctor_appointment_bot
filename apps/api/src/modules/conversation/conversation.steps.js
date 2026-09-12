@@ -2,7 +2,7 @@
  * KG Nanda Hospital Conversation Steps and Bilingual Messages
  */
 
-import languageService from '../../utils/language.js'
+import languageService from "../../utils/language.js";
 
 export const STEPS = {
   WELCOME: "WELCOME",
@@ -59,7 +59,9 @@ export const MESSAGES = {
   departments: (deps) => {
     let msg = `🏥 *OPD / Outpatient Department*\nओपीडी / बाह्य रोग विभाग\n\n*Kindly select a department:*\nकृपया विभाग चुनें:\n\n`;
     deps.forEach((d, i) => {
-      const label = languageService.formatBilingual(d.name, d.nameHindi, { brackets: true });
+      const label = languageService.formatBilingual(d.name, d.nameHindi, {
+        brackets: true,
+      });
       msg += `${toEmojiDigit(i + 1)} ${label}\n`;
     });
     msg += `\n👉 *Reply with number* | 0️⃣ *Main Menu*`;
@@ -67,7 +69,9 @@ export const MESSAGES = {
   },
 
   doctors: (deptName, docs) => {
-    const bilingualDept = languageService.formatBilingual(deptName, null, { brackets: true });
+    const bilingualDept = languageService.formatBilingual(deptName, null, {
+      brackets: true,
+    });
     let msg = `👩‍⚕️ *${bilingualDept}*\n\n`;
     docs.forEach((d, i) => {
       const { bilingualName, bilingualQual } = languageService.formatDoctor(d);
@@ -133,7 +137,7 @@ export const MESSAGES = {
     `📋 *REVIEW APPOINTMENT REQUEST*\n\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Preferred Date: ${data.date}\n\n👤 Patient: ${data.name}\n📱 Mobile: ${data.mobile}\n🎂 Age: ${data.age}\n⚧ Gender: ${data.gender}\n🏥 Type: ${data.isOld ? "Old / Existing Patient (पुराना मरीज)" : "New Patient (नया मरीज)"}\n📍 District: ${data.district}\n🏠 Address: ${data.address}\n🩺 Problem: ${data.problem}\n\n*Confirm details?*\n1️⃣ Confirm / पुष्टि करें\n2️⃣ Edit / बदलाव करें\n0️⃣ Main Menu`,
 
   appointmentConfirmed: (data) =>
-    `✅ *Appointment Request Received!*\n✅ अपॉइंटमेंट अनुरोध सफलतापूर्वक प्राप्त हुआ!\n\n🎫 *Token No:* ${data.tokenNumber}\n🆔 *UHID No:* ${data.uhid}\n\n📋 *Appointment Details / विवरण:*\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Date: ${data.date}\n👤 Name: ${data.name}\n📱 Mobile: ${data.mobile}\n\n📌 *Our team will call you to confirm your appointment.*\n📌 हमारी टीम आपको कॉल करके अपॉइंटमेंट की पुष्टि करेगी।\n\n👉 *To return to the main menu, send "Hi" or "Start".*\n👉 मुख्य मेनू पर लौटने के लिए "Hi" या "Start" भेजें।`,
+    `✅ *Appointment Request Received!*\n✅ अपॉइंटमेंट अनुरोध सफलतापूर्वक प्राप्त हुआ!\n\n🎫 *Token No:* ${data.tokenNumber}\n🆔 *UHID No:* ${data.uhid}\n\n📋 *Appointment Details / विवरण:*\n👨‍⚕️ Doctor: ${data.doctorName}\n📅 Date: ${data.date}\n👤 Name: ${data.name}\n📱 Mobile: ${data.mobile}\n\n📌 *Your booking has been confirmed.*\n📌 आपकी बुकिंग की पुष्टि कर दी गई है।।\n\n👉 *To return to the main menu, send "Hi" or "Start".*\n👉 मुख्य मेनू पर लौटने के लिए "Hi" या "Start" भेजें।`,
 
   // Hospitalization
   hospWhoFor: (patients = []) => {
