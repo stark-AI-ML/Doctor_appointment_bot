@@ -12,6 +12,7 @@ import { settingsController } from '../modules/settings/settings.controller.js'
 import authRoutes from './auth.routes.js'
 import medicineOrderRoutes from '../modules/medicine/medicineOrder.routes.js'
 import userRoutes from '../modules/user/user.routes.js'
+import { parseAnyDate } from '../utils/dateHelpers.js'
 
 const { SUPERADMIN, ADMIN, DOCTOR, RECEPTIONIST, PHARMACY } = ROLES
 const STAFF = [SUPERADMIN, ADMIN, RECEPTIONIST, PHARMACY]
@@ -49,7 +50,7 @@ router.post('/bookings', async (req, res, next) => {
       address: req.body.address || 'Chandauli',
       department: req.body.department || '',
       doctorId: doctorId || null,
-      preferredDate: req.body.preferredDate || req.body.appointmentDate || new Date().toISOString().split('T')[0],
+      preferredDate: parseAnyDate(req.body.preferredDate || req.body.appointmentDate) || new Date(),
       problemDescription: req.body.message || req.body.problemDescription || '',
       type: req.body.type || 'OPD',
     }

@@ -5,7 +5,7 @@ import doctorRepo from "../doctor/doctor.repository.js";
 import { cache } from "../../config/redis.js";
 import logger from "../../utils/logger.js";
 import { AppError } from "../../middleware/errorHandler.js";
-import { formatDateDisplay } from "../../utils/dateHelpers.js";
+import { formatDateDisplay, parseAnyDate } from "../../utils/dateHelpers.js";
 
 class BookingService {
   /**
@@ -18,22 +18,63 @@ class BookingService {
     doctor_id,
     search,
     type,
+    date,
+    startDate,
+    endDate,
+    sortBy = 'preferredDate',
+    sortOrder = 'desc',
   } = {}) {
-    const filter = {};
-    if (status) filter.status = status;
-    if (doctor_id) filter.doctorId = doctor_id;
-    if (type) filter.type = type;
+    // Coerce query-string numbers → ints (req.query is always strings)
+    page = parseInt(page, 10) || 1;
+    limit = parseInt(limit, 10) || 10;
+    limit = Math.min(Math.max(limit, 1), 200);
 
-    // search requires a patient lookup first
+    const andConditions = [];
+    if (status) andConditions.push({ status });
+    if (doctor_id) andConditions.push({ doctorId: doctor_id });
+    if (type) andConditions.push({ type });
+
+    // ── Date-wise filter is ALWAYS on preferredDate (visit date), never createdAt ──
+    if (date) {
+      const parsed = parseAnyDate(date);
+      if (parsed) {
+        const start = new Date(parsed);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(parsed);
+        end.setHours(23, 59, 59, 999);
+        andConditions.push({ preferredDate: { $gte: start, $lte: end } });
+      }
+    } else if (startDate || endDate) {
+      const range = {};
+      if (startDate) {
+        const s = parseAnyDate(startDate);
+        if (s) {
+          s.setHours(0, 0, 0, 0);
+          range.$gte = s;
+        }
+      }
+      if (endDate) {
+        const e = parseAnyDate(endDate);
+        if (e) {
+          e.setHours(23, 59, 59, 999);
+          range.$lte = e;
+        }
+      }
+      if (Object.keys(range).length) andConditions.push({ preferredDate: range });
+    }
+
+    // search requires a patient lookup first — AND-combined so it never wipes the date filter
     if (search) {
       const regex = new RegExp(search, "i");
       const patients = await patientRepo.search(search);
       const patientIds = patients.map((p) => p._id);
 
-      filter.$or = [{ bookingId: regex }, { patientId: { $in: patientIds } }];
+      andConditions.push({ $or: [{ bookingId: regex }, { patientId: { $in: patientIds } }] });
     }
 
-    return bookingRepo.findAll(filter, { page, limit });
+    const filter = andConditions.length ? { $and: andConditions } : {};
+
+    return bookingRepo.findAll(filter, { page, limit, sortBy, sortOrder });
   }
 
   async getBookingById(id) {
@@ -78,6 +119,7 @@ class BookingService {
 
     // Generate booking ID: BK-YYYYMMDD-NNN
     const bookingId = await this.generateBookingId();
+    const parsedPreferredDate = parseAnyDate(preferredDate) || new Date();
 
     // Create booking
     const booking = await bookingRepo.create({
@@ -89,7 +131,7 @@ class BookingService {
       patientId,
       serviceId,
       slotId,
-      preferredDate,
+      preferredDate: parsedPreferredDate,
       problemDescription,
       status: "pending",
       bookingSource: source,

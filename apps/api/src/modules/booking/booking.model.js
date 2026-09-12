@@ -60,6 +60,7 @@ bookingSchema.index({ doctorId: 1, status: 1 });
 bookingSchema.index({ patientId: 1 });
 bookingSchema.index({ createdAt: -1 });
 bookingSchema.index({ createdBy: 1, createdAt: -1 });
+bookingSchema.index({ preferredDate: -1 });
 
 bookingSchema.set("toJSON", {
   virtuals: true,

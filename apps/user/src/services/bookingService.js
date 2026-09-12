@@ -1,5 +1,6 @@
 import api, { isMockMode } from './api'
 import { mockBookings } from '../data/mockData'
+import { parseAnyDate } from '../utils/formatters'
 
 const MOCK_DELAY = 300
 
@@ -71,6 +72,51 @@ export const bookingService = {
             b.mobile.includes(q)
         )
       }
+      if (params.date) {
+        filtered = filtered.filter((b) => {
+          const prefDate = b.preferredDate || b.date
+          if (!prefDate) return false
+          const d = parseAnyDate(prefDate)
+          if (!d) return false
+          const yyyy = d.getFullYear()
+          const mm = String(d.getMonth() + 1).padStart(2, '0')
+          const dd = String(d.getDate()).padStart(2, '0')
+          const formattedPrefDate = `${yyyy}-${mm}-${dd}`
+          return formattedPrefDate === params.date
+        })
+      }
+      const startDate = params.startDate || params.date_from
+      const endDate = params.endDate || params.date_to
+      if (startDate || endDate) {
+        filtered = filtered.filter((b) => {
+          const prefDate = b.preferredDate || b.date
+          if (!prefDate) return false
+          const d = parseAnyDate(prefDate)
+          if (!d) return false
+          const yyyy = d.getFullYear()
+          const mm = String(d.getMonth() + 1).padStart(2, '0')
+          const dd = String(d.getDate()).padStart(2, '0')
+          const formattedPrefDate = `${yyyy}-${mm}-${dd}`
+          if (startDate && formattedPrefDate < startDate) return false
+          if (endDate && formattedPrefDate > endDate) return false
+          return true
+        })
+      }
+
+      // Sorting in mock mode — newest first (matches server: preferredDate desc, createdAt desc)
+      const sortBy = params.sortBy || 'preferredDate'
+      const sortOrder = params.sortOrder || 'desc'
+      filtered.sort((a, b) => {
+        let valA, valB
+        if (sortBy === 'createdAt' || sortBy === 'created_at') {
+          valA = a.created_at ? new Date(a.created_at).getTime() : 0
+          valB = b.created_at ? new Date(b.created_at).getTime() : 0
+        } else {
+          valA = a.preferredDate || a.date ? new Date(a.preferredDate || a.date).getTime() : (a.created_at ? new Date(a.created_at).getTime() : 0)
+          valB = b.preferredDate || b.date ? new Date(b.preferredDate || b.date).getTime() : (b.created_at ? new Date(b.created_at).getTime() : 0)
+        }
+        return sortOrder === 'asc' ? valA - valB : valB - valA
+      })
 
       // Pagination
       const page = params.page || 1
@@ -79,12 +125,40 @@ export const bookingService = {
       const start = (page - 1) * limit
       const data = filtered.slice(start, start + limit)
 
-      return { data, total, page, limit, totalPages: Math.ceil(total / limit) }
+      const confirmedCount = filtered.filter((b) => b.status === 'confirmed').length
+      const pendingCount = filtered.filter((b) => b.status === 'pending').length
+      const cancelledCount = filtered.filter((b) => b.status === 'cancelled').length
+      const completedCount = filtered.filter((b) => b.status === 'completed').length
+
+      return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        summary: {
+          totalBookings: total,
+          confirmedCount,
+          pendingCount,
+          cancelledCount,
+          completedCount,
+        },
+      }
     }
     const { data } = await api.get('/bookings', { params })
+    const normalizedData = (data.data || []).map(normalizeBooking)
+
+    // Server already returns newest-first order + summary — trust it, no client re-sort.
     return {
       ...data,
-      data: (data.data || []).map(normalizeBooking),
+      data: normalizedData,
+      summary: data.summary || {
+        totalBookings: data.total || normalizedData.length,
+        confirmedCount: normalizedData.filter((b) => b.status === 'confirmed').length,
+        pendingCount: normalizedData.filter((b) => b.status === 'pending').length,
+        cancelledCount: normalizedData.filter((b) => b.status === 'cancelled').length,
+        completedCount: normalizedData.filter((b) => b.status === 'completed').length,
+      },
     }
   },
 

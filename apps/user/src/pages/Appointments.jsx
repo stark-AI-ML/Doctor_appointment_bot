@@ -19,6 +19,14 @@ import Modal from '../components/common/Modal'
 import { Loader } from '../components/common/Loader'
 import styles from './Appointments.module.css'
 
+const getTodayStr = () => {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 export default function Appointments() {
   const { user } = useAuth()
   const isDoctor = user?.role === 'doctor'
@@ -26,6 +34,11 @@ export default function Appointments() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  // Default to TODAY's preferredDate so staff land on today's confirm queue.
+  // List is always newest-first (server sorts preferredDate desc, createdAt desc) — no sort dropdown needed.
+  const [dateFilter, setDateFilter] = useState(getTodayStr)
+  // Default 30 rows so a full day's queue fits with pagination (10/30/50/100)
+  const [limit, setLimit] = useState(30)
   // Doctors see only their own bookings — scoped from the login, never the dropdown
   const [doctorFilter, setDoctorFilter] = useState(isDoctor ? String(user?.doctorId || '') : '')
   const [selectedBooking, setSelectedBooking] = useState(null)
@@ -39,16 +52,19 @@ export default function Appointments() {
     queryFn: doctorService.getDoctors,
   })
 
-  // Fetch bookings with filters
+  // Fetch bookings with filters — date is ALWAYS the visit date (preferredDate), newest first
   const { data: bookingsData, isLoading } = useQuery({
-    queryKey: ['bookings', { page, status: statusFilter, doctor_id: doctorFilter, search: debouncedSearch }],
+    queryKey: ['bookings', { page, limit, status: statusFilter, doctor_id: doctorFilter, search: debouncedSearch, date: dateFilter }],
     queryFn: () =>
       bookingService.getBookings({
         page,
-        limit: 10,
+        limit,
         status: statusFilter,
         doctor_id: doctorFilter,
         search: debouncedSearch,
+        date: dateFilter,
+        sortBy: 'preferredDate',
+        sortOrder: 'desc',
       }),
     keepPreviousData: true,
   })
@@ -207,6 +223,41 @@ export default function Appointments() {
         subtitle={isDoctor ? 'Your OPD queue · confirm or complete visits' : 'OPD bookings across all doctors · confirm, complete or cancel'}
         icon={CalendarCheck}
       />
+      {/* ── Summary Stats Row — scoped to the selected preferredDate ── */}
+      <div className={styles.statsRow}>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>
+            Total Bookings · {dateFilter ? formatDate(dateFilter) : 'All dates'}
+            {dateFilter === getTodayStr() ? ' (Today)' : ''}
+          </span>
+          <span className={styles.statValue}>{bookingsData?.summary?.totalBookings ?? bookingsData?.total ?? 0}</span>
+        </div>
+        <div className={`${styles.statCard} ${styles.statConfirmed}`}>
+          <span className={styles.statLabel}>Total Confirmed</span>
+          <span className={`${styles.statValue} ${styles.confirmedText}`}>
+            {bookingsData?.summary?.confirmedCount ?? 0}
+          </span>
+        </div>
+        <div className={`${styles.statCard} ${styles.statPending}`}>
+          <span className={styles.statLabel}>Total Pending</span>
+          <span className={`${styles.statValue} ${styles.pendingText}`}>
+            {bookingsData?.summary?.pendingCount ?? 0}
+          </span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Total Completed</span>
+          <span className={styles.statValue}>
+            {bookingsData?.summary?.completedCount ?? 0}
+          </span>
+        </div>
+        <div className={`${styles.statCard} ${styles.statCancelled}`}>
+          <span className={styles.statLabel}>Total Cancelled</span>
+          <span className={`${styles.statValue} ${styles.cancelledText}`}>
+            {bookingsData?.summary?.cancelledCount ?? 0}
+          </span>
+        </div>
+      </div>
+
       {/* ── Toolbar ── */}
       <div className={styles.toolbar}>
         <div className={styles.filters}>
@@ -223,6 +274,42 @@ export default function Appointments() {
               }}
               id="booking-search"
             />
+          </div>
+          <div className={styles.dateInputWrapper}>
+            <input
+              type="date"
+              className={styles.dateInput}
+              value={dateFilter}
+              onChange={(e) => {
+                setDateFilter(e.target.value)
+                setPage(1)
+              }}
+              id="date-filter"
+              title="Filter by visit date (Preferred Date)"
+            />
+            <button
+              className={styles.clearDateBtn}
+              style={{ position: 'static', marginLeft: 6, border: '1px solid var(--border-primary)', borderRadius: 6, padding: '4px 8px', fontSize: 12 }}
+              onClick={() => {
+                setDateFilter(getTodayStr())
+                setPage(1)
+              }}
+              title="Jump back to today"
+            >
+              Today
+            </button>
+            {dateFilter && (
+              <button
+                className={styles.clearDateBtn}
+                onClick={() => {
+                  setDateFilter('')
+                  setPage(1)
+                }}
+                title="Show all dates"
+              >
+                ×
+              </button>
+            )}
           </div>
           <select
             className={styles.select}
@@ -255,8 +342,29 @@ export default function Appointments() {
               ))}
             </select>
           )}
+          <select
+            className={styles.select}
+            value={limit}
+            onChange={(e) => {
+              setLimit(Number(e.target.value))
+              setPage(1)
+            }}
+            id="limit-filter"
+            title="Rows Per Page"
+            style={{ minWidth: '95px' }}
+          >
+            <option value={10}>10 rows</option>
+            <option value={30}>30 rows</option>
+            <option value={50}>50 rows</option>
+            <option value={100}>100 rows</option>
+          </select>
         </div>
         <div className={styles.actions}>
+          <span style={{ alignSelf: 'center', fontSize: 13, color: 'var(--text-secondary)', marginRight: 8 }}>
+            {dateFilter
+              ? `${bookingsData?.total ?? 0} patient${(bookingsData?.total ?? 0) === 1 ? '' : 's'} · ${formatDate(dateFilter)} · newest first`
+              : `${bookingsData?.total ?? 0} patients · all dates · newest first`}
+          </span>
           <Button variant="secondary" icon={Download} size="sm" onClick={handleExportCSV}>
             Export CSV
           </Button>
@@ -273,7 +381,7 @@ export default function Appointments() {
             data={bookings}
             renderRow={renderRow}
             pagination={pagination}
-            emptyMessage="No bookings found"
+            emptyMessage={dateFilter ? `No bookings for ${formatDate(dateFilter)}` : 'No bookings found'}
           />
         )}
       </Card>

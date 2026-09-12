@@ -16,17 +16,30 @@ import { isMockMode } from '../services/api'
 import { formatDate } from '../utils/formatters'
 import styles from './Hospitalization.module.css'
 
+const getTodayStr = () => {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 export default function Hospitalization() {
   const queryClient = useQueryClient()
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(30)
   const [search, setSearch] = useState('')
+  const [dateFilter, setDateFilter] = useState(getTodayStr)
+  const [statusFilter, setStatusFilter] = useState('')
+  // Always newest-first (server sorts preferredDate desc, createdAt desc) — no sort dropdown needed.
   const [selectedReq, setSelectedReq] = useState(null)
   const [showDetail, setShowDetail] = useState(false)
   const [staffNotes, setStaffNotes] = useState('')
 
-  // Query - we fetch bookings but filter by type=HOSPITALIZATION
+  // Query - we fetch bookings but filter by type=HOSPITALIZATION, date = visit date (preferredDate)
   const { data: response, isLoading } = useQuery({
-    queryKey: ['hospitalization', search],
-    queryFn: () => bookingService.getBookings({ type: 'HOSPITALIZATION', search }),
+    queryKey: ['hospitalization', { page, limit, search, date: dateFilter, status: statusFilter }],
+    queryFn: () => bookingService.getBookings({ type: 'HOSPITALIZATION', page, limit, search, date: dateFilter, status: statusFilter, sortBy: 'preferredDate', sortOrder: 'desc' }),
     refetchInterval: isMockMode() ? false : 30000,
   })
 
@@ -107,16 +120,116 @@ export default function Hospitalization() {
         subtitle="IPD admission requests · confirm or cancel after the staff call"
         icon={BedDouble}
       />
+      {/* ── Summary Stats Row — scoped to the selected preferredDate ── */}
+      <div className={styles.statsRow}>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>
+            Total Bookings · {dateFilter ? formatDate(dateFilter) : 'All dates'}
+            {dateFilter === getTodayStr() ? ' (Today)' : ''}
+          </span>
+          <span className={styles.statValue}>{response?.summary?.totalBookings ?? response?.total ?? 0}</span>
+        </div>
+        <div className={`${styles.statCard} ${styles.statConfirmed}`}>
+          <span className={styles.statLabel}>Total Confirmed</span>
+          <span className={`${styles.statValue} ${styles.confirmedText}`}>
+            {response?.summary?.confirmedCount ?? 0}
+          </span>
+        </div>
+        <div className={`${styles.statCard} ${styles.statPending}`}>
+          <span className={styles.statLabel}>Total Pending</span>
+          <span className={`${styles.statValue} ${styles.pendingText}`}>
+            {response?.summary?.pendingCount ?? 0}
+          </span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Total Completed</span>
+          <span className={styles.statValue}>
+            {response?.summary?.completedCount ?? 0}
+          </span>
+        </div>
+        <div className={`${styles.statCard} ${styles.statCancelled}`}>
+          <span className={styles.statLabel}>Total Cancelled</span>
+          <span className={`${styles.statValue} ${styles.cancelledText}`}>
+            {response?.summary?.cancelledCount ?? 0}
+          </span>
+        </div>
+      </div>
+
       <div className={styles.toolbar}>
-        <div className={styles.searchWrapper}>
-          <Search className={styles.searchIconInline} />
-          <input
-            type="text"
-            className={styles.searchInput}
-            placeholder="Search by name or ID..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className={styles.filters}>
+          <div className={styles.searchWrapper}>
+            <Search className={styles.searchIconInline} />
+            <input
+              type="text"
+              className={styles.searchInput}
+              placeholder="Search by name or ID..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            />
+          </div>
+          <div className={styles.dateInputWrapper}>
+            <input
+              type="date"
+              className={styles.dateInput}
+              value={dateFilter}
+              onChange={(e) => { setDateFilter(e.target.value); setPage(1) }}
+              id="ipd-date-filter"
+              title="Filter by visit date (Preferred Date)"
+            />
+            <button
+              className={styles.clearDateBtn}
+              style={{ position: 'static', marginLeft: 6, border: '1px solid var(--border-primary)', borderRadius: 6, padding: '4px 8px', fontSize: 12 }}
+              onClick={() => { setDateFilter(getTodayStr()); setPage(1) }}
+              title="Jump back to today"
+            >
+              Today
+            </button>
+            {dateFilter && (
+              <button
+                className={styles.clearDateBtn}
+                onClick={() => { setDateFilter(''); setPage(1) }}
+                title="Show all dates"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <select
+            className={styles.select}
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value)
+              setPage(1)
+            }}
+            id="ipd-status-filter"
+          >
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <select
+            className={styles.select}
+            value={limit}
+            onChange={(e) => {
+              setLimit(Number(e.target.value))
+              setPage(1)
+            }}
+            id="ipd-limit-filter"
+            title="Rows Per Page"
+            style={{ minWidth: '95px' }}
+          >
+            <option value={10}>10 rows</option>
+            <option value={30}>30 rows</option>
+            <option value={50}>50 rows</option>
+            <option value={100}>100 rows</option>
+          </select>
+          <span style={{ alignSelf: 'center', fontSize: 13, color: 'var(--text-secondary)' }}>
+            {dateFilter
+              ? `${response?.total ?? 0} patient${(response?.total ?? 0) === 1 ? '' : 's'} · ${formatDate(dateFilter)} · newest first`
+              : `${response?.total ?? 0} patients · all dates · newest first`}
+          </span>
         </div>
       </div>
 
@@ -130,7 +243,18 @@ export default function Hospitalization() {
             columns={columns}
             data={requests}
             renderRow={renderRow}
-            emptyMessage="No hospitalization requests found."
+            pagination={
+              response
+                ? {
+                    page: response.page || page,
+                    totalPages: response.totalPages || Math.ceil((response.total || requests.length) / limit),
+                    total: response.total || requests.length,
+                    limit: response.limit || limit,
+                    onPageChange: setPage,
+                  }
+                : null
+            }
+            emptyMessage={dateFilter ? `No hospitalization requests for ${formatDate(dateFilter)}` : 'No hospitalization requests found.'}
           />
         )}
       </Card>

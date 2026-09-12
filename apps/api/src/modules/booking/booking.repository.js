@@ -1,20 +1,47 @@
 import Booking from './booking.model.js'
 
 class BookingRepository {
-  async findAll(filter = {}, { page = 1, limit = 10 } = {}) {
+  async findAll(filter = {}, { page = 1, limit = 10, sortBy = 'preferredDate', sortOrder = 'desc' } = {}) {
+    page = parseInt(page, 10) || 1
+    limit = parseInt(limit, 10) || 10
+    limit = Math.min(Math.max(limit, 1), 200)
     const skip = (page - 1) * limit
-    const [data, total] = await Promise.all([
+    // Only two sortable fields: preferredDate (visit date, default) or createdAt (booking creation).
+    const sortField = (sortBy === 'createdAt' || sortBy === 'created_at') ? 'createdAt' : 'preferredDate'
+    const sortDirection = (sortOrder === 'asc' || sortOrder === '1' || sortOrder === 1) ? 1 : -1
+    // Secondary sort createdAt desc → newest booking first within the same preferredDate (staff confirm queue).
+    const sortObj = sortField === 'createdAt' ? { createdAt: sortDirection } : { preferredDate: sortDirection, createdAt: -1 }
+
+    const [data, total, confirmedCount, pendingCount, cancelledCount, completedCount] = await Promise.all([
       Booking.find(filter)
         .populate('doctorId', 'name department role consultationFee')
         .populate('patientId', 'name phone uhid age gender')
         .populate('serviceId', 'name price duration')
         .populate('slotId', 'date startTime endTime')
-        .sort({ createdAt: -1 })
+        .sort(sortObj)
         .skip(skip)
         .limit(limit),
       Booking.countDocuments(filter),
+      Booking.countDocuments({ ...filter, status: 'confirmed' }),
+      Booking.countDocuments({ ...filter, status: 'pending' }),
+      Booking.countDocuments({ ...filter, status: 'cancelled' }),
+      Booking.countDocuments({ ...filter, status: 'completed' }),
     ])
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) }
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      summary: {
+        totalBookings: total,
+        confirmedCount,
+        pendingCount,
+        cancelledCount,
+        completedCount,
+      },
+    }
   }
 
   async findById(id) {

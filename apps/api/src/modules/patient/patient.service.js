@@ -5,6 +5,7 @@ import { normalizePhone } from '../../utils/phone.js'
 import { toGender, validateRegistration, toObjectIdString } from '../../utils/registration.js'
 import { AppError } from '../../middleware/errorHandler.js'
 import logger from '../../utils/logger.js'
+import { parseAnyDate } from '../../utils/dateHelpers.js'
 
 class PatientService {
   async findByPhone(phone) {
