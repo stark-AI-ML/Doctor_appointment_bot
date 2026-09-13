@@ -1,4 +1,5 @@
 import Booking from './booking.model.js'
+import patientRepo from '../patient/patient.repository.js'
 
 class BookingRepository {
   async findAll(filter = {}, { page = 1, limit = 10, sortBy = 'preferredDate', sortOrder = 'desc' } = {}) {
@@ -12,10 +13,17 @@ class BookingRepository {
     // Secondary sort createdAt desc → newest booking first within the same preferredDate (staff confirm queue).
     const sortObj = sortField === 'createdAt' ? { createdAt: sortDirection } : { preferredDate: sortDirection, createdAt: -1 }
 
-    const [data, total, confirmedCount, pendingCount, cancelledCount, completedCount] = await Promise.all([
+    const [oldPatients, newPatients] = await Promise.all([
+      patientRepo.search('', { isOld: true }),
+      patientRepo.search('', { isOld: false }),
+    ])
+    const oldPatientIds = oldPatients.map((p) => p._id)
+    const newPatientIds = newPatients.map((p) => p._id)
+
+    const [data, total, confirmedCount, pendingCount, cancelledCount, completedCount, oldPatientCount, newPatientCount] = await Promise.all([
       Booking.find(filter)
         .populate('doctorId', 'name department role consultationFee')
-        .populate('patientId', 'name phone uhid age gender')
+        .populate('patientId', 'name phone uhid age gender isOld')
         .populate('serviceId', 'name price duration')
         .populate('slotId', 'date startTime endTime')
         .sort(sortObj)
@@ -26,6 +34,8 @@ class BookingRepository {
       Booking.countDocuments({ ...filter, status: 'pending' }),
       Booking.countDocuments({ ...filter, status: 'cancelled' }),
       Booking.countDocuments({ ...filter, status: 'completed' }),
+      Booking.countDocuments({ ...filter, patientId: { $in: oldPatientIds } }),
+      Booking.countDocuments({ ...filter, patientId: { $in: newPatientIds } }),
     ])
 
     return {
@@ -40,6 +50,8 @@ class BookingRepository {
         pendingCount,
         cancelledCount,
         completedCount,
+        oldPatientCount,
+        newPatientCount,
       },
     }
   }

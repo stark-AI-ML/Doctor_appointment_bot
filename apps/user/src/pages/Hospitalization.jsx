@@ -31,6 +31,7 @@ export default function Hospitalization() {
   const [search, setSearch] = useState('')
   const [dateFilter, setDateFilter] = useState(getTodayStr)
   const [statusFilter, setStatusFilter] = useState('')
+  const [patientTypeFilter, setPatientTypeFilter] = useState('')
   // Always newest-first (server sorts preferredDate desc, createdAt desc) — no sort dropdown needed.
   const [selectedReq, setSelectedReq] = useState(null)
   const [showDetail, setShowDetail] = useState(false)
@@ -38,8 +39,8 @@ export default function Hospitalization() {
 
   // Query - we fetch bookings but filter by type=HOSPITALIZATION, date = visit date (preferredDate)
   const { data: response, isLoading } = useQuery({
-    queryKey: ['hospitalization', { page, limit, search, date: dateFilter, status: statusFilter }],
-    queryFn: () => bookingService.getBookings({ type: 'HOSPITALIZATION', page, limit, search, date: dateFilter, status: statusFilter, sortBy: 'preferredDate', sortOrder: 'desc' }),
+    queryKey: ['hospitalization', { page, limit, search, date: dateFilter, status: statusFilter, isOld: patientTypeFilter }],
+    queryFn: () => bookingService.getBookings({ type: 'HOSPITALIZATION', page, limit, search, date: dateFilter, status: statusFilter, isOld: patientTypeFilter, sortBy: 'preferredDate', sortOrder: 'desc' }),
     refetchInterval: isMockMode() ? false : 30000,
   })
 
@@ -77,15 +78,27 @@ export default function Hospitalization() {
   }
 
   const requests = response?.data || []
-  const columns = ['Request ID', 'Patient', 'Mobile', 'Pref. Date', 'Status', 'Actions']
+  const columns = ['Patient', 'Patient Type', 'Mobile', 'Pref. Date', 'Status', 'Actions']
 
   const renderRow = (req) => (
     <tr key={req.id}>
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
-        <span className={styles.requestId}>{req.booking_id}</span>
+        {req.patient_name}
       </td>
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
-        {req.patient_name}
+        <span style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          padding: '4px 10px',
+          borderRadius: '12px',
+          fontSize: '12px',
+          fontWeight: 600,
+          background: (req.is_old || req.isOld) ? 'rgba(56, 139, 253, 0.15)' : 'rgba(46, 160, 67, 0.15)',
+          color: (req.is_old || req.isOld) ? '#58a6ff' : '#3fb950',
+          border: (req.is_old || req.isOld) ? '1px solid rgba(56, 139, 253, 0.3)' : '1px solid rgba(46, 160, 67, 0.3)'
+        }}>
+          {(req.is_old || req.isOld) ? 'Old Patient (पुराना)' : 'New Patient (नया)'}
+        </span>
       </td>
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
         {req.mobile}
@@ -108,6 +121,36 @@ export default function Hospitalization() {
           >
             <Printer size={16} />
           </button>
+          {req.status === 'pending' && (
+            <button
+              className={`${styles.actionBtn} ${styles.confirm}`}
+              onClick={() => {
+                handleStatusChange(req.id, 'confirmed')
+                handlePrint({ ...req, status: 'confirmed' })
+              }}
+              title="Confirm & Print Ticket"
+            >
+              <CheckCircle size={16} />
+            </button>
+          )}
+          {req.status === 'confirmed' && (
+            <button
+              className={`${styles.actionBtn} ${styles.confirm}`}
+              onClick={() => handleStatusChange(req.id, 'completed')}
+              title="Mark Completed"
+            >
+              <CheckCircle size={16} />
+            </button>
+          )}
+          {req.status !== 'cancelled' && (
+            <button
+              className={`${styles.actionBtn} ${styles.cancel}`}
+              onClick={() => handleStatusChange(req.id, 'cancelled')}
+              title="Cancel Request"
+            >
+              <XCircle size={16} />
+            </button>
+          )}
         </div>
       </td>
     </tr>
@@ -117,17 +160,28 @@ export default function Hospitalization() {
     <div className={styles.page}>
       <PageHeader
         title="Hospitalization (IPD)"
-        subtitle="IPD admission requests · confirm or cancel after the staff call"
+        subtitle="Inpatient admission requests · confirm or complete"
         icon={BedDouble}
       />
       {/* ── Summary Stats Row — scoped to the selected preferredDate ── */}
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
           <span className={styles.statLabel}>
-            Total Bookings · {dateFilter ? formatDate(dateFilter) : 'All dates'}
-            {dateFilter === getTodayStr() ? ' (Today)' : ''}
+            Total Requests {dateFilter === getTodayStr() ? ' (Today)' : ''}
           </span>
           <span className={styles.statValue}>{response?.summary?.totalBookings ?? response?.total ?? 0}</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Old Patients (पुराना)</span>
+          <span className={styles.statValue} style={{ color: '#58a6ff' }}>
+            {response?.summary?.oldPatientCount ?? 0}
+          </span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>New Patients (नया)</span>
+          <span className={styles.statValue} style={{ color: '#3fb950' }}>
+            {response?.summary?.newPatientCount ?? 0}
+          </span>
         </div>
         <div className={`${styles.statCard} ${styles.statConfirmed}`}>
           <span className={styles.statLabel}>Total Confirmed</span>
@@ -208,6 +262,19 @@ export default function Hospitalization() {
             <option value="confirmed">Confirmed</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
+          </select>
+          <select
+            className={styles.select}
+            value={patientTypeFilter}
+            onChange={(e) => {
+              setPatientTypeFilter(e.target.value)
+              setPage(1)
+            }}
+            id="ipd-patient-type-filter"
+          >
+            <option value="">All Patient Types</option>
+            <option value="true">Old Patient (पुराना मरीज)</option>
+            <option value="false">New Patient (नया मरीज)</option>
           </select>
           <select
             className={styles.select}

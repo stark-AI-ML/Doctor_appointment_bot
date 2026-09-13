@@ -1,5 +1,5 @@
 import api, { isMockMode } from './api'
-import { mockBookings } from '../data/mockData'
+import { mockBookings, mockPatients } from '../data/mockData'
 import { parseAnyDate } from '../utils/formatters'
 
 const MOCK_DELAY = 300
@@ -31,6 +31,8 @@ function normalizeBooking(b) {
     uhid: b.patientId?.uhid || b.uhid || null,
     token_number: b.tokenNumber || b.token_number || null,
     type: b.type || 'OPD',
+    is_old: (typeof b.patientId === 'object' && b.patientId?.isOld !== undefined) ? b.patientId.isOld : (b.isOld ?? b.is_old ?? false),
+    isOld: (typeof b.patientId === 'object' && b.patientId?.isOld !== undefined) ? b.patientId.isOld : (b.isOld ?? b.is_old ?? false),
     created_by: b.createdBy || b.created_by || null,
     created_at: b.createdAt,
     updated_at: b.updatedAt,
@@ -62,6 +64,17 @@ export const bookingService = {
       }
       if (params.doctor_id) {
         filtered = filtered.filter((b) => b.doctor_id === Number(params.doctor_id))
+      }
+      if (params.isOld !== undefined && params.isOld !== null && params.isOld !== '') {
+        const targetOld = String(params.isOld) === 'true'
+        filtered = filtered.filter((b) => {
+          let bIsOld = b.isOld ?? b.is_old
+          if (bIsOld === undefined) {
+            const foundPatient = mockPatients.find((p) => p.mobile === b.mobile || p.id === b.patient_id)
+            if (foundPatient) bIsOld = foundPatient.isOld ?? foundPatient.is_old
+          }
+          return Boolean(bIsOld) === targetOld
+        })
       }
       if (params.search) {
         const q = params.search.toLowerCase()
@@ -130,6 +143,24 @@ export const bookingService = {
       const cancelledCount = filtered.filter((b) => b.status === 'cancelled').length
       const completedCount = filtered.filter((b) => b.status === 'completed').length
 
+      const oldPatientCount = filtered.filter((b) => {
+        let bIsOld = b.isOld ?? b.is_old
+        if (bIsOld === undefined) {
+          const foundPatient = mockPatients.find((p) => p.mobile === b.mobile || p.id === b.patient_id)
+          if (foundPatient) bIsOld = foundPatient.isOld ?? foundPatient.is_old
+        }
+        return Boolean(bIsOld) === true
+      }).length
+
+      const newPatientCount = filtered.filter((b) => {
+        let bIsOld = b.isOld ?? b.is_old
+        if (bIsOld === undefined) {
+          const foundPatient = mockPatients.find((p) => p.mobile === b.mobile || p.id === b.patient_id)
+          if (foundPatient) bIsOld = foundPatient.isOld ?? foundPatient.is_old
+        }
+        return Boolean(bIsOld) === false
+      }).length
+
       return {
         data,
         total,
@@ -142,6 +173,8 @@ export const bookingService = {
           pendingCount,
           cancelledCount,
           completedCount,
+          oldPatientCount,
+          newPatientCount,
         },
       }
     }
@@ -158,6 +191,8 @@ export const bookingService = {
         pendingCount: normalizedData.filter((b) => b.status === 'pending').length,
         cancelledCount: normalizedData.filter((b) => b.status === 'cancelled').length,
         completedCount: normalizedData.filter((b) => b.status === 'completed').length,
+        oldPatientCount: normalizedData.filter((b) => b.is_old || b.isOld).length,
+        newPatientCount: normalizedData.filter((b) => !(b.is_old || b.isOld)).length,
       },
     }
   },

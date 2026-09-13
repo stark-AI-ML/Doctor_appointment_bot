@@ -34,6 +34,7 @@ export default function Appointments() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [patientTypeFilter, setPatientTypeFilter] = useState('')
   // Default to TODAY's preferredDate so staff land on today's confirm queue.
   // List is always newest-first (server sorts preferredDate desc, createdAt desc) — no sort dropdown needed.
   const [dateFilter, setDateFilter] = useState(getTodayStr)
@@ -54,7 +55,7 @@ export default function Appointments() {
 
   // Fetch bookings with filters — date is ALWAYS the visit date (preferredDate), newest first
   const { data: bookingsData, isLoading } = useQuery({
-    queryKey: ['bookings', { page, limit, status: statusFilter, doctor_id: doctorFilter, search: debouncedSearch, date: dateFilter }],
+    queryKey: ['bookings', { page, limit, status: statusFilter, doctor_id: doctorFilter, search: debouncedSearch, date: dateFilter, isOld: patientTypeFilter }],
     queryFn: () =>
       bookingService.getBookings({
         page,
@@ -63,6 +64,7 @@ export default function Appointments() {
         doctor_id: doctorFilter,
         search: debouncedSearch,
         date: dateFilter,
+        isOld: patientTypeFilter,
         sortBy: 'preferredDate',
         sortOrder: 'desc',
       }),
@@ -111,18 +113,30 @@ export default function Appointments() {
       }
     : null
 
-  const columns = ['ID', 'Patient', 'Doctor', 'Date', 'Token', 'Status', 'Actions']
+  const columns = ['Patient', 'Patient Type', 'Doctor', 'Date', 'Token', 'Status', 'Actions']
 
   const renderRow = (booking) => (
     <tr key={booking.id}>
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
-        <span className={styles.bookingId}>{booking.booking_id}</span>
-      </td>
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
         <div className={styles.patientInfo}>
           <span>{booking.patient_name}</span>
           <span className={styles.patientMobile}>{formatPhone(booking.mobile)}{booking.uhid ? ` • ${booking.uhid}` : ''}</span>
         </div>
+      </td>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
+        <span style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          padding: '4px 10px',
+          borderRadius: '12px',
+          fontSize: '12px',
+          fontWeight: 600,
+          background: (booking.is_old || booking.isOld) ? 'rgba(56, 139, 253, 0.15)' : 'rgba(46, 160, 67, 0.15)',
+          color: (booking.is_old || booking.isOld) ? '#58a6ff' : '#3fb950',
+          border: (booking.is_old || booking.isOld) ? '1px solid rgba(56, 139, 253, 0.3)' : '1px solid rgba(46, 160, 67, 0.3)'
+        }}>
+          {(booking.is_old || booking.isOld) ? 'Old Patient (पुराना)' : 'New Patient (नया)'}
+        </span>
       </td>
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-primary)' }}>
         {booking.doctor_name || '—'}
@@ -178,11 +192,20 @@ export default function Appointments() {
               <CheckCircle size={16} />
             </button>
           )}
-          {booking.status !== BOOKING_STATUS.CANCELLED && booking.status !== BOOKING_STATUS.COMPLETED && (
+          {booking.status === BOOKING_STATUS.CONFIRMED && (
+            <button
+              className={`${styles.actionBtn} ${styles.confirm}`}
+              onClick={() => handleStatusChange(booking.id, BOOKING_STATUS.COMPLETED)}
+              title="Mark Completed"
+            >
+              <CheckCircle size={16} />
+            </button>
+          )}
+          {booking.status !== BOOKING_STATUS.CANCELLED && (
             <button
               className={`${styles.actionBtn} ${styles.cancel}`}
               onClick={() => handleStatusChange(booking.id, BOOKING_STATUS.CANCELLED)}
-              title="Cancel"
+              title="Cancel Booking"
             >
               <XCircle size={16} />
             </button>
@@ -193,22 +216,26 @@ export default function Appointments() {
   )
 
   const handleExportCSV = () => {
-    if (!bookings.length) return toast.error('No bookings to export')
-    const headers = ['Booking ID,UHID,Patient Name,Mobile,Doctor,Service,Date,Token,Status,Created By\n']
-    const rows = bookings.map((b) => [
-      b.booking_id,
-      b.uhid || '',
-      `"${b.patient_name}"`,
-      b.mobile,
-      `"${b.doctor_name}"`,
-      `"${b.service_name}"`,
-      b.date,
-      b.token_number || '',
-      b.status,
-      b.created_by || 'WhatsApp Bot',
-    ].join(','))
-    const blob = new Blob([headers.concat(rows.join('\n'))], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
+    const headers = ['Booking ID', 'Patient Name', 'Mobile', 'Doctor', 'Service', 'Date', 'Status', 'Patient Type']
+    const csvRows = [headers.join(',')]
+
+    bookings.forEach((b) => {
+      csvRows.push(
+        [
+          `"${b.booking_id}"`,
+          `"${b.patient_name}"`,
+          `"${b.mobile}"`,
+          `"${b.doctor_name || ''}"`,
+          `"${b.service_name || ''}"`,
+          `"${b.date ? new Date(b.date).toLocaleDateString() : ''}"`,
+          `"${b.status}"`,
+          `"${(b.is_old || b.isOld) ? 'Old Patient' : 'New Patient'}"`,
+        ].join(',')
+      )
+    })
+
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
     a.download = `bookings-${new Date().toISOString().slice(0, 10)}.csv`
@@ -227,10 +254,21 @@ export default function Appointments() {
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
           <span className={styles.statLabel}>
-            Total Bookings · {dateFilter ? formatDate(dateFilter) : 'All dates'}
-            {dateFilter === getTodayStr() ? ' (Today)' : ''}
+            Total Bookings {dateFilter === getTodayStr() ? ' (Today)' : ''}
           </span>
           <span className={styles.statValue}>{bookingsData?.summary?.totalBookings ?? bookingsData?.total ?? 0}</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Old Patients (पुराना)</span>
+          <span className={styles.statValue} style={{ color: '#58a6ff' }}>
+            {bookingsData?.summary?.oldPatientCount ?? 0}
+          </span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>New Patients (नया)</span>
+          <span className={styles.statValue} style={{ color: '#3fb950' }}>
+            {bookingsData?.summary?.newPatientCount ?? 0}
+          </span>
         </div>
         <div className={`${styles.statCard} ${styles.statConfirmed}`}>
           <span className={styles.statLabel}>Total Confirmed</span>
@@ -330,6 +368,19 @@ export default function Appointments() {
             <option value="confirmed">Confirmed</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
+          </select>
+          <select
+            className={styles.select}
+            value={patientTypeFilter}
+            onChange={(e) => {
+              setPatientTypeFilter(e.target.value)
+              setPage(1)
+            }}
+            id="patient-type-filter"
+          >
+            <option value="">All Patient Types</option>
+            <option value="true">Old Patient (पुराना मरीज)</option>
+            <option value="false">New Patient (नया मरीज)</option>
           </select>
           {!isDoctor && (
             <select

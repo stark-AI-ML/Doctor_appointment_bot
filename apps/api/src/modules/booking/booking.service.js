@@ -19,6 +19,7 @@ class BookingService {
     search,
     type,
     date,
+    isOld,
     startDate,
     endDate,
     sortBy = 'preferredDate',
@@ -33,6 +34,13 @@ class BookingService {
     if (status) andConditions.push({ status });
     if (doctor_id) andConditions.push({ doctorId: doctor_id });
     if (type) andConditions.push({ type });
+
+    if (isOld !== undefined && isOld !== null && isOld !== '') {
+      const targetIsOld = isOld === 'true' || isOld === true;
+      const matchedPatients = await patientRepo.search('', { isOld: targetIsOld });
+      const matchedPatientIds = matchedPatients.map((p) => p._id);
+      andConditions.push({ patientId: { $in: matchedPatientIds } });
+    }
 
     // ── Date-wise filter is ALWAYS on preferredDate (visit date), never createdAt ──
     if (date) {
